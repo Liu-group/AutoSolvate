@@ -102,6 +102,8 @@ class solventBoxBuilder():
         f.write("loadamberparams solute.frcmod\n")
         f.write("mol=loadmol2 solute.mol2\n")
         f.write("check mol\n")
+        f.write("solvatebox mol TIP3PBOX " + str(self.waterbox_size) + " iso 0.8  #Solvate the complex with a cubic water box\n")
+	# Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
         if self.slu_netcharge != 0:
             if self.slu_netcharge > 0:
                 ion = 'Cl-'
@@ -109,7 +111,7 @@ class solventBoxBuilder():
                 ion = 'Na+'
             f.write("addIons2 mol " + ion + " 0\n")
             f.write("check mol\n")
-        f.write("solvatebox mol TIP3PBOX " + str(self.waterbox_size) + " iso 0.8  #Solvate the complex with a cubic water box\n")
+        f.write("check mol\n")
         f.write("savepdb mol solute_waterbox.pdb\n")
         f.write("saveamberparm mol solute_waterbox.prmtop solute_waterbox.inpcrd\n")
         f.write("quit\n")
@@ -208,9 +210,12 @@ class solventBoxBuilder():
             cmd ="tleap -s -f leap_packmol_solvated.cmd > leap_packmol_solvated.log"
             subprocess.call(cmd, shell=True)
 
+    def build(self):
+        self.getSolutePDB()
+        self.getFrcmod()
+        self.createLib()
+        self.createAmberParm()
+
 if __name__ == '__main__':
     builder = solventBoxBuilder('coumarin7oh_min.xyz', 'acetonitrile', slu_netcharge=1, slu_spinmult=2)
-    builder.getSolutePDB()
-    builder.getFrcmod()
-    builder.createLib()
-    builder.createAmberParm()
+    builder.build()
