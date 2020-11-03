@@ -1,5 +1,6 @@
-name: test
+name: autosolvate
 channels:
+  - openbabel
 dependencies:
     # Base depends
   - python
@@ -9,6 +10,9 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
+    
+    # Openbabel
+  - openbabel=2.4.1
 
     # Pip-only installs
   #- pip:
