@@ -41,33 +41,35 @@ class solventBoxBuilder():
             
     def getFrcmod(self):
         print("Generate frcmod file for the solute")
-        print("First generate the gaussian input file")
-        cmd1 ="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o gcrt.com -fo gcrt -gv 1 -ge solute.gesp  -s 2 -nc "+str(self.slu_netcharge2) + " -m " + str(self.slu_spinmult)
-        if self.srun_use:
-            cmd1='srun -n 1 '+cmd1
-        print(cmd1)
-        subprocess.call(cmd1, shell=True)
-        print("Then run Gaussian...")
-        basedir=os.getcwd()
-        if not os.path.isdir('tmp_gaussian'):
-            os.mkdir('tmp_gaussian')
-        cmd21="export GAUSS_EXEDIR=/opt/packages/gaussian/g16RevC.01/g16/; export GAUSS_SCRDIR="+basedir+"/tmp_gaussian; " #$PROJECT/TMP_GAUSSIAN;" #/expanse/lustre/projects/mit181/eh22/TMP_GAUSSIAN/;" #/scratch/$USER/$SLURM_JOBID ;"
-        cmd22 = "g16 < gcrt.com > gcrt.out"
-        if self.srun_use:
-            cmd22='srun -n 1 '+cmd22
-        cmd2=cmd21+cmd22
-        print(cmd2)
-        subprocess.call(cmd2, shell=True)
-        if not os.path.isfile('solute.gesp'):
-            print("gaussian failed to generate solute.gesp")
-            sys.stdout.flush()
-            sys.exit()
-        print("Gaussian ESP calculation done")
+        if self.charge_method == "gaussian":
+            print("First generate the gaussian input file")
+            cmd1 ="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o gcrt.com -fo gcrt -gv 1 -ge solute.gesp  -s 2 -nc "+str(self.slu_netcharge2) + " -m " + str(self.slu_spinmult)
+            if self.srun_use:
+                cmd1='srun -n 1 '+cmd1
+            print(cmd1)
+            subprocess.call(cmd1, shell=True)
+            print("Then run Gaussian...")
+            basedir=os.getcwd()
+            if not os.path.isdir('tmp_gaussian'):
+                os.mkdir('tmp_gaussian')
+            cmd21="export GAUSS_EXEDIR=/opt/packages/gaussian/g16RevC.01/g16/; export GAUSS_SCRDIR="+basedir+"/tmp_gaussian; "
+            #$PROJECT/TMP_GAUSSIAN;" #/expanse/lustre/projects/mit181/eh22/TMP_GAUSSIAN/;" #/scratch/$USER/$SLURM_JOBID ;"
+            cmd22 = "g16 < gcrt.com > gcrt.out"
+            if self.srun_use:
+                cmd22='srun -n 1 '+cmd22
+            cmd2=cmd21+cmd22
+            print(cmd2)
+            subprocess.call(cmd2, shell=True)
+            if not os.path.isfile('solute.gesp'):
+                print("gaussian failed to generate solute.gesp")
+                sys.stdout.flush()
+                sys.exit()
+            print("Gaussian ESP calculation done")
         print("Then write out mol2")
         if self.charge_method == "gaussian":
             cmd3="$AMBERHOME/bin/antechamber -i solute.gesp -fi gesp -o solute.mol2 -fo mol2 -c resp -eq 2 -rn SLU"
         elif self.charge_method == "amber":
-            cmd3="$AMBERHOME/bin/antechamber -i solute.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
+            cmd3="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
         if self.srun_use:
                  cmd3='srun -n 1 '+cmd3
         subprocess.call(cmd3, shell=True)
