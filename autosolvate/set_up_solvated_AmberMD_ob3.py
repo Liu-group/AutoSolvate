@@ -256,6 +256,7 @@ class solventBoxBuilder():
         self.getFrcmod()
         self.createLib()
         self.createAmberParm()
+        print("The script has finished successfully")
 
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
