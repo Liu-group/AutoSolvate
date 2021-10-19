@@ -4,10 +4,10 @@ from openbabel import openbabel as ob
 import subprocess
 
 
-amber_solv_dict = {'water': ['source leaprc.water.tip3p\n','TIP3PBOX '],
-                   'methanol': ['loadOff meohbox.off\n', 'MEOHBOX '],
-                   'chloroform': ['loadOff chcl3box.off\n', 'CHCL3BOX '],
-                   'N-methylacetamide': ['loadOff nmabox.off\n', 'NMABOX ']}
+amber_solv_dict = {'water': [' ','TIP3PBOX '],
+                   'methanol': ['loadOff solvents.lib\n loadamberparams frcmod.meoh\n', 'MEOHBOX '],
+                   'chloroform': ['loadOff solvents.lib\n loadamberparams frcmod.chcl3\n', 'CHCL3BOX '],
+                   'nma': ['loadOff solvents.lib\n loadamberparams frcmod.nma\n', 'NMABOX ']}
 
 class solventBoxBuilder():
     def __init__(self, xyzfile, solvent='water', slu_netcharge=0, slu_netcharge2=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='ch3cn_solvated', srun_use=False):
@@ -125,7 +125,7 @@ class solventBoxBuilder():
         self.writeTleapcmd1()
         cmd ="tleap -s -f leap.cmd > leap_savelib.log"
         if self.srun_use:
-                        cmd='srun -n 1 '+cmd
+            cmd='srun -n 1 '+cmd
         subprocess.call(cmd, shell=True)
         if not os.path.isfile('solute.pdb'):
             print("gaussian failed to generate solute.pdb") 
@@ -133,19 +133,19 @@ class solventBoxBuilder():
             sys.exit()
 
 
-    def writeTleapcmd_add_water(self):
+    def writeTleapcmd_add_solvent(self):
         if self.solvent in amber_solv_dict:
-            print("Now add water  box to the solute")
+            print("Now add pre-equlibrated solvent box to the solute")
             self.getHeadTail()
             f = open("leap_add_solventbox.cmd","w")
             f.write("source leaprc.protein.ff14SB\n")
             f.write("source leaprc.gaff\n")
+            f.write("source leaprc.water.tip3p\n")
             f.write(str(amber_solv_dict[str(self.solvent)][0]))        
             f.write("loadamberparams solute.frcmod\n")
             f.write("mol=loadmol2 solute.mol2\n")
             f.write("check mol\n")
-            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic water box\n")
-            
+            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic water box\n") 
             # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
             if self.slu_netcharge != 0:
                 if self.slu_netcharge > 0:
@@ -245,8 +245,8 @@ class solventBoxBuilder():
 
     def createAmberParm(self):
         print("Generate Amber parameters for the solvated system")
-        if self.solvent == 'water':
-            self.writeTleapcmd_add_water()
+        if self.solvent in amber_solv_dict:
+            self.writeTleapcmd_add_solvent()
             cmd ="tleap -s -f leap_add_solventbox.cmd > leap_add_solventbox.log"
             if self.srun_use:
                             cmd='srun -n 1 '+cmd
