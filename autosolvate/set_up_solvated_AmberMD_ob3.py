@@ -65,6 +65,13 @@ class solventBoxBuilder():
                 sys.stdout.flush()
                 sys.exit()
             print("Gaussian ESP calculation done")
+        if self.charge_method == "amber":
+            cmda ="sed -i '/CONECT/d' solute.xyz.pdb"
+            print("cleaning up solute.xyz.pdb")
+            print(cmda)
+            if self.srun_use:
+                    cmda='srun -n 1 '+cmda
+            subprocess.call(cmda, shell=True)
         print("Then write out mol2")
         if self.charge_method == "gaussian":
             cmd3="$AMBERHOME/bin/antechamber -i solute.gesp -fi gesp -o solute.mol2 -fo mol2 -c resp -eq 2 -rn SLU"
