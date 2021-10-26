@@ -3,8 +3,14 @@ import getopt, sys, os
 from openbabel import openbabel as ob
 import subprocess
 
+
+amber_solv_dict = {'water': [' ','TIP3PBOX '],
+                   'methanol': ['loadOff solvents.lib\n loadamberparams frcmod.meoh\n', 'MEOHBOX '],
+                   'chloroform': ['loadOff solvents.lib\n loadamberparams frcmod.chcl3\n', 'CHCL3BOX '],
+                   'nma': ['loadOff solvents.lib\n loadamberparams frcmod.nma\n', 'NMABOX ']}
+
 class solventBoxBuilder():
-    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, slu_netcharge2=0, charge_method="gaussian", slu_spinmult=1, outputFile='ch3cn_solvated', srun_use=False):
+    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, slu_netcharge2=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='ch3cn_solvated', srun_use=False):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
@@ -15,7 +21,7 @@ class solventBoxBuilder():
         self.tolerance=2
         self.waterbox_size = 8.0
         # following are for custom organic solvent
-        self.cube_size = 54 #26 # in angstrom
+        self.cube_size = cube_size # in angstrom
         self.slu_pos = self.cube_size/2.0
         self.slv_count = 210*8 # 210
         self.pbcbox_size = self.cube_size+2
@@ -126,7 +132,7 @@ class solventBoxBuilder():
         self.writeTleapcmd1()
         cmd ="tleap -s -f leap.cmd > leap_savelib.log"
         if self.srun_use:
-                        cmd='srun -n 1 '+cmd
+            cmd='srun -n 1 '+cmd
         subprocess.call(cmd, shell=True)
         if not os.path.isfile('solute.pdb'):
             print("gaussian failed to generate solute.pdb") 
@@ -134,30 +140,32 @@ class solventBoxBuilder():
             sys.exit()
 
 
-    def writeTleapcmd_add_water(self):
-        print("Now add water  box to the solute")
-        self.getHeadTail()
-        f = open("leap_add_solventbox.cmd","w")
-        f.write("source leaprc.protein.ff14SB\n")
-        f.write("source leaprc.gaff\n")
-        f.write("source leaprc.water.tip3p\n")
-        f.write("loadamberparams solute.frcmod\n")
-        f.write("mol=loadmol2 solute.mol2\n")
-        f.write("check mol\n")
-        f.write("solvatebox mol TIP3PBOX " + str(self.waterbox_size) + " iso 0.8  #Solvate the complex with a cubic water box\n")
-	# Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
-        if self.slu_netcharge != 0:
-            if self.slu_netcharge > 0:
-                ion = 'Cl-'
-            else:
-                ion = 'Na+'
-            f.write("addIons2 mol " + ion + " 0\n")
+    def writeTleapcmd_add_solvent(self):
+        if self.solvent in amber_solv_dict:
+            print("Now add pre-equlibrated solvent box to the solute")
+            self.getHeadTail()
+            f = open("leap_add_solventbox.cmd","w")
+            f.write("source leaprc.protein.ff14SB\n")
+            f.write("source leaprc.gaff\n")
+            f.write("source leaprc.water.tip3p\n")
+            f.write(str(amber_solv_dict[str(self.solvent)][0]))        
+            f.write("loadamberparams solute.frcmod\n")
+            f.write("mol=loadmol2 solute.mol2\n")
             f.write("check mol\n")
-        f.write("check mol\n")
-        f.write("savepdb mol solute_waterbox.pdb\n")
-        f.write("saveamberparm mol solute_waterbox.prmtop solute_waterbox.inpcrd\n")
-        f.write("quit\n")
-        f.close()
+            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic water box\n") 
+            # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
+            if self.slu_netcharge != 0:
+                if self.slu_netcharge > 0:
+                    ion = 'Cl-'
+                else:
+                    ion = 'Na+'
+                f.write("addIons2 mol " + ion + " 0\n")
+                f.write("check mol\n")
+            f.write("check mol\n")
+            f.write("savepdb mol " + str(self.outputFile) + ".pdb\n")
+            f.write("saveamberparm mol " + str(self.outputFile) + ".prmtop " + str(self.outputFile) + ".inpcrd\n")
+            f.write("quit\n")
+            f.close()
 
 
     def processPackmolPDB(self):
@@ -244,8 +252,8 @@ class solventBoxBuilder():
 
     def createAmberParm(self):
         print("Generate Amber parameters for the solvated system")
-        if self.solvent == 'water':
-            self.writeTleapcmd_add_water()
+        if self.solvent in amber_solv_dict:
+            self.writeTleapcmd_add_solvent()
             cmd ="tleap -s -f leap_add_solventbox.cmd > leap_add_solventbox.log"
             if self.srun_use:
                             cmd='srun -n 1 '+cmd
@@ -268,7 +276,7 @@ class solventBoxBuilder():
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
     print(argumentList)
-    options = "m:s:o:c:k:g:u:r"
+    options = "m:s:o:c:k:b:g:u:r"
     long_options = ["Main", "solvent", "Output"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solvent='acetonitrile'
@@ -293,6 +301,9 @@ if __name__ == '__main__':
         elif currentArgument in ("-k", "-charge2"):
             print ("Charge2:", currentValue)
             slu_netcharge2=int(currentValue)
+        elif currentArgument in ("-b", "-cubesize"):
+            print ("Cubesize:", currentValue)
+            cube_size=int(currentValue)
         elif currentArgument in ("-g", "-chargemethod"):
             print ("Chargemethod:", currentValue)
             charge_method=str(currentValue)
@@ -304,5 +315,5 @@ if __name__ == '__main__':
             srun_use=True
 
      
-    builder = solventBoxBuilder(solute, solvent, slu_netcharge, slu_netcharge2, charge_method, slu_spinmult, outputFile, srun_use=srun_use)
+    builder = solventBoxBuilder(solute, solvent, slu_netcharge, slu_netcharge2, cube_size, charge_method, slu_spinmult, outputFile, srun_use=srun_use)
     builder.build()
