@@ -303,7 +303,7 @@ if __name__ == '__main__':
             slu_netcharge2=int(currentValue)
         elif currentArgument in ("-b", "-cubesize"):
             print ("Cubesize:", currentValue)
-            cube_size=int(currentValue)
+            cube_size=float(currentValue)
         elif currentArgument in ("-g", "-chargemethod"):
             print ("Chargemethod:", currentValue)
             charge_method=str(currentValue)
