@@ -374,9 +374,26 @@ class autosolvateGUI():
         self.master = master
         self.padx = 30
         master.title("Welcome to AutoSolvate!")
-        master.geometry('400x80')
+        master.geometry('360x180')
+
+        # Display logo
+        path = "images/logo.png"
+
+        #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
+        img = Image.open(path)
+        zoom = 300/img.size[0]
+        #multiple image size by zoom
+        pixels_x, pixels_y = tuple([int(zoom * x)  for x in img.size])
+        scaled_img = ImageTk.PhotoImage(img.resize((pixels_x, pixels_y)))
+
+        #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
+        self.logo = Label(self.master, image = scaled_img)
+        self.logo.image = scaled_img
+        self.logo.grid(column=0, row=0, columnspan=6, sticky=W+E, padx=self.padx)
+
+
         self.lbl00 = Label(master, text="Please select the task",width=20)
-        self.lbl00.grid(column=0, row=0,  sticky=W+E, padx=self.padx)
+        self.lbl00.grid(column=0, row=1,  sticky=W+E, padx=self.padx)
         self.lbl00.configure(anchor="center")
 
         # Adding combobox drop down list 
@@ -385,7 +402,7 @@ class autosolvateGUI():
         self.task_chosen['values'] = ('Solvated box and MD parameter generation',
                                      'Microsolvated cluster extraction') 
         self.task_chosen.current(0)
-        self.task_chosen.grid(column=0, row=1,  sticky=W+E, padx=self.padx)
+        self.task_chosen.grid(column=0, row=2,  sticky=W+E, padx=self.padx)
 
         # Create new window to do the task
         def create_task_window():
@@ -397,7 +414,7 @@ class autosolvateGUI():
                 my_gui = clusterGUI(self.master3)
         
         self.btn02 = Button(master, text="Go!", command=create_task_window, width=20)
-        self.btn02.grid(column=0, row=2,  sticky=W+E, padx=self.padx)
+        self.btn02.grid(column=0, row=3,  sticky=W+E, padx=self.padx)
 
 # This part does not need to be modified
 if __name__ == '__main__':
