@@ -1,8 +1,10 @@
+import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
 from tkinter import simpledialog
 from tkinter import messagebox
 from tkinter.ttk import *
+from PIL import ImageTk, Image
 import nglview
 import glob
 import os
@@ -48,17 +50,29 @@ class boxgenGUI():
         self.full_enumeration = False
         self.cube_size_max = 100
 
+
+        # Display logo
+        path = "images/logo.png"
+
+        #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
+        img = ImageTk.PhotoImage(Image.open(path))
+
+        #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
+        self.logo = Label(self.master, image = img)
+        self.logo.image = img
+        self.logo.grid(column=0, row=0, columnspan=6, sticky=W+E)
+
         self.lbl00 = Label(self.master, text="Enter solute xyz file path", width=colwidth[0])
-        self.lbl00.grid(column=0, row=0)
+        self.lbl00.grid(column=0, row=1)
         
         self.txt01 = Entry(self.master, width=colwidth[3])
-        self.txt01.grid(column=1, row=0, columnspan=3, sticky=W+E)
+        self.txt01.grid(column=1, row=1, columnspan=3, sticky=W+E)
         
         self.lbl10 = Label(self.master, text="Current solute xyz file path:", width=colwidth[0])
-        self.lbl10.grid(column=0, row=1)
+        self.lbl10.grid(column=0, row=2)
         
         self.lbl11 = Label(self.master, text="Waiting...", width=colwidth[4])
-        self.lbl11.grid(column=1, row=1, columnspan=6, sticky=W+E)
+        self.lbl11.grid(column=1, row=2, columnspan=6, sticky=W+E)
         
         self.xyzfile = StringVar()
         self.txt_torsion = []
@@ -82,46 +96,33 @@ class boxgenGUI():
         
         
         self.btn02 = Button(self.master, text="Set solute xyz", command=set_xyz, width=colwidth[3])
-        self.btn02.grid(column=4, row=0,columnspan=3,sticky=W+E)
+        self.btn02.grid(column=4, row=1,columnspan=3,sticky=W+E)
         
         # Second set of buttons: enter select the way to view the molecule
         self.lbl20 = Label(self.master, text="Select visualization method", width=colwidth[0])
-        self.lbl20.grid(column=0, row=2)
+        self.lbl20.grid(column=0, row=3)
         
         # Adding combobox drop down list 
         self.n = StringVar()
-        self.molecule_chosen = Combobox(self.master, textvariable=self.n, width=colwidth[3])
-        self.molecule_chosen['values'] = ('imolecule',
+        self.view_chosen = Combobox(self.master, textvariable=self.n, width=colwidth[3])
+        self.view_chosen['values'] = ('imolecule',
                                      'nglview',)
         
-        self.molecule_chosen.current(0)
-        self.molecule_chosen.grid(column=1, row=2,columnspan=3,sticky=W+E)
+        self.view_chosen.current(0)
+        self.view_chosen.grid(column=1, row=3,columnspan=3,sticky=W+E)
         
         
         def view_xyz():
-            if self.molecule_chosen.get() == 'imolecule':
+            if self.view_chosen.get() == 'imolecule':
                 view_w_imol(self.xyzfile.get())
             else:
                 view_w_ngl(self.xyzfile.get())
         
         
         self.btn22 = Button(self.master, text="View", command=view_xyz, width=colwidth[3])
-        self.btn22.grid(column=4, row=2,columnspan=3,sticky=W+E)
+        self.btn22.grid(column=4, row=3,columnspan=3,sticky=W+E)
         
-        # Add the radio button to control whether to run autosolvate with srun
-        # TODO (will adjust the location of this option)
-        self.srunuse = BooleanVar()
-        
-        self.lbl03 = Label(self.master, text="Use srun:", width=colwidth[0])
-        self.lbl03.grid(column=0, row=3)
-        
-        self.rad30 = Radiobutton(self.master, text='Yes', value=True, variable=self.srunuse, width=colwidth[3])
-        self.rad30.grid(column=1, row=3)
-        
-        self.rad31 = Radiobutton(self.master, text='No', value=False, variable=self.srunuse)
-        self.rad31.grid(column=2, row=3)
-        
-        self.srunuse.set(False)
+        # Add the radio button to control whether to get verbose output
         
         # Verbose output
         self.verbose = BooleanVar()
