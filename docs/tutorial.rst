@@ -4,12 +4,15 @@ Tutorial
 Following code walkthrough illustrates the usage of Autosolvate.
 
 Step 1: Solvate system
-
-.. code:: bash
+-------------------------------------------
+Bash commands::
 
 >>> python autosolvate.py -m solute.xyz -s water
 
 
-Step 2: Equilibrate and generate QM/MM trajectory:: 
+Step 2: Equilibrate and generate QM/MM trajectory:
+-----------------------------------------------------
+
+Bash commands::
 
 >>> python generatetrajs.py

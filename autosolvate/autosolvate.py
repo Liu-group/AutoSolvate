@@ -16,19 +16,19 @@ class solventBoxBuilder():
     Parameters
     ----------
     solvent : str, Optional, default: 'water'
-        Currently implemented solvents are 'water', 'methanol', 'chloroform', 'nma', 'MeCN'
+        Currently implemented solvents are: 'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'
     slu_netcharge: int, Optional, default 0
-        Charge of solute, the solvent box will be neutralized with Cl- and Na+ ions.
+        Charge of solute, the solvent box will be neutralized with Cl- and Na+ ions
     cube_size: float, Optional, default: 54
         Size of MM solvent box
     charge_method: str, Optional, default: "gaussian"
         Use 'gaussian' or 'amber' to estimate partial charges
     slu_spinmult: int, Optional, default: 1
-        Spinmultiplicity of solute.
+        Spinmultiplicity of solute
     outputFile: str, Optional, default='water_solvated'
         Filename-prefix for outputfiles
     srun_use: bool, Optional, default='False
-        Run all commands with a srun prefix.
+        Run all commands with a srun prefix
     Returns
     -------
     None

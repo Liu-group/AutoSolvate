@@ -29,7 +29,7 @@ For the generation of QM/MM following packages are supported:
 #. `TeraChem <http://www.petachem.com/products.html>`_
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    installation
