@@ -308,7 +308,7 @@ class boxgenGUI():
             return boxgen_error
 
         def write_boxgen_input():
-            cmd = "python " + os.path.join(this_dir,"../set_up_solvated_AmberMD_ob3.py")
+            cmd = "python " + os.path.join(this_dir,"../autosolvate.py")
         
             if self.xyzfile.get() != "":
                cmd += " -m " + self.xyzfile.get()

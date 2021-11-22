@@ -12,20 +12,33 @@ amber_solv_dict = {'water': [' ','TIP3PBOX '],
 class solventBoxBuilder():
     r"""
     Solvated molecule in specified solvent.
+    
     Parameters
     ----------
-    with_attribution : bool, Optional, default: True
-        Set whether or not to display who the quote is from
+    solvent : str, Optional, default: 'water'
+        Currently implemented solvents are 'water', 'methanol', 'chloroform', 'nma', 'MeCN'
+    slu_netcharge: int, Optional, default 0
+        Charge of solute, the solvent box will be neutralized with Cl- and Na+ ions.
+    cube_size: float, Optional, default: 54
+        Size of MM solvent box
+    charge_method: str, Optional, default: "gaussian"
+        Use 'gaussian' or 'amber' to estimate partial charges
+    slu_spinmult: int, Optional, default: 1
+        Spinmultiplicity of solute.
+    outputFile: str, Optional, default='water_solvated'
+        Filename-prefix for outputfiles
+    srun_use: bool, Optional, default='False
+        Run all commands with a srun prefix.
     Returns
     -------
-    quote : str
-        Compiled string including quote and optional attribution
+    None
+        To run solvation, call build function.
 
     
     """
 
 
-    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, slu_netcharge2=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='ch3cn_solvated', srun_use=False):
+    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, slu_netcharge2=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='water_solvated', srun_use=False):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
@@ -46,8 +59,7 @@ class solventBoxBuilder():
 
     def getSolutePDB(self):
         r"""
-        
-        Placeholder2 function to show example docstring (NumPy format)
+        Convert xyz to pdb
         
         Parameters
         ----------
@@ -74,7 +86,15 @@ class solventBoxBuilder():
             
     def getFrcmod(self):
         r"""
-        Test
+        Get partial charges and create frcmod
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         """
         print("Generate frcmod file for the solute")
         if self.charge_method == "gaussian":
@@ -123,6 +143,17 @@ class solventBoxBuilder():
         subprocess.call(cmd4, shell=True)
 
     def getHeadTail(self):
+        r"""
+        Detect start and end of coordinates
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         pdb = open('solute.mol2').readlines()
         start =0
         end = 0
@@ -143,6 +174,17 @@ class solventBoxBuilder():
                 break
 
     def writeTleapcmd1(self):
+        r"""
+        Create tleap input file
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         self.getHeadTail()
         f = open("leap.cmd","w")
         f.write("source leaprc.protein.ff14SB\n")
@@ -158,6 +200,17 @@ class solventBoxBuilder():
         f.close()
     
     def createLib(self):
+        r"""
+        Run tleap
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         print("Now create the solute library file")
         self.writeTleapcmd1()
         cmd ="tleap -s -f leap.cmd > leap_savelib.log"
@@ -171,6 +224,17 @@ class solventBoxBuilder():
 
 
     def writeTleapcmd_add_solvent(self):
+        r"""
+        Write tleap input file to add solvent
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         if self.solvent in amber_solv_dict:
             print("Now add pre-equlibrated solvent box to the solute")
             self.getHeadTail()
@@ -199,6 +263,17 @@ class solventBoxBuilder():
 
 
     def processPackmolPDB(self):
+        r"""
+        Convert file for CH3CN
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         data=open('ch3cn_solvated.packmol.pdb').readlines()
         output=open('ch3cn_solvated.processed.pdb','w')
         this_resid = 1
@@ -213,6 +288,17 @@ class solventBoxBuilder():
         output.close()
     
     def packSLUSLV(self):
+        r"""
+        Write packmol input file
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         print("Now use packmol to pack the solute and solvent into a box")
         if self.solvent != 'acetonitrile':
             print("The type of solvent is not implemented yet")
@@ -249,6 +335,17 @@ class solventBoxBuilder():
             self.processPackmolPDB()
 
     def writeTleapcmd_ch3cn_solvated(self):
+        r"""
+        Write tleap file for CH3CN
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         f = open("leap_packmol_solvated.cmd","w")
         f.write("source leaprc.protein.ff14SB\n")
         f.write("source leaprc.gaff\n")
@@ -282,7 +379,7 @@ class solventBoxBuilder():
 
     def createAmberParm(self):
         r"""
-        Generate Amber parametrs with tleap
+        Generate Amber parameters with tleap
 
         Parameters
         ---------
