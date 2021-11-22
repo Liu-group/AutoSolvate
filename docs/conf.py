@@ -23,7 +23,7 @@ import autosolvate
 # -- Project information -----------------------------------------------------
 
 project = 'AutoSolvate'
-copyright = ("2020, Liu Group. Project structure based on the "
+copyright = ("2021, Liu Group. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.3")
 author = 'Liu Group'
 
@@ -82,7 +82,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'default'
+pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------

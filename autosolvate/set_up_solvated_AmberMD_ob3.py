@@ -10,6 +10,21 @@ amber_solv_dict = {'water': [' ','TIP3PBOX '],
                    'nma': ['loadOff solvents.lib\n loadamberparams frcmod.nma\n', 'NMABOX ']}
 
 class solventBoxBuilder():
+    r"""
+    Solvated molecule in specified solvent.
+    Parameters
+    ----------
+    with_attribution : bool, Optional, default: True
+        Set whether or not to display who the quote is from
+    Returns
+    -------
+    quote : str
+        Compiled string including quote and optional attribution
+
+    
+    """
+
+
     def __init__(self, xyzfile, solvent='water', slu_netcharge=0, slu_netcharge2=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='ch3cn_solvated', srun_use=False):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
@@ -30,6 +45,18 @@ class solventBoxBuilder():
         self.charge_method=charge_method
 
     def getSolutePDB(self):
+        r"""
+        
+        Placeholder2 function to show example docstring (NumPy format)
+        
+        Parameters
+        ----------
+        None   
+ 
+        Returns
+        -------
+        None
+        """
         print("Converting xyz to pdb")
 #        cmd = "babel " + self.xyz + " solute.pdb"
 #        subprocess.call(cmd, shell=True)
@@ -46,6 +73,9 @@ class solventBoxBuilder():
         pdb2.close()
             
     def getFrcmod(self):
+        r"""
+        Test
+        """
         print("Generate frcmod file for the solute")
         if self.charge_method == "gaussian":
             print("First generate the gaussian input file")
@@ -251,6 +281,19 @@ class solventBoxBuilder():
         f.close()
 
     def createAmberParm(self):
+        r"""
+        Generate Amber parametrs with tleap
+
+        Parameters
+        ---------
+        None
+
+        Returns
+        ---------
+        None
+            Creates files in current directory.
+
+        """
         print("Generate Amber parameters for the solvated system")
         if self.solvent in amber_solv_dict:
             self.writeTleapcmd_add_solvent()
@@ -267,6 +310,19 @@ class solventBoxBuilder():
             subprocess.call(cmd, shell=True)
 
     def build(self):
+        r"""
+        Run solventBoxBuilder
+         
+        Parameters
+        ---------
+        None
+       
+        Returns
+        ---------
+        None
+	    Creates files in current directory.
+
+        """
         self.getSolutePDB()
         self.getFrcmod()
         self.createLib()
