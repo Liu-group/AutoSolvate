@@ -5,12 +5,13 @@ AutoSolvate can be installed with pip.
 Dependencies
 -----------------
 
-Ensure you have pip and conda installed. Install dependencies openbabel and packmol:
+Ensure you have pip and conda installed. Install dependencies openbabel, packmol and Ambertools:
 
    >>> conda install -c conda-forge openbabel
    >>> conda install -c conda-forge packmol
+   >>> conda install -c conda-forge ambertools=21 compilers 
 
-Install Ambertools following as described `here <https://ambermd.org/AmberTools.php>`_.
+Alternative ways to install Ambertools is described `here <https://ambermd.org/AmberTools.php>`_.
 
 Pip install
 ----------------
