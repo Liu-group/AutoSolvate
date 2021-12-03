@@ -2,50 +2,49 @@ import getopt, sys, os
 import subprocess
 
 
-
 def writeminin():
     r"""
-    Write amber MM minimization input file 
-
+    Write Amber MM minimization input file 
+    
     Parameters
     ----------
     None
-
+    
     Returns
     -------
     None
-        Result stored min.in
+        Result stored as min.in
     """
-        f = open("min.in","w")
-        f.write("Minimize\n")
-        f.write("&cntrl\n")
-        f.write("imin=1,\n")
-        f.write("ntx=1,\n")
-        f.write("maxcyc=2000,\n")
-        f.write("ncyc=1000,\n")
-        f.write("set SLU tail SLU.1."+self.tail + "\n")
-        f.write("ntpr=100,\n")
-        f.write("ntwx=0,\n")
-        f.write("cut=8.0,\n")
-        f.write("/\n")
-        f.close()
+    f = open("min.in","w")
+    f.write("Minimize\n")
+    f.write("&cntrl\n")
+    f.write("imin=1,\n")
+    f.write("ntx=1,\n")
+    f.write("maxcyc=2000,\n")
+    f.write("ncyc=1000,\n")
+    f.write("ntpr=100,\n")
+    f.write("ntwx=0,\n")
+    f.write("cut=8.0,\n")
+    f.write("/\n")
+    f.close()
+
 
 def writeheatin(temperature=298.15, stepsheat=10000):
-    r"""
-    Write amber MM heat input file 
+        r"""
+        Write Amber MM heat input file 
 
-    Parameters
-    ----------
-    temperature : float, Optional, default: 298.15
-        temperature to heat to
-    stepsheat : int, Optional, default: 10000
-        MM steps for heating.
+        Parameters
+        ----------
+        temperature : float, Optional, default: 298.15
+            temperature to heat to
+        stepsheat : int, Optional, default: 10000
+            MM steps for heating.
 
-    Returns
-    -------
-    None
-        Result stored heat.in
-    """
+        Returns
+        -------
+        None
+            Result stored as heat.in
+        """
         f = open("heat.in","w")
         f.write("Heat\n")
         f.write("&cntrl\n")
@@ -85,7 +84,7 @@ def runMM(filename='water_solvated', srun_use=False):
     Returns
     -------
     None
-        Results stored in .netcdf files and log files
+        Results stored as .netcdf files and log files
     """
     print('MM Energy minimization')
     cmd='sander -O -i min.in -o min.out -p '+filename+'.prmtop -c '+filename+'.inpcrd -r min.ncrst'
@@ -103,23 +102,22 @@ def runMM(filename='water_solvated', srun_use=False):
       cmd='srun -n 1 '+cmd
     subprocess.call(cmd, shell=True)
 
-def writeqmmmheatin(temperature=298.15, stepsqmmmheat=1000)::
-    r"""
-    Write QMMM heating input file
+def writeqmmmheatin(temperature=298.15, stepsqmmmheat=1000):
+        r"""
+        Write QMMM heating input file
 
-    Parameters
-    ----------
-    temperature : float, Optional, default: 298.15
-        temperature to heat to
-    stepsqmmmheat : int, Optional, default: 10000
-        QMMM steps for heating.
+        Parameters
+        ----------
+        temperature : float, Optional, default: 298.15
+            temperature to heat to
+        stepsqmmmheat : int, Optional, default: 10000
+            QMMM steps for heating.
 
-
-    Returns
-    -------
-    None
-        Result stored qmmmheat.in
-    """
+        Returns
+        -------
+        None
+            Result stored qmmmheat.in
+        """
         f = open("qmmmheat.in","w")
         f.write("gpr QMMM heat\n")
         f.write(" &cntrl\n")
@@ -158,24 +156,6 @@ def writeqmmmheatin(temperature=298.15, stepsqmmmheat=1000)::
         f.write(" /\n")
         f.close()
 
-def runQMMM(filename='water_solvated', qmmmminin='qmmmmin.in', qmmmrunin='qmmmrun.in', spin_mult=1, srun_use=False):
-    r"""
-    Equilibrate and then generate trajectory with QM/MM
-
-    Parameters
-    ----------
-    None
-    
-    Returns
-    -------
-    None
-        Results stored in .netcdf files and log files
-    """
-    cmd=""
-    if self.srun_use:
-      cmd='srun -n 1 '+cmd
-    subprocess.call(cmd, shell=True)
-
 
 def runQMMM(filename='water_solvated', srun_use=False, spinmult=1):
     r"""
@@ -200,10 +180,10 @@ def runQMMM(filename='water_solvated', srun_use=False, spinmult=1):
     subprocess.call(cmd, shell=True)
     print('For higher Spin multiplicity adjust input file')
     if spinmult!=1:
-    cmd='sed -i '3 a guess        ./scr/ca0 ./scr/cb0' tc_job.tpl'
-    if self.srun_use:
-      cmd='srun -n 1 '+cmd
-    subprocess.call(cmd, shell=True)
+      cmd="sed -i '3 a guess        ./scr/ca0 ./scr/cb0' tc_job.tpl"
+      if self.srun_use:
+        cmd='srun -n 1 '+cmd
+      subprocess.call(cmd, shell=True)
     cmd='sander -O -i qmmmmin.in -o qmmmmin.out -p '+filename+'.prmtop -c qmmmmin.ncrst -r qmmmmin.ncrst  -inf qmmmmin.info -x '+filename+'-min.netcdf'
     if self.srun_use:
       cmd='srun -n 1 '+cmd
@@ -224,6 +204,7 @@ if __name__ == '__main__':
     argumentList = sys.argv[1:]
     print(argumentList)
     options = "f:t:p:h:s:u:r"
+    long_options = ["filename", "temp", "pressure", "stepsheat", "stepsmm", "stepsqmmmheat", "stepsqmmm", "spinmultiplicity", "srunuse"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     for currentArgument, currentValue in arguments:
@@ -261,5 +242,5 @@ if __name__ == '__main__':
     runMM(filename=filename, srun_use=srun_use)
     writeqmmmminin(spinmult=spinmult)
     writeqmmmheatin(temperature=temperature, stepsqmmmheat=stepsqmmmheat)
-    writeqmmmin(temperature=temperature, stepsqmmm=stepsqmmm)
+    writeqmmmrunin(temperature=temperature, stepsqmmm=stepsqmmm)
     runQMMM(filename=filename, srun_use=srun_use)

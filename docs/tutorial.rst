@@ -80,7 +80,7 @@ Bash commands::
 
 
 Step 3: Microsolvated cluster extraction
-------------------------------
+----------------------------------------------------------
 
 Bash commands::
 

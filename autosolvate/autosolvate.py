@@ -38,11 +38,10 @@ class solventBoxBuilder():
     """
 
 
-    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, slu_netcharge2=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='water_solvated', srun_use=False):
+    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='water_solvated', srun_use=False):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
-        self.slu_netcharge2 = slu_netcharge2
         self.slu_spinmult = slu_spinmult
         # currently hard coded. Can be changed later to be determined automatically based on the density of the solute
         self.solvent = solvent
@@ -430,12 +429,11 @@ if __name__ == '__main__':
     argumentList = sys.argv[1:]
     print(argumentList)
     options = "m:s:o:c:k:b:g:u:r"
-    long_options = ["Main", "solvent", "Output"]
+    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solvent='acetonitrile'
-    outputFile='ch3cn_solvated'
+    outputFile='water_solvated'
     slu_netcharge=1
-    slu_netcharge2=1
     slu_spinmult=2
     srun_use=False
     for currentArgument, currentValue in arguments:
@@ -451,9 +449,6 @@ if __name__ == '__main__':
         elif currentArgument in ("-c", "-charge"):
             print ("Charge:", currentValue)
             slu_netcharge=int(currentValue)
-        elif currentArgument in ("-k", "-charge2"):
-            print ("Charge2:", currentValue)
-            slu_netcharge2=int(currentValue)
         elif currentArgument in ("-b", "-cubesize"):
             print ("Cubesize:", currentValue)
             cube_size=float(currentValue)
@@ -468,5 +463,5 @@ if __name__ == '__main__':
             srun_use=True
 
      
-    builder = solventBoxBuilder(solute, solvent, slu_netcharge, slu_netcharge2, cube_size, charge_method, slu_spinmult, outputFile, srun_use=srun_use)
+    builder = solventBoxBuilder(solute, solvent, slu_netcharge, cube_size, charge_method, slu_spinmult, outputFile, srun_use=srun_use)
     builder.build()
