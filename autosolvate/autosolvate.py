@@ -38,7 +38,9 @@ class solventBoxBuilder():
     """
 
 
-    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, charge_method="resp", slu_spinmult=1, outputFile='water_solvated', srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None):
+    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, 
+            charge_method="resp", slu_spinmult=1, outputFile='water_solvated', 
+            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
@@ -523,5 +525,7 @@ if __name__ == '__main__':
             amberhome = currentValue
 
      
-    builder = solventBoxBuilder(solute, solvent, slu_netcharge, cube_size, charge_method, slu_spinmult, outputFile, srun_use=srun_use, gaussianexe=gaussianexe, gaussiandir=gaussiandir)
+    builder = solventBoxBuilder(solute, solvent, slu_netcharge, cube_size, charge_method, 
+                                slu_spinmult, outputFile, srun_use=srun_use, 
+                                gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome)
     builder.build()
