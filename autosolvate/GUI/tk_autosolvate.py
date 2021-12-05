@@ -177,7 +177,7 @@ class boxgenGUI():
             if mypath !="" and os.path.exists(mypath):
                     self.output_path.set(self.txt18.get())
             else:
-                answer = filedialog.askdirectory(title="No file path entered.\n Please select a file:")
+                answer = filedialog.askdirectory(title="No file path entered.\n Please select a path:")
                 self.output_path.set(answer)
                 self.txt18.delete(0,END)
                 self.txt18.insert(0,answer)
@@ -285,6 +285,64 @@ class boxgenGUI():
         self.btn212 = Button(self.master, text="Set", command=set_cubesize, width=colwidth[3])
         self.btn212.grid(column=4, row=12,columnspan=3,sticky=W+E)
         
+        # AMBERHOME path
+        self.lbl013 = Label(self.master, text="AMBERHOME directory", width=colwidth[0])
+        self.lbl013.grid(column=0, row=13)
+        
+        self.txt113 = Entry(self.master)
+        self.txt113.grid(column=1, row=13, columnspan=3, sticky=W+E)
+        
+        self.amberhome = StringVar()
+        
+        def set_amberhome():
+            mypath = self.txt113.get()
+            if mypath !="" and os.path.exists(mypath):
+                    self.amberhome.set(self.txt113.get())
+            else:
+                answer = filedialog.askdirectory(title="No file path entered.\n Please select a path:")
+                self.amberhome.set(answer)
+                self.txt113.delete(0,END)
+                self.txt113.insert(0,answer)
+            res = self.amberhome.get()
+        
+        self.btn213 = Button(self.master, text="Set", command=set_amberhome, width=colwidth[3])
+        self.btn213.grid(column=4, row=13,columnspan=3,sticky=W+E)
+
+        # Gaussian EXE
+        self.lbl014 = Label(self.master, text="Select gaussian exe", width=colwidth[0])
+        self.lbl014.grid(column=0, row=14)
+        self.n6 = StringVar()
+        self.gaussianexe = Combobox(self.master, textvariable=self.n6, width=colwidth[3])
+        self.gaussianexe['values'] = ('None',
+                                      'g09',
+                                      'g16')
+        
+        self.gaussianexe.current(0)
+        self.gaussianexe.grid(column=1, row=14,columnspan=3,sticky=W+E)
+
+        # Gaussian path
+        self.lbl015 = Label(self.master, text="Gaussian EXE directory", width=colwidth[0])
+        self.lbl015.grid(column=0, row=15)
+        
+        self.txt115 = Entry(self.master)
+        self.txt115.grid(column=1, row=15, columnspan=3, sticky=W+E)
+        
+        self.gaussiandir = StringVar()
+        
+        def set_gaussiandir():
+            mypath = self.txt115.get()
+            if mypath !="" and os.path.exists(mypath):
+                    self.gaussiandir.set(self.txt115.get())
+            else:
+                answer = filedialog.askdirectory(title="No file path entered.\n Please select a path:")
+                self.gaussiandir.set(answer)
+                self.txt115.delete(0,END)
+                self.txt115.insert(0,answer)
+            res = self.gaussiandir.get()
+        
+        self.btn215 = Button(self.master, text="Set", command=set_gaussiandir, width=colwidth[3])
+        self.btn215.grid(column=4, row=15,columnspan=3,sticky=W+E)
+
         # Sanity check to make sure that all required buttons are set
         def GUI_input_sanity_check():
             boxgen_error =0 
@@ -294,7 +352,7 @@ class boxgenGUI():
             else:
                   print("Solute molecule xyz file: ", self.xyzfile.get())
             # Check charge method based on spin multiplicity
-            if self.spin_multiplicity.get() > 1 and  self.charge_method_chose.get()!='gaussian':
+            if self.spin_multiplicity.get() > 1 and  self.charge_method_chose.get()!='resp':
                 print("{:s} charge method cannot ".format(self.charge_method_chose.get()) +
                     + "handle open-shell system with spin multiplicity"
                     + "{:d}".format(self.spin_multiplicity.get()))
@@ -304,6 +362,15 @@ class boxgenGUI():
                     + "number no bigger than {:d}".format(self.cube_size_max))
                 boxgen_error = 3 
             # TODO: add check for number of electrons and spin multiplicity
+            if self.amberhome.get()=="":
+                print("WARNING: AMBERHOME not provided from GUI.")
+            if self.charge_method_chose.get()=='resp':
+                if self.gaussianexe.get()=='None':
+                    print("WARNING: Gaussian exe file name not specified for RESP charge fitting.")
+                    print("WARNING: Will use default value with the risk to fail later.")
+                if self.gaussiandir.get()=="":
+                    print("WARNING: Gaussian exe directory not specified for RESP charge fitting.")
+                    print("WARNING: Will use default value with the risk to fail later.")
             
             return boxgen_error
 
@@ -326,6 +393,12 @@ class boxgenGUI():
                 cmd += " -b {:f}".format(self.cube_size.get())
             if self.output_prefix !="":
                 cmd += " -o {:s}".format(self.output_prefix.get())
+            if self.gaussianexe !="None":
+                cmd += " -e {:s}".format(self.gaussianexe.get())
+            if self.gaussiandir !="":
+                cmd += " -d {:s}".format(self.gaussiandir.get())
+            if self.amberhome !="":
+                cmd += " -a {:s}".format(self.amberhome.get())
             return cmd
         
         
