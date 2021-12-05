@@ -14,7 +14,11 @@ dependencies:
     # Openbabel
   - openbabel=2.4.1
 
+    # Molecule visualization
+  - nglview
+
     # Pip-only installs
-  #- pip:
+  - pip:
+    - imolecule
   #  - codecov
 
