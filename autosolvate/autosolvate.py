@@ -38,7 +38,7 @@ class solventBoxBuilder():
     """
 
 
-    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, charge_method="resp", slu_spinmult=1, outputFile='water_solvated', srun_use=False):
+    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, charge_method="resp", slu_spinmult=1, outputFile='water_solvated', srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
@@ -55,6 +55,56 @@ class solventBoxBuilder():
         self.outputFile=outputFile
         self.srun_use=srun_use
         self.charge_method=charge_method
+        self.gaussian_dir = gaussianexe
+        self.gaussian_exe = gaussiandir
+        self.amberhome = amberhome
+        self.inputCheck()
+
+    def inputCheck(self):
+        if self.slu_spinmult > 1:
+            if charge_method != "resp":
+                print("Error: solute spin multiplicity: ", self.slu_spinmult, " charge method: ", charge_method)
+                print("Error: atomic charge fitting for open-shell system only works for resp charge method")
+                print("Error: exiting...")
+                exit(1)
+        if self.charge_method == "resp":
+            if self.gaussian_exe == None:
+                print("WARNING: Gaussian executable name is not specified for RESP charge fitting!")
+                print("WARNING: Using g16 by default. If failed later, please rerun with the option -e specified!")
+                self.gaussian_exe = 'g16'
+            if self.gaussian_dir == None:
+                print("WARNING: Gaussian executable directory is not specified for RESP charge fitting!")
+                print("WARNING: Setting to default path: /opt/packages/gaussian/g16RevC.01/g16/")
+                print("WARNING: If failed later, please rerun with the option -d specified!")
+                self.gaussian_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
+        if self.amberhome == None:
+            print("WARNING: Amber home directory is not specified in input options")
+            print("WARNING: Checking AMBERHOME environment virable...")
+            cmd = ["echo", "$AMBERHOME"]
+            print(cmd)
+            proc=subprocess.Popen(cmd,
+                           universal_newlines=True,
+                           stdout=subprocess.PIPE)
+            output=proc.communicate()[0]
+            if len(output)<2:
+                print("ERROR: AMBERHOME not defined")
+                print("ERROR: Please set up AMBERHOME environment or specify through command line option -a")
+                print("ERROR: Exiting...")
+            else:
+                print("WARNING: AMBERHOME detected: ", output)
+                self.amberhome = output
+        else:
+            print("AMBERHOME path provided from input: ", self.amberhome)
+            print("Validating path...")
+            if not os.path.isdir(self.amberhome):
+                print("ERROR: provided AMBERHOME path does not exist! Exiting...")
+
+            print("Exporting AMBERHOME environment variable:")
+            cmd = "export AMBERHOME=" + self.amberhome
+            print(cmd)
+            subprocess.call(cmd1, shell=True)
+            print("AMBERHOME environment variable export finished.")
+
 
     def getSolutePDB(self):
         r"""
@@ -107,9 +157,10 @@ class solventBoxBuilder():
             basedir=os.getcwd()
             if not os.path.isdir('tmp_gaussian'):
                 os.mkdir('tmp_gaussian')
-            cmd21="export GAUSS_EXEDIR=/opt/packages/gaussian/g16RevC.01/g16/; export GAUSS_SCRDIR="+basedir+"/tmp_gaussian; "
+
+            cmd21="export GAUSS_EXEDIR=" + self.gaussian_dir + "; export GAUSS_SCRDIR="+basedir+"/tmp_gaussian; "
             #$PROJECT/TMP_GAUSSIAN;" #/expanse/lustre/projects/mit181/eh22/TMP_GAUSSIAN/;" #/scratch/$USER/$SLURM_JOBID ;"
-            cmd22 = "g16 < gcrt.com > gcrt.out"
+            cmd22 = self.gaussian_exe + " < gcrt.com > gcrt.out"
             if self.srun_use:
                 cmd22='srun -n 1 '+cmd22
             cmd2=cmd21+cmd22
@@ -428,8 +479,8 @@ class solventBoxBuilder():
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
     print(argumentList)
-    options = "m:s:o:c:k:b:g:u:r"
-    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse"]
+    options = "m:s:o:c:k:b:g:u:r:e:d:a"
+    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solvent='acetonitrile'
     outputFile='water_solvated'
@@ -461,7 +512,16 @@ if __name__ == '__main__':
         elif currentArgument in ("-r", "-srunuse"):
             print("usign srun")
             srun_use=True
+        elif currentArgument in ("-e","gaussianexe"):
+            print("Gaussian executable name:", currentValue)
+            gaussianexe = currentValue
+        elif currentArgument in ("-d","gaussiandir"):
+            print("Gaussian package directory:", currentValue)
+            gaussiandir = currentValue
+        elif currentArgument in ("-a","amberhome"):
+            print("Amber home directory:", currentValue)
+            amberhome = currentValue
 
      
-    builder = solventBoxBuilder(solute, solvent, slu_netcharge, cube_size, charge_method, slu_spinmult, outputFile, srun_use=srun_use)
+    builder = solventBoxBuilder(solute, solvent, slu_netcharge, cube_size, charge_method, slu_spinmult, outputFile, srun_use=srun_use, gaussianexe=gaussianexe, gaussiandir=gaussiandir)
     builder.build()
