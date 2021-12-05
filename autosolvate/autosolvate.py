@@ -21,8 +21,8 @@ class solventBoxBuilder():
         Charge of solute, the solvent box will be neutralized with Cl- and Na+ ions
     cube_size: float, Optional, default: 54
         Size of MM solvent box
-    charge_method: str, Optional, default: "gaussian"
-        Use 'gaussian' or 'amber' to estimate partial charges
+    charge_method: str, Optional, default: "resp"
+        Use 'resp' (quantum mechanical calculation needed) or 'bcc' to estimate partial charges
     slu_spinmult: int, Optional, default: 1
         Spinmultiplicity of solute
     outputFile: str, Optional, default='water_solvated'
@@ -38,7 +38,7 @@ class solventBoxBuilder():
     """
 
 
-    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, charge_method="gaussian", slu_spinmult=1, outputFile='water_solvated', srun_use=False):
+    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, charge_method="resp", slu_spinmult=1, outputFile='water_solvated', srun_use=False):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
@@ -96,8 +96,8 @@ class solventBoxBuilder():
         None
         """
         print("Generate frcmod file for the solute")
-        if self.charge_method == "gaussian":
-            print("First generate the gaussian input file")
+        if self.charge_method == "resp":
+            print("First generate the gaussian input file for RESP charge fitting")
             cmd1 ="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o gcrt.com -fo gcrt -gv 1 -ge solute.gesp  -s 2 -nc "+str(self.slu_netcharge2) + " -m " + str(self.slu_spinmult)
             if self.srun_use:
                 cmd1='srun -n 1 '+cmd1
@@ -120,7 +120,7 @@ class solventBoxBuilder():
                 sys.stdout.flush()
                 sys.exit()
             print("Gaussian ESP calculation done")
-        if self.charge_method == "amber":
+        if self.charge_method == "bcc":
             cmda ="sed -i '/CONECT/d' solute.xyz.pdb"
             print("cleaning up solute.xyz.pdb")
             print(cmda)
@@ -128,9 +128,9 @@ class solventBoxBuilder():
                     cmda='srun -n 1 '+cmda
             subprocess.call(cmda, shell=True)
         print("Then write out mol2")
-        if self.charge_method == "gaussian":
+        if self.charge_method == "resp":
             cmd3="$AMBERHOME/bin/antechamber -i solute.gesp -fi gesp -o solute.mol2 -fo mol2 -c resp -eq 2 -rn SLU"
-        elif self.charge_method == "amber":
+        elif self.charge_method == "bcc":
             cmd3="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
         if self.srun_use:
                  cmd3='srun -n 1 '+cmd3

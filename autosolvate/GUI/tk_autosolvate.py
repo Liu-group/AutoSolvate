@@ -158,7 +158,7 @@ class boxgenGUI():
         self.n6 = StringVar()
         self.charge_method = Combobox(self.master, textvariable=self.n6, width=colwidth[3])
         self.charge_method['values'] = ('bcc',
-                                     'gaussian')
+                                     'resp')
         
         self.charge_method.current(0)
         self.charge_method.grid(column=1, row=6,columnspan=3,sticky=W+E)
