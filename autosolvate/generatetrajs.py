@@ -200,8 +200,7 @@ def runQMMM(filename='water_solvated', srun_use=False, spinmult=1):
     subprocess.call(cmd, shell=True)
 
 
-if __name__ == '__main__':
-    argumentList = sys.argv[1:]
+def startmd(argumentList):
     print(argumentList)
     options = "f:t:p:h:s:u:r"
     long_options = ["filename", "temp", "pressure", "stepsheat", "stepsmm", "stepsqmmmheat", "stepsqmmm", "spinmultiplicity", "srunuse"]
@@ -244,3 +243,6 @@ if __name__ == '__main__':
     writeqmmmheatin(temperature=temperature, stepsqmmmheat=stepsqmmmheat)
     writeqmmmrunin(temperature=temperature, stepsqmmm=stepsqmmm)
     runQMMM(filename=filename, srun_use=srun_use)
+
+#if __name__ == '__main__':
+#    argumentList = sys.argv[1:]

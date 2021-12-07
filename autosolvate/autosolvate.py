@@ -478,8 +478,7 @@ class solventBoxBuilder():
         self.createAmberParm()
         print("The script has finished successfully")
 
-if __name__ == '__main__':
-    argumentList = sys.argv[1:]
+def startboxgen(argumentList):
     print(argumentList)
     options = "m:s:o:c:k:b:g:u:r:e:d:a"
     long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome"]
@@ -529,3 +528,7 @@ if __name__ == '__main__':
                                 slu_spinmult, outputFile, srun_use=srun_use, 
                                 gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome)
     builder.build()
+
+#if __name__ == '__main__':
+#    argumentList = sys.argv[1:]
+#    startboxgen(argumentList)

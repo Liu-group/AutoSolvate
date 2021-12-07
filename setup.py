@@ -36,6 +36,13 @@ setup(
     # subpackage(s) from being added, if needed
     packages=find_packages(),
 
+    package_dir={'autosolvate': 'autosolvate'},
+    package_data={'autosolvate': ['GUI/*/*.*','data/*','data/*/*']},
+
+    entry_points={
+        'console_scripts': ['autosolvate = autosolvate.__main__:main']
+    },
+
     # Optional include package data to ship with your package
     # Customize MANIFEST.in if the general case does not suit your needs
     # Comment out this line to prevent the files from being packaged with your software

@@ -11,6 +11,7 @@ import os
 import subprocess
 import shutil
 import imolecule
+import pkg_resources
 
 this_dir, this_filename = os.path.split(__file__)
 
@@ -52,7 +53,8 @@ class boxgenGUI():
 
 
         # Display logo
-        path = "images/logo.png"
+        path = pkg_resources.resource_filename('autosolvate', 'GUI/images/logo.png')
+        print(path)
 
         #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
         img = ImageTk.PhotoImage(Image.open(path))
@@ -450,7 +452,8 @@ class autosolvateGUI():
         master.geometry('360x180')
 
         # Display logo
-        path = "images/logo.png"
+        path = pkg_resources.resource_filename('autosolvate', 'GUI/images/logo.png')
+        print(path)
 
         #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
         img = Image.open(path)
