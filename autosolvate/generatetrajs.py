@@ -244,5 +244,5 @@ def startmd(argumentList):
     writeqmmmrunin(temperature=temperature, stepsqmmm=stepsqmmm)
     runQMMM(filename=filename, srun_use=srun_use)
 
-#if __name__ == '__main__':
-#    argumentList = sys.argv[1:]
+if __name__ == '__main__':
+    argumentList = sys.argv[1:]

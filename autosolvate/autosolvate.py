@@ -529,6 +529,6 @@ def startboxgen(argumentList):
                                 gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome)
     builder.build()
 
-#if __name__ == '__main__':
-#    argumentList = sys.argv[1:]
-#    startboxgen(argumentList)
+if __name__ == '__main__':
+    argumentList = sys.argv[1:]
+    startboxgen(argumentList)
