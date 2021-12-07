@@ -1,9 +1,9 @@
 name: autosolvate
 channels:
-  - openbabel
+  - conda-forge
 dependencies:
     # Base depends
-  - python
+  - python=3.8
   - pip
 
     # Testing
@@ -12,7 +12,7 @@ dependencies:
   - codecov
     
     # Openbabel
-  - openbabel=2.4.1
+  - openbabel=3.1.1
 
     # Molecule visualization
   - nglview
@@ -20,5 +20,6 @@ dependencies:
     # Pip-only installs
   - pip:
     - imolecule
+    - pillow
   #  - codecov
 
