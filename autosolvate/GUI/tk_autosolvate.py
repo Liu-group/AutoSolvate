@@ -47,6 +47,7 @@ class baseGUI():
     def __init__(self,master):
         self.master = master
         self.padx = 5
+        self.irow = 0
     def display_logo(self):
         path = pkg_resources.resource_filename('autosolvate', 'GUI/images/logo.png')
 
@@ -64,8 +65,8 @@ class baseGUI():
         #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
         self.logo = Label(self.master, image = scaled_img)
         self.logo.image = scaled_img
-        self.logo.grid(column=0, row=0, columnspan=6, sticky=W+E, padx=self.padx)
-
+        self.logo.grid(column=0, row=self.irow, columnspan=6, sticky=W+E, padx=self.padx)
+        self.irow += 1
 
 
 
@@ -78,21 +79,14 @@ class boxgenGUI(baseGUI):
         
         self.display_logo()
 
+        ### Add a solute path
         self.lbl00 = Label(self.master, text="Enter solute xyz file path", width=colwidth[0])
-        self.lbl00.grid(column=0, row=1)
+        self.lbl00.grid(column=0, row=self.irow)
         
         self.txt01 = Entry(self.master, width=colwidth[3])
-        self.txt01.grid(column=1, row=1, columnspan=3, sticky=W+E)
-        
-        self.lbl10 = Label(self.master, text="Current solute xyz file path:", width=colwidth[0])
-        self.lbl10.grid(column=0, row=2)
-        
-        self.lbl11 = Label(self.master, text="Waiting...", width=colwidth[4])
-        self.lbl11.grid(column=1, row=2, columnspan=6, sticky=W+E)
-        
+        self.txt01.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         self.xyzfile = StringVar()
         self.txt_torsion = []
-
         
         def set_xyz():
             my_filetypes = [('xyz files', '.xyz')]
@@ -112,11 +106,21 @@ class boxgenGUI(baseGUI):
         
         
         self.btn02 = Button(self.master, text="Set solute xyz", command=set_xyz, width=colwidth[3])
-        self.btn02.grid(column=4, row=1,columnspan=3,sticky=W+E)
+        self.btn02.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
-        # Second set of buttons: enter select the way to view the molecule
+        self.irow += 1
+
+        ### Display solute path
+        self.lbl10 = Label(self.master, text="Current solute xyz file path:", width=colwidth[0])
+        self.lbl10.grid(column=0, row=self.irow)
+        
+        self.lbl11 = Label(self.master, text="Waiting...", width=colwidth[4])
+        self.lbl11.grid(column=1, row=self.irow, columnspan=6, sticky=W+E)
+        self.irow += 1
+        
+        ### Visualize the solute molecule
         self.lbl20 = Label(self.master, text="Select visualization method", width=colwidth[0])
-        self.lbl20.grid(column=0, row=3)
+        self.lbl20.grid(column=0, row=self.irow)
         
         # Adding combobox drop down list 
         self.n = StringVar()
@@ -125,7 +129,7 @@ class boxgenGUI(baseGUI):
                                      'nglview',)
         
         self.view_chosen.current(0)
-        self.view_chosen.grid(column=1, row=3,columnspan=3,sticky=W+E)
+        self.view_chosen.grid(column=1, row=self.irow,columnspan=3,sticky=W+E)
         
         
         def view_xyz():
@@ -136,27 +140,27 @@ class boxgenGUI(baseGUI):
         
         
         self.btn22 = Button(self.master, text="View", command=view_xyz, width=colwidth[3])
-        self.btn22.grid(column=4, row=3,columnspan=3,sticky=W+E)
+        self.btn22.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
         
-        # Add the radio button to control whether to get verbose output
-        
-        # Verbose output
+        ### Verbose output or not
         self.verbose = BooleanVar()
         
         self.lbl04 = Label(self.master, text="Verbose output", width=colwidth[0])
-        self.lbl04.grid(column=0, row=4)
+        self.lbl04.grid(column=0, row=self.irow)
         
         self.rad14 = Radiobutton(self.master, text='Yes', value=True, variable=self.verbose, width=colwidth[3])
-        self.rad14.grid(column=1, row=4)
+        self.rad14.grid(column=1, row=self.irow)
         
         self.rad24 = Radiobutton(self.master, text='No', value=False, variable=self.verbose)
-        self.rad24.grid(column=2, row=4)
+        self.rad24.grid(column=2, row=self.irow)
         
         self.verbose.set(False)
+        self.irow += 1
         
-        # Adding combobox drop down list for selecting solvent 
+        ### Adding combobox drop down list for selecting solvent 
         self.lbl050 = Label(self.master, text="Select solvent", width=colwidth[0])
-        self.lbl050.grid(column=0, row=5)
+        self.lbl050.grid(column=0, row=self.irow)
         self.n5 = StringVar()
         self.solvent = Combobox(self.master, textvariable=self.n5, width=colwidth[3])
         self.solvent['values'] = ('water',
@@ -166,25 +170,27 @@ class boxgenGUI(baseGUI):
                                      'acetonitrile')
         
         self.solvent.current(0)
-        self.solvent.grid(column=1, row=5,columnspan=3,sticky=W+E)
+        self.solvent.grid(column=1, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
         
-        # Adding combobox drop down list for selecting charge method
-        self.lbl060 = Label(self.master, text="Select charge method for force field fitting", width=colwidth[0])
-        self.lbl060.grid(column=0, row=6)
+        ### Adding combobox drop down list for selecting charge method
+        self.lbl060 = Label(self.master, text="Select charge method for\n force field fitting", width=colwidth[0])
+        self.lbl060.grid(column=0, row=self.irow)
         self.n6 = StringVar()
         self.charge_method = Combobox(self.master, textvariable=self.n6, width=colwidth[3])
         self.charge_method['values'] = ('bcc',
                                      'resp')
         
         self.charge_method.current(0)
-        self.charge_method.grid(column=1, row=6,columnspan=3,sticky=W+E)
+        self.charge_method.grid(column=1, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
 
-        # Output File path
+        ### Output File path
         self.lbl08 = Label(self.master, text="Output directory", width=colwidth[0])
-        self.lbl08.grid(column=0, row=8)
+        self.lbl08.grid(column=0, row=self.irow)
         
         self.txt18 = Entry(self.master)
-        self.txt18.grid(column=1, row=8, columnspan=3, sticky=W+E)
+        self.txt18.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
         self.output_path = StringVar()
         
@@ -200,15 +206,16 @@ class boxgenGUI(baseGUI):
             res = self.output_path.get()
         
         self.btn28 = Button(self.master, text="Set", command=set_output_path, width=colwidth[3])
-        self.btn28.grid(column=4, row=8,columnspan=3,sticky=W+E)
+        self.btn28.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
         
-        # Terachem input file template
+        ### Terachem input file template
         self.lbl09 = Label(self.master, text="Output file name prefix", width=colwidth[0])
-        self.lbl09.grid(column=0, row=9)
+        self.lbl09.grid(column=0, row=self.irow)
         
         
         self.txt19 = Entry(self.master)
-        self.txt19.grid(column=1, row=9, columnspan=3, sticky=W+E)
+        self.txt19.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
         self.output_prefix = StringVar()
         
@@ -221,15 +228,16 @@ class boxgenGUI(baseGUI):
                 self.txt19.insert(0,default_output_prefix)
         
         self.btn29 = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
-        self.btn29.grid(column=4, row=9,columnspan=3,sticky=W+E)
-        
-        # Solute charge 
+        self.btn29.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
+
+        ### Solute charge 
         self.lbl010 = Label(self.master, text="solute charge", width=colwidth[0])
-        self.lbl010.grid(column=0, row=10)
+        self.lbl010.grid(column=0, row=self.irow)
         
         
         self.txt110 = Entry(self.master)
-        self.txt110.grid(column=1, row=10, columnspan=3, sticky=W+E)
+        self.txt110.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
         self.charge = IntVar()
         
@@ -247,15 +255,16 @@ class boxgenGUI(baseGUI):
             res = self.charge.get()
         
         self.btn210 = Button(self.master, text="Set", command=set_charge, width=colwidth[3])
-        self.btn210.grid(column=4, row=10,columnspan=3,sticky=W+E)
+        self.btn210.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
 
-        # Solute spin multiplicity
+        ### Solute spin multiplicity
         self.lbl011 = Label(self.master, text="solute spin multiplicity", width=colwidth[0])
-        self.lbl011.grid(column=0, row=11)
+        self.lbl011.grid(column=0, row=self.irow)
         
         
         self.txt111 = Entry(self.master)
-        self.txt111.grid(column=1, row=11, columnspan=3, sticky=W+E)
+        self.txt111.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
         self.spin_multiplicity = IntVar()
         
@@ -273,15 +282,17 @@ class boxgenGUI(baseGUI):
             res = self.spin_multiplicity.get()
         
         self.btn211 = Button(self.master, text="Set", command=set_spin_multiplicity, width=colwidth[3])
-        self.btn211.grid(column=4, row=11,columnspan=3,sticky=W+E)
+        self.btn211.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
 
-        # Solvent cube size
+        self.irow += 1
+        
+        ### Solvent cube size
         self.lbl012 = Label(self.master, text="Solvent cube size (Angstrom)", width=colwidth[0])
-        self.lbl012.grid(column=0, row=12)
+        self.lbl012.grid(column=0, row=self.irow)
         
         
         self.txt112 = Entry(self.master)
-        self.txt112.grid(column=1, row=12, columnspan=3, sticky=W+E)
+        self.txt112.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
         self.cube_size = DoubleVar()
         
@@ -299,14 +310,15 @@ class boxgenGUI(baseGUI):
             res = self.cube_size.get()
         
         self.btn212 = Button(self.master, text="Set", command=set_cubesize, width=colwidth[3])
-        self.btn212.grid(column=4, row=12,columnspan=3,sticky=W+E)
+        self.btn212.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
         
-        # AMBERHOME path
+        ### AMBERHOME path
         self.lbl013 = Label(self.master, text="AMBERHOME directory", width=colwidth[0])
-        self.lbl013.grid(column=0, row=13)
+        self.lbl013.grid(column=0, row=self.irow)
         
         self.txt113 = Entry(self.master)
-        self.txt113.grid(column=1, row=13, columnspan=3, sticky=W+E)
+        self.txt113.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
         self.amberhome = StringVar()
         
@@ -322,11 +334,12 @@ class boxgenGUI(baseGUI):
             res = self.amberhome.get()
         
         self.btn213 = Button(self.master, text="Set", command=set_amberhome, width=colwidth[3])
-        self.btn213.grid(column=4, row=13,columnspan=3,sticky=W+E)
+        self.btn213.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
 
-        # Gaussian EXE
+        ### Gaussian EXE
         self.lbl014 = Label(self.master, text="Select gaussian exe", width=colwidth[0])
-        self.lbl014.grid(column=0, row=14)
+        self.lbl014.grid(column=0, row=self.irow)
         self.n6 = StringVar()
         self.gaussianexe = Combobox(self.master, textvariable=self.n6, width=colwidth[3])
         self.gaussianexe['values'] = ('None',
@@ -334,14 +347,15 @@ class boxgenGUI(baseGUI):
                                       'g16')
         
         self.gaussianexe.current(0)
-        self.gaussianexe.grid(column=1, row=14,columnspan=3,sticky=W+E)
+        self.gaussianexe.grid(column=1, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
 
-        # Gaussian path
+        ### Gaussian path
         self.lbl015 = Label(self.master, text="Gaussian EXE directory", width=colwidth[0])
-        self.lbl015.grid(column=0, row=15)
+        self.lbl015.grid(column=0, row=self.irow)
         
         self.txt115 = Entry(self.master)
-        self.txt115.grid(column=1, row=15, columnspan=3, sticky=W+E)
+        self.txt115.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
         self.gaussiandir = StringVar()
         
@@ -357,9 +371,10 @@ class boxgenGUI(baseGUI):
             res = self.gaussiandir.get()
         
         self.btn215 = Button(self.master, text="Set", command=set_gaussiandir, width=colwidth[3])
-        self.btn215.grid(column=4, row=15,columnspan=3,sticky=W+E)
+        self.btn215.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
 
-        # Sanity check to make sure that all required buttons are set
+        ### Sanity check to make sure that all required buttons are set
         def GUI_input_sanity_check():
             boxgen_error =0 
             if self.xyzfile.get() =="":
@@ -445,7 +460,8 @@ class boxgenGUI(baseGUI):
         
         # Generate solvated box and MD parameter files
         self.btn132 = Button(self.master, text="Generate Solvent box and MD parameters! ", command=execute)
-        self.btn132.grid(column=0, row=21, columnspan=3, sticky=W+E, padx=self.padx, pady=5)
+        self.btn132.grid(column=0, row=self.irow, columnspan=3, sticky=W+E, padx=self.padx, pady=5)
+        self.irow += 1
 
 ### START MD automation window ###
 class mdGUI(baseGUI):
@@ -477,17 +493,19 @@ class autosolvateGUI(baseGUI):
         # Display logo
         self.display_logo()
 
+        ### select the task to do
         self.lbl00 = Label(master, text="Please select the task",width=20)
-        self.lbl00.grid(column=0, row=1,  sticky=W+E, padx=self.padx)
+        self.lbl00.grid(column=0, row=self.irow,  sticky=W+E, padx=self.padx)
         self.lbl00.configure(anchor="center")
-
+        self.irow += 1
         # Adding combobox drop down list 
         self.task = StringVar()
         self.task_chosen = Combobox(master, textvariable=self.task, width=30)
         self.task_chosen['values'] = ('Solvated box and MD parameter generation',
                                      'Microsolvated cluster extraction') 
         self.task_chosen.current(0)
-        self.task_chosen.grid(column=0, row=2,  sticky=W+E, padx=self.padx)
+        self.task_chosen.grid(column=0, row=self.irow,  sticky=W+E, padx=self.padx)
+        self.irow += 1
 
         # Create new window to do the task
         def create_task_window():
@@ -499,7 +517,8 @@ class autosolvateGUI(baseGUI):
                 my_gui = clusterGUI(self.master3)
         
         self.btn02 = Button(master, text="Go!", command=create_task_window, width=20)
-        self.btn02.grid(column=0, row=3,  sticky=W+E, padx=self.padx)
+        self.btn02.grid(column=0, row=self.irow,  sticky=W+E, padx=self.padx)
+        self.irow += 1
 
 # This part does not need to be modified
 if __name__ == '__main__':
