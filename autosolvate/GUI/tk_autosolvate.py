@@ -43,26 +43,40 @@ def cleanUp():
 
 colwidth = [25, 25, 7, 7, 50]
 
-class boxgenGUI():
+class baseGUI():
     def __init__(self,master):
         self.master = master
-        self.master.title("Automated solvated box structure and MD parameter generator")
-        self.master.geometry('820x600')
-        self.full_enumeration = False
-        self.cube_size_max = 100
-
-
-        # Display logo
+        self.padx = 5
+    def display_logo(self):
         path = pkg_resources.resource_filename('autosolvate', 'GUI/images/logo.png')
-        print(path)
 
-        #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
-        img = ImageTk.PhotoImage(Image.open(path))
+        #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object. Scale the image to fix into the current window
+        print(self.master)
+        self.master.update()
+        win_width = self.master.winfo_width() - self.padx*2
+        print("current window width",win_width)
+        img = Image.open(path)
+        zoom = win_width/img.size[0]
+        #multiple image size by zoom
+        pixels_x, pixels_y = tuple([int(zoom * x)  for x in img.size])
+        scaled_img = ImageTk.PhotoImage(img.resize((pixels_x, pixels_y)))
 
         #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
-        self.logo = Label(self.master, image = img)
-        self.logo.image = img
-        self.logo.grid(column=0, row=0, columnspan=6, sticky=W+E)
+        self.logo = Label(self.master, image = scaled_img)
+        self.logo.image = scaled_img
+        self.logo.grid(column=0, row=0, columnspan=6, sticky=W+E, padx=self.padx)
+
+
+
+
+class boxgenGUI(baseGUI):
+    def __init__(self,master):
+        super().__init__(master)
+        self.master.title("Automated solvated box structure and MD parameter generator")
+        self.master.geometry('820x600')
+        self.cube_size_max = 100
+        
+        self.display_logo()
 
         self.lbl00 = Label(self.master, text="Enter solute xyz file path", width=colwidth[0])
         self.lbl00.grid(column=0, row=1)
@@ -431,42 +445,37 @@ class boxgenGUI():
         
         # Generate solvated box and MD parameter files
         self.btn132 = Button(self.master, text="Generate Solvent box and MD parameters! ", command=execute)
-        self.btn132.grid(column=0, row=21, columnspan=3, sticky=W+E, padx=10, pady=5)
+        self.btn132.grid(column=0, row=21, columnspan=3, sticky=W+E, padx=self.padx, pady=5)
+
+### START MD automation window ###
+class mdGUI(baseGUI):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master.title("MD simulation automation")
+        self.master.geometry('820x600')
+        self.display_logo()
+### START MD automation window ###
 
 ### START cluster extraction window ###
-class clusterGUI():
+class clusterGUI(baseGUI):
     def __init__(self,master):
-        self.master = master
+        super().__init__(master)
         master.title("Microsolvated cluster extraction")
         master.geometry('820x800')
+        self.display_logo()
      #TODO: link to scripts that post process MD trajectories
 
 ### END Cluster extraction window ###
 
 ## The master GUI of AutoSolvate where we select what task to do ##
-class autosolvateGUI():
+class autosolvateGUI(baseGUI):
     def __init__(self,master):
-        self.master = master
-        self.padx = 30
-        master.title("Welcome to AutoSolvate!")
-        master.geometry('360x180')
+        super().__init__(master)
+        self.master.title("Welcome to AutoSolvate!")
+        self.master.geometry('360x180')
 
         # Display logo
-        path = pkg_resources.resource_filename('autosolvate', 'GUI/images/logo.png')
-        print(path)
-
-        #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
-        img = Image.open(path)
-        zoom = 300/img.size[0]
-        #multiple image size by zoom
-        pixels_x, pixels_y = tuple([int(zoom * x)  for x in img.size])
-        scaled_img = ImageTk.PhotoImage(img.resize((pixels_x, pixels_y)))
-
-        #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
-        self.logo = Label(self.master, image = scaled_img)
-        self.logo.image = scaled_img
-        self.logo.grid(column=0, row=0, columnspan=6, sticky=W+E, padx=self.padx)
-
+        self.display_logo()
 
         self.lbl00 = Label(master, text="Please select the task",width=20)
         self.lbl00.grid(column=0, row=1,  sticky=W+E, padx=self.padx)
