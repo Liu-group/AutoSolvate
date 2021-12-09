@@ -48,14 +48,13 @@ class baseGUI():
         self.master = master
         self.padx = 5
         self.irow = 0
+
     def display_logo(self):
         path = pkg_resources.resource_filename('autosolvate', 'GUI/images/logo.png')
 
         #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object. Scale the image to fix into the current window
-        print(self.master)
         self.master.update()
         win_width = self.master.winfo_width() - self.padx*2
-        print("current window width",win_width)
         img = Image.open(path)
         zoom = win_width/img.size[0]
         #multiple image size by zoom
@@ -470,6 +469,93 @@ class mdGUI(baseGUI):
         self.master.title("MD simulation automation")
         self.master.geometry('820x600')
         self.display_logo()
+
+        ### Enter .parmtop and .inpcrd filename prefix 
+        self.lbl00 = Label(self.master, text="Enter file name prefix for existing .inpcrd and .parmtop files", width=colwidth[0])
+        self.lbl00.grid(column=0, row=self.irow)
+        
+        self.txt01 = Entry(self.master, width=colwidth[3])
+        self.txt01.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.prefix = StringVar()
+        
+        def set_prefix():
+            mypath = self.txt01.get()
+            inpcrd = "{}.inpcrd".format(mypath)
+            prmtop = "{}.prmtop".format(mypath)
+            if mypath !="" and os.path.exists(inpcrd) and os.path.exists(prmtop):
+                    self.prefix.set(self.txt01.get())
+            else:
+                msg = "Invalid prefix provided!\n"
+                answer = ""
+                answerValid = False
+                if mypath !="":
+                    if not os.path.exists(inpcrd):
+                        msg+= "File " + inpcrd + " does not exist!\n"
+                    if not os.path.exists(prmtop):
+                        msg+= "File " + prmtop + " does not exist!\n"
+                    msg+= "Please re-try\n"
+                else:
+                    msg = "Empty file prefix. Please enter.\n"
+                while (not answerValid):
+                    answer = filedialog.askString(parent=self.master,
+                                    title=msg)
+                    inpcrd = "{}.inpcrd".format(mypath)
+                    prmtop = "{}.prmtop".format(mypath)
+                    msg = "Invalid prefix provided!\n"
+                    answerValid = True
+                    if not os.path.exists(inpcrd):
+                        msg+= "File " + inpcrd + " does not exist!\n"
+                        answerValid = False
+                    if not os.path.exists(prmtop):
+                        msg+= "File " + prmtop + " does not exist!\n"
+                        answerValid = False
+                    msg+= "Please re-try\n"
+
+                self.prefix.set(answer)
+                self.txt01.delete(0,END)
+                self.txt01.insert(0,answer)
+        
+        self.btn02 = Button(self.master, text="Set file prefix", command=set_prefix, width=colwidth[3])
+        self.btn02.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### set Temperature
+        self.lblTemp = Label(self.master, text="Enter Temperature (K)", width=colwidth[0])
+        self.lblTemp.grid(column=0, row=self.irow)
+        
+        self.txtTemp = Entry(self.master, width=colwidth[3])
+        self.txtTemp.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.Temp = DoubleVar()
+        
+        def set_Temp():
+            answer = 298
+            try: 
+                answer = int(self.txtTemp.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "Temperature must be a positive float!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askfloat(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    if not isinstance(answer,float):
+                        answerValid = False
+                    elif answer <= 0 :
+                        answerValid = False
+
+                self.Temp.set(answer)
+                self.txtTemp.delete(0,END)
+                self.txtTemp.insert(0,answer)
+        
+        self.btnTemp = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnTemp.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+
 ### START MD automation window ###
 
 ### START cluster extraction window ###
@@ -502,6 +588,7 @@ class autosolvateGUI(baseGUI):
         self.task = StringVar()
         self.task_chosen = Combobox(master, textvariable=self.task, width=30)
         self.task_chosen['values'] = ('Solvated box and MD parameter generation',
+                                      'MD automation',
                                      'Microsolvated cluster extraction') 
         self.task_chosen.current(0)
         self.task_chosen.grid(column=0, row=self.irow,  sticky=W+E, padx=self.padx)
@@ -512,9 +599,12 @@ class autosolvateGUI(baseGUI):
             if self.task_chosen.get() == 'Solvated box and MD parameter generation':
                 self.master2 = Toplevel(self.master)
                 my_gui = boxgenGUI(self.master2)
-            else:
+            elif self.task_chosen.get() == 'MD automation':
                 self.master3 = Toplevel(self.master)
-                my_gui = clusterGUI(self.master3)
+                my_gui = mdGUI(self.master3)
+            else:
+                self.master4 = Toplevel(self.master)
+                my_gui = clusterGUI(self.master4)
         
         self.btn02 = Button(master, text="Go!", command=create_task_window, width=20)
         self.btn02.grid(column=0, row=self.irow,  sticky=W+E, padx=self.padx)
