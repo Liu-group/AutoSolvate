@@ -79,7 +79,7 @@ class boxgenGUI(baseGUI):
         self.display_logo()
 
         ### Add a solute path
-        self.lbl00 = Label(self.master, text="Enter solute xyz file path", width=colwidth[0])
+        self.lbl00 = Label(self.master, text="Solute xyz file path", width=colwidth[0])
         self.lbl00.grid(column=0, row=self.irow)
         
         self.txt01 = Entry(self.master, width=colwidth[3])
@@ -467,14 +467,21 @@ class mdGUI(baseGUI):
     def __init__(self, master):
         super().__init__(master)
         self.master.title("MD simulation automation")
-        self.master.geometry('820x600')
+        self.master.geometry('820x800')
         self.display_logo()
+        self.padx = 10
+        self.pady = 5
+
+        ### classical MD control block starts 
+        self.lblMain = Label(self.master, text="Essential control options", font='Helvetica 18 bold')
+        self.lblMain.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        self.irow += 1
 
         ### Enter .parmtop and .inpcrd filename prefix 
-        self.lbl00 = Label(self.master, text="Enter file name prefix for existing .inpcrd and .parmtop files", width=colwidth[0])
-        self.lbl00.grid(column=0, row=self.irow)
+        self.lbl00 = Label(self.master, text="File name prefix for existing\n.inpcrd and .parmtop files", width=colwidth[0])
+        self.lbl00.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
-        self.txt01 = Entry(self.master, width=colwidth[3])
+        self.txt01 = Entry(self.master)
         self.txt01.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         self.prefix = StringVar()
         
@@ -497,7 +504,7 @@ class mdGUI(baseGUI):
                 else:
                     msg = "Empty file prefix. Please enter.\n"
                 while (not answerValid):
-                    answer = filedialog.askString(parent=self.master,
+                    answer = simpledialog.askstring(parent=self.master,
                                     title=msg)
                     inpcrd = "{}.inpcrd".format(mypath)
                     prmtop = "{}.prmtop".format(mypath)
@@ -521,17 +528,17 @@ class mdGUI(baseGUI):
         self.irow += 1
 
         ### set Temperature
-        self.lblTemp = Label(self.master, text="Enter Temperature (K)", width=colwidth[0])
-        self.lblTemp.grid(column=0, row=self.irow)
+        self.lblTemp = Label(self.master, text="Temperature (K)", width=colwidth[0])
+        self.lblTemp.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
-        self.txtTemp = Entry(self.master, width=colwidth[3])
+        self.txtTemp = Entry(self.master)
         self.txtTemp.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         self.Temp = DoubleVar()
         
         def set_Temp():
             answer = 298
             try: 
-                answer = int(self.txtTemp.get())
+                answer = float(self.txtTemp.get())
             except ValueError:
                 anserValid = False
                 while (not answerValid):
@@ -541,10 +548,13 @@ class mdGUI(baseGUI):
                                                title="Dialog",
                                                prompt=msg)
                     answerValid = True
-                    if not isinstance(answer,float):
+                    try: 
+                        answer = float(answer)
+                    except ValueError:
                         answerValid = False
-                    elif answer <= 0 :
-                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
 
                 self.Temp.set(answer)
                 self.txtTemp.delete(0,END)
@@ -555,7 +565,423 @@ class mdGUI(baseGUI):
         
         self.irow += 1
 
+        ### set Pressure
+        self.lblPressure = Label(self.master, text="Pressure (bar)", width=colwidth[0])
+        self.lblPressure.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtPressure = Entry(self.master)
+        self.txtPressure.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.Pressure = DoubleVar()
+        
+        def set_Pressure():
+            answer = 1
+            try: 
+                answer = float(self.txtPressure.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "Pressure must be a positive float (unit: bar)!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askfloat(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = float(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
 
+                self.Pressure.set(answer)
+                self.txtPressure.delete(0,END)
+                self.txtPressure.insert(0,answer)
+        
+        self.btnPressure = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnPressure.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### classical MD control block starts 
+        self.lblMD1 = Label(self.master, text="Classical MD control options", font='Helvetica 18 bold')
+        self.lblMD1.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        self.irow += 1
+
+        ### set number of steps for MM minimization
+        self.lblMMMinSteps = Label(self.master, text="MM minimization steps", width=colwidth[0])
+        self.lblMMMinSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtMMMinSteps = Entry(self.master)
+        self.txtMMMinSteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.MMMinSteps = IntVar()
+        
+        def set_MMMinSteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtMMMinSteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "MM minimization steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+
+                self.MMMinSteps.set(answer)
+                self.txtMMMinSteps.delete(0,END)
+                self.txtMMMinSteps.insert(0,answer)
+        
+        self.btnMMMinSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMMinSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+
+        ### set number of steps for MM heat up
+        self.lblMMHeatSteps = Label(self.master, text="MM heat up steps", width=colwidth[0])
+        self.lblMMHeatSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtMMHeatSteps = Entry(self.master)
+        self.txtMMHeatSteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.MMHeatSteps = IntVar()
+        
+        def set_MMHeatSteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtMMHeatSteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "MM heat up steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+
+                self.MMHeatSteps.set(answer)
+                self.txtMMHeatSteps.delete(0,END)
+                self.txtMMHeatSteps.insert(0,answer)
+
+        self.btnMMHeatSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMHeatSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### set number of steps for MM NPT pressure equilibration 
+        self.lblMMNPTSteps = Label(self.master, text="MM NPT pressure equilibration steps", width=colwidth[0])
+        self.lblMMNPTSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtMMNPTSteps = Entry(self.master)
+        self.txtMMNPTSteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.MMNPTSteps = IntVar()
+        
+        def set_MMNPTSteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtMMNPTSteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "MM NPT equilibration steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+
+                self.MMNPTSteps.set(answer)
+                self.txtMMNPTSteps.delete(0,END)
+                self.txtMMNPTSteps.insert(0,answer)
+        
+        self.btnMMNPTSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMNPTSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### Do NVE or not
+        self.doMMNVE = BooleanVar()
+        
+        self.lbldoMMNVE = Label(self.master, text="Do MM NVE produciton run ?", width=colwidth[0])
+        self.lbldoMMNVE.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.radMMNVEyes = Radiobutton(self.master, text='Yes', value=True, variable=self.doMMNVE, width=colwidth[3])
+        self.radMMNVEyes.grid(column=1, row=self.irow)
+        
+        self.radMMNVEno = Radiobutton(self.master, text='No', value=False, variable=self.doMMNVE)
+        self.radMMNVEno.grid(column=2, row=self.irow)
+        
+        self.doMMNVE.set(False)
+        self.irow += 1
+        
+        ### set number of steps for MM NVE production run steps 
+
+        self.lblMMNVESteps = Label(self.master, text="If \"Yes\", answer the following question", font='Helvetica 14 bold', foreground='blue')
+        self.lblMMNVESteps.grid(column=0, row=self.irow, columnspan=3, sticky=W, padx=self.padx*3, pady=self.pady)
+        self.irow += 1
+
+
+        self.lblMMNVESteps = Label(self.master, text="MM NPT pressure equilibration steps", width=colwidth[0],foreground='blue')
+        self.lblMMNVESteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx*3)
+        
+        self.txtMMNVESteps = Entry(self.master)
+        self.txtMMNVESteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.MMNVESteps = IntVar()
+        
+        def set_MMNVESteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtMMNVESteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "MM NVE steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+        
+                self.MMNVESteps.set(answer)
+                self.txtMMNVESteps.delete(0,END)
+                self.txtMMNVESteps.insert(0,answer)
+        
+        style = Style()
+        self.btnMMNVESteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMNVESteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### QM/MM MD control block starts
+        self.lblQMMM1 = Label(self.master, text="QM/MM control options", font='Helvetica 18 bold')
+        self.lblQMMM1.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        self.irow += 1
+
+        ### Do QM/MM minimization or not ?
+        self.doQMMMmin = BooleanVar()
+        
+        self.lbldoQMMMmin = Label(self.master, text="Do QMMM minization ?", width=colwidth[0])
+        self.lbldoQMMMmin.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.radQMMMminyes = Radiobutton(self.master, text='Yes', value=True, variable=self.doQMMMmin, width=colwidth[3])
+        self.radQMMMminyes.grid(column=1, row=self.irow)
+        
+        self.radQMMMminno = Radiobutton(self.master, text='No', value=False, variable=self.doQMMMmin)
+        self.radQMMMminno.grid(column=2, row=self.irow)
+        
+        self.doQMMMmin.set(False)
+        self.irow += 1
+
+        ### Set number of QM/MM minimization steps
+        self.lblQMMMminSteps = Label(self.master, text="If \"Yes\", answer the following question", font='Helvetica 14 bold', foreground='blue')
+        self.lblQMMMminSteps.grid(column=0, row=self.irow, columnspan=3, sticky=W, padx=self.padx*3, pady=self.pady)
+        self.irow += 1
+
+
+        self.lblQMMMminSteps = Label(self.master, text="QM/MM minimization steps", width=colwidth[0],foreground='blue')
+        self.lblQMMMminSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx*3)
+        
+        self.txtQMMMminSteps = Entry(self.master)
+        self.txtQMMMminSteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.QMMMminSteps = IntVar()
+        
+        def set_QMMMminSteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtQMMMminSteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "QM/MM minimization steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+        
+                self.QMMMminSteps.set(answer)
+                self.txtQMMMminSteps.delete(0,END)
+                self.txtQMMMminSteps.insert(0,answer)
+        
+        style = Style()
+        self.btnQMMMminSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMminSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### Set number of QM/MM heatup steps
+        self.lblQMMMheatSteps = Label(self.master, text="QM/MM heatup steps", width=colwidth[0])
+        self.lblQMMMheatSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtQMMMheatSteps = Entry(self.master)
+        self.txtQMMMheatSteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.QMMMheatSteps = IntVar()
+        
+        def set_QMMMheatSteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtQMMMheatSteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "QM/MM minimization steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+        
+                self.QMMMheatSteps.set(answer)
+                self.txtQMMMheatSteps.delete(0,END)
+                self.txtQMMMheatSteps.insert(0,answer)
+        
+        style = Style()
+        self.btnQMMMheatSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMheatSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### Set number of QM/MM NVT equlibration steps
+        self.lblQMMMeqNVTSteps = Label(self.master, text="QM/MM NVT run steps", width=colwidth[0])
+        self.lblQMMMeqNVTSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtQMMMeqNVTSteps = Entry(self.master)
+        self.txtQMMMeqNVTSteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.QMMMeqNVTSteps = IntVar()
+        
+        def set_QMMMeqNVTSteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtQMMMeqNVTSteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "QM/MM minimization steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+        
+                self.QMMMeqNVTSteps.set(answer)
+                self.txtQMMMeqNVTSteps.delete(0,END)
+                self.txtQMMMeqNVTSteps.insert(0,answer)
+        
+        self.btnQMMMeqNVTSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMeqNVTSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### Do NVE or not
+        self.doQMMMNVE = BooleanVar()
+        
+        self.lbldoQMMMNVE = Label(self.master, text="Do QMM/MM NVE produciton run ?", width=colwidth[0])
+        self.lbldoQMMMNVE.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.radQMMMNVEyes = Radiobutton(self.master, text='Yes', value=True, variable=self.doQMMMNVE, width=colwidth[3])
+        self.radQMMMNVEyes.grid(column=1, row=self.irow)
+        
+        self.radQMMMNVEno = Radiobutton(self.master, text='No', value=False, variable=self.doQMMMNVE)
+        self.radQMMMNVEno.grid(column=2, row=self.irow)
+        
+        self.doQMMMNVE.set(False)
+        self.irow += 1
+        
+        ### set number of steps for MM NVE production run steps 
+
+        self.lblQMMMNVESteps = Label(self.master, text="If \"Yes\", answer the following question", font='Helvetica 14 bold', foreground='blue')
+        self.lblQMMMNVESteps.grid(column=0, row=self.irow, columnspan=3, sticky=W, padx=self.padx*3, pady=self.pady)
+        self.irow += 1
+
+
+        self.lblQMMMNVESteps = Label(self.master, text="MM NPT pressure equilibration steps", width=colwidth[0],foreground='blue')
+        self.lblQMMMNVESteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx*3)
+        
+        self.txtQMMMNVESteps = Entry(self.master)
+        self.txtQMMMNVESteps.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.QMMMNVESteps = IntVar()
+        
+        def set_QMMMNVESteps():
+            answer = 1000
+            try: 
+                answer = int(self.txtQMMMNVESteps.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "MM NVE steps must be a positive integer!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askinteger(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+        
+                self.QMMMNVESteps.set(answer)
+                self.txtQMMMNVESteps.delete(0,END)
+                self.txtQMMMNVESteps.insert(0,answer)
+        
+        self.btnQMMMNVESteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMNVESteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
 ### START MD automation window ###
 
 ### START cluster extraction window ###
