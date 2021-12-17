@@ -216,18 +216,26 @@ def startmd(argumentList):
         elif currentArgument in ("-p", "-pressure"):
             print ("Pressure:", currentValue)
             pressure=float(currentValue)
+        # TODO: add steps specification for MM minimization
+        # TODO: Correct the following keyword. -h is duplication. It is used for printing help function
         elif currentArgument in ("-h","-stepsheat"):
             print ("Steps heat:", currentValue)
             stepsheat=int(currentValue)
         elif currentArgument in ("-s", "-stepsmm"):
             print ("Steps MM:", currentValue)
             stepsmm=int(currentValue)
+        # TODO: add steps specification for MM NVE
+        # TODO: add steps specification for QMMM minimization
+        # TODO: Correct the following keyword. -h is duplication
         elif currentArgument in ("-h","-stepsqmmmheat"):
             print ("Steps QMMM heat:", currentValue)
             stepsqmmmheat=int(currentValue)
+        # Correct the following keyword. -h is duplication
         elif currentArgument in ("-s", "-stepsqmmm"):
             print ("Steps QMMM:", currentValue)
             stepsmm=int(currentValue)
+        # TODO: add steps specification for QMMM NVE
+        # TODO: add charge specification. Why is charge not needed for QMMM? Or you have a way to automatically detect charge?
         elif currentArgument in ("-u", "-spinmultiplicity"):
             print ("Spinmultiplicity:", currentValue)
             spinmult=int(currentValue)
