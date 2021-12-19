@@ -983,7 +983,6 @@ class mdGUI(baseGUI):
         def write_mdrun_input():
             cmd = "autosolvate mdrun"
         
-            # TODO: Wait for Eugen to update the keywords in generatetrajs.py, then I can update them here
             cmd += " -f " + self.prefix.get()
             cmd += " -t {:.2f}".format(self.Temp.get())
             cmd += " -p {:.4f}".format(self.Pressure.get())
@@ -1027,10 +1026,186 @@ class clusterGUI(baseGUI):
     def __init__(self,master):
         super().__init__(master)
         master.title("Microsolvated cluster extraction")
-        master.geometry('820x800')
+        master.geometry('820x400')
         self.display_logo()
-     #TODO: link to scripts that post process MD trajectories
+        #TODO: link to scripts that post process MD trajectories
+        ### Enter .prmtop filename 
+        self.lblParm = Label(self.master, text="Path for .prmtop file", width=colwidth[0])
+        self.lblParm.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtParm = Entry(self.master)
+        self.txtParm.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.prmtop = StringVar()
+        
+        def set_prmtop():
+            mypath = self.txtParm.get()
+            my_filetypes = [('Amber prmtop', '.prmtop')]
+            if mypath !="" and os.path.exists(mypath) and 'prmtop' in mypath:
+                    self.prmtop.set(self.txtParm.get())
+            else:
+                msg = "Invalid prmtop file path provided!\nPlease select a path:"
+                answer = filedialog.askdirectory(title="Request", message=msg)
+                self.prmtop.set(answer)
+                self.txtParm.delete(0,END)
+                self.txtParm.insert(0,answer)
+        
+        self.btnParm = Button(self.master, text="Set", command=set_prmtop, width=colwidth[3])
+        self.btnParm.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+      
+        ### Enter .mdcrd filename 
+        self.lblMdcrd = Label(self.master, text="Path for .mdcrd file", width=colwidth[0])
+        self.lblMdcrd.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtMdcrd = Entry(self.master)
+        self.txtMdcrd.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.mdcrd = StringVar()
+        
+        def set_mdcrd():
+            mypath = self.txtMdcrd.get()
+            my_filetypes = [('Amber .mdcrd trajectory file', '.mdrcd')]
+            if mypath !="" and os.path.exists(mypath) and 'mdcrd' in mypath:
+                    self.mdcrd.set(self.txtMdcrd.get())
+            else:
+                msg = "Invalid mdcrd file path provided!\nPlease select a path:"
+                answer = filedialog.askdirectory(title="Request", message=msg)
+                self.mdcrd.set(answer)
+                self.txtMdcrd.delete(0,END)
+                self.txtMdcrd.insert(0,answer)
+        
+        self.btnMdcrd = Button(self.master, text="Set", command=set_mdcrd, width=colwidth[3])
+        self.btnMdcrd.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+        ### set Extraction Interval
+        self.lblInterval = Label(self.master, text="Cluster extraction interval (steps)", width=colwidth[0])
+        self.lblInterval.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtInterval = Entry(self.master)
+        defaultInterval = 1
+        self.txtInterval.insert(0,str(defaultInterval))
+        self.txtInterval.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.Interval = IntVar(value=defaultInterval)
+        
+        def set_Interval():
+            answer = defaultInterval
+            try: 
+                answer = int(self.txtInterval.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "Interval must be a positive int!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askint(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = int(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+      
+            self.Interval.set(answer)
+            self.txtInterval.delete(0,END)
+            self.txtInterval.insert(0,answer)
+        
+        self.btnInterval = Button(self.master, text="Set", command=set_Interval, width=colwidth[3])
+        self.btnInterval.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
 
+        ### set shell thickness
+        self.lblThickness = Label(self.master, text="Shell thickness (Angstrom)", width=colwidth[0])
+        self.lblThickness.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.txtThickness = Entry(self.master)
+        defaultThickness = 4.0
+        self.txtThickness.insert(0,str(defaultThickness))
+        self.txtThickness.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        self.Thickness = DoubleVar(value=defaultThickness)
+        
+        def set_Thickness():
+            answer = defaultThickness
+            try: 
+                answer = float(self.txtThickness.get())
+            except ValueError:
+                anserValid = False
+                while (not answerValid):
+                    msg = "Thickness (in Angstrom) must be a positive float!\n"
+                    msg += "Please re-enter.\n"
+                    answer = simpledialog.askfloat(parent=self.master,
+                                               title="Dialog",
+                                               prompt=msg)
+                    answerValid = True
+                    try: 
+                        answer = float(answer)
+                    except ValueError:
+                        answerValid = False
+                    if answerValid:
+                        if answer <= 0 :
+                            answerValid = False
+
+            self.Thickness.set(answer)
+            self.txtThickness.delete(0,END)
+            self.txtThickness.insert(0,answer)
+        
+        self.btnThickness = Button(self.master, text="Set", command=set_Thickness, width=colwidth[3])
+        self.btnThickness.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        def GUI_input_sanity_check():
+            clusterrun_error =0 
+            print("### Start ClusterRun input option fact check ###")
+            if self.prmtop.get() =="":
+                  print("Input prmtop file must be provided!")
+                  clusterrun_error = 1
+            else:
+                  print("Input prmtop: ", self.prmtop.get())
+            if self.mdcrd.get() =="":
+                  print("Input mdcrd file must be provided!")
+                  clusterrun_error = 2
+            else:
+                  print("Input mdcrd: ", self.mdcrd.get())
+            if self.Thickness.get() <=0:
+                print("Solvent shell thickness specified: {:.2f} (Angstrom) is not valid\n".format(self.Thickness.get() )) 
+                clusterrun_error = 3
+            return clusterrun_error
+
+        def write_clusterrun_input():
+            cmd = "autosolvate clusterrun"
+        
+            cmd += " -p " + self.prmtop.get()
+            cmd += " -t " + self.mdcrd.get()
+            cmd += " -i {:.d}".format(self.Interval.get())
+            cmd += " -r {:.4f}".format(self.Thickness.get())
+            return cmd
+
+        def execute():
+            clusterrun_error = GUI_input_sanity_check()
+            if clusterrun_error == 0:
+                cmd = write_clusterrun_input()
+                res = "Congratulations! ClusterRun command line generated: \n" + cmd
+                messagebox.showinfo(title="Confirmation", message=res)
+                question = "Do you want to continue to generate the "\
+                         + "solvated cluster trajectory file?"
+                answer = messagebox.askyesno(title="Confirmation", message=question)
+                if answer == True:
+                    subprocess.call(cmd, shell=True)
+        
+            else:
+                res = "Error found in input.\n"
+                res += "Please check the input setting and retry\n"
+                messagebox.showerror(message=res)
+
+        #### Do cluster extraction
+        self.btnGo = Button(self.master, text="Generate solvated cluster! ", command=execute)
+        self.btnGo.grid(column=0, row=self.irow, columnspan=3, sticky=W+E, padx=self.padx, pady=5)
+        self.irow += 1
 ### END Cluster extraction window ###
 
 ## The master GUI of AutoSolvate where we select what task to do ##
@@ -1044,7 +1219,7 @@ class autosolvateGUI(baseGUI):
         self.display_logo()
 
         ### select the task to do
-        self.lbl00 = Label(master, text="Please select the task",width=20)
+        self.lbl00 = Label(master, text="Please select the task",font='Helvetica 20 bold',width=20)
         self.lbl00.grid(column=0, row=self.irow,  sticky=W+E, padx=self.padx)
         self.lbl00.configure(anchor="center")
         self.irow += 1
