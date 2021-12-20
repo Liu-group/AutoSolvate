@@ -202,7 +202,7 @@ def runQMMM(filename='water_solvated', srun_use=False, spinmult=1):
 
 def startmd(argumentList):
     print(argumentList)
-    options = "f:t:p:h:s:u:r"
+    options = "f:t:p:h:s:q:m:u:r"
     long_options = ["filename", "temp", "pressure", "stepsheat", "stepsmm", "stepsqmmmheat", "stepsqmmm", "spinmultiplicity", "srunuse"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
@@ -227,11 +227,11 @@ def startmd(argumentList):
         # TODO: add steps specification for MM NVE
         # TODO: add steps specification for QMMM minimization
         # TODO: Correct the following keyword. -h is duplication
-        elif currentArgument in ("-h","-stepsqmmmheat"):
+        elif currentArgument in ("-q","-stepsqmmmheat"):
             print ("Steps QMMM heat:", currentValue)
             stepsqmmmheat=int(currentValue)
         # Correct the following keyword. -h is duplication
-        elif currentArgument in ("-s", "-stepsqmmm"):
+        elif currentArgument in ("-m", "-stepsqmmm"):
             print ("Steps QMMM:", currentValue)
             stepsmm=int(currentValue)
         # TODO: add steps specification for QMMM NVE
@@ -254,3 +254,4 @@ def startmd(argumentList):
 
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
+    startmd(argumentList)

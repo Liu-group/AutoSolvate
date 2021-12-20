@@ -10,6 +10,7 @@ Ensure you have pip and conda installed. Install dependencies openbabel, packmol
    >>> conda install -c conda-forge openbabel
    >>> conda install -c conda-forge packmol
    >>> conda install -c conda-forge ambertools=21 compilers 
+   >>> pip install mdtraj
 
 Alternative ways to install Ambertools is described `here <https://ambermd.org/AmberTools.php>`_.
 
