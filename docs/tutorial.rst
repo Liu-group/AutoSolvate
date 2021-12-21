@@ -9,11 +9,6 @@ Prerequisites
 -------------------------------------------
 In order to follow along with this tutorial, you need:
 
-autosolvate environment, including amber and babel
-
-autosolvate.py
-
-solute coordinates (napthalene and xx)
 
 >>> conda activate autosolvate
 
@@ -21,7 +16,7 @@ solute coordinates (napthalene and xx)
 
 ::
 18
--3.8580765971568428e+02 frame 7  neutral napthalene
+-3.8580765971568428e+02 neutral napthalene
      C     2.4397703245   -0.7099883961    0.0000206200
      C     2.4397218526    0.7099981201    0.0000271508
      C     1.2475921776    1.4061556571    0.0000203110
@@ -46,7 +41,7 @@ solute coordinates (napthalene and xx)
 
 ::
 18
--3.8552686324110755e+02 frame 5   napthalene radical
+-3.8552686324110755e+02 napthalene radical
      C     2.4584929186   -0.6980401434    0.0000208854
      C     2.4584830542    0.6980208281    0.0000273558
      C     1.2392834454    1.4064616303    0.0000201346
@@ -71,8 +66,6 @@ solute coordinates (napthalene and xx)
 Step 1: Solvate system
 -------------------------------------------
 Bash commands::
-
-Short option
 
 >>> python autosolvate.py -m napthalene_neutral.xyz 
 
@@ -102,3 +95,14 @@ Step 3: Microsolvated cluster extraction
 Bash commands::
 
 >>> python extract.py
+
+
+Second System: Napthalene Radical
+----------------------------------------------------------
+
+>>> python autosolvate.py -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3
+>>> python generatetrajs.py
+>>> python extract.py
+
+
+
