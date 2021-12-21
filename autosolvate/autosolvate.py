@@ -494,19 +494,13 @@ def startboxgen(argumentList):
 
        Flag definitions:
 
-       -m, --main solute xyz file
-
+       -m, --main, solute xyz file
        -s, --solvent, name of solvent (water, methanol, chloroform, nma)
        -o, --output, prefix of the output file names
-
-       -c, --charge, formal charge of solute (integer)
-
-       -u, --spinmultiplicity, spin multiplicity of solute (integer)
-
-       -g, --chargemethod, name of charge fitting method (amber, gaussian)
-
-       -b, --cubesize, size of solvent cube in angstroms (number)
-
+       -c, --charge, formal charge of solute 
+       -u, --spinmultiplicity, spin multiplicity of solute 
+       -g, --chargemethod, name of charge fitting method (bcc, resp)
+       -b, --cubesize, size of solvent cube in angstroms 
        -r, --srunuse, option to use slurm to submit as a job
        -e, --gaussianexe, name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
        -d, --gaussiandir, path to the Gaussian package.
