@@ -40,14 +40,14 @@ class solventBoxBuilder():
 
     def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, 
             charge_method="resp", slu_spinmult=1, outputFile='water_solvated', 
-            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None):
+            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None, tolerance=2):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
         self.slu_spinmult = slu_spinmult
         # currently hard coded. Can be changed later to be determined automatically based on the density of the solute
         self.solvent = solvent
-        self.tolerance=2
+        self.tolerance=tolerance
         self.waterbox_size = 8.0
         # following are for custom organic solvent
         self.cube_size = cube_size # in angstrom
@@ -104,7 +104,7 @@ class solventBoxBuilder():
             print("Exporting AMBERHOME environment variable:")
             cmd = "export AMBERHOME=" + self.amberhome
             print(cmd)
-            subprocess.call(cmd1, shell=True)
+            subprocess.call(cmd, shell=True)
             print("AMBERHOME environment variable export finished.")
 
 
@@ -150,7 +150,7 @@ class solventBoxBuilder():
         print("Generate frcmod file for the solute")
         if self.charge_method == "resp":
             print("First generate the gaussian input file for RESP charge fitting")
-            cmd1 ="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o gcrt.com -fo gcrt -gv 1 -ge solute.gesp  -s 2 -nc "+str(self.slu_netcharge2) + " -m " + str(self.slu_spinmult)
+            cmd1 ="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o gcrt.com -fo gcrt -gv 1 -ge solute.gesp  -s 2 -nc "+str(self.slu_netcharge) + " -m " + str(self.slu_spinmult)
             if self.srun_use:
                 cmd1='srun -n 1 '+cmd1
             print(cmd1)
@@ -457,6 +457,8 @@ class solventBoxBuilder():
             if self.srun_use:
                             cmd='srun -n 1 '+cmd
             subprocess.call(cmd, shell=True)
+        else:
+            print('solvent not supported')
 
     def build(self):
         r"""
@@ -516,14 +518,17 @@ def startboxgen(argumentList):
     None
     """
     print(argumentList)
-    options = "m:s:o:c:k:b:g:u:r:e:d:a"
-    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome"]
+    options = "m:s:o:c:k:b:g:u:r:e:d:a:t"
+    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "tolerance"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solvent='acetonitrile'
     outputFile='water_solvated'
     slu_netcharge=1
     slu_spinmult=2
     srun_use=False
+    amberhome=None
+    gaussianexe=None
+    gaussiandir=None
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-m", "-main"):
             print ("Main/solute", currentValue)
@@ -558,11 +563,14 @@ def startboxgen(argumentList):
         elif currentArgument in ("-a","amberhome"):
             print("Amber home directory:", currentValue)
             amberhome = currentValue
+        elif currentArgument in ("-t", "tolerance"):
+            print("Tolerance for Packmol", currentValue)
+            tolerance = currentValue
 
      
     builder = solventBoxBuilder(solute, solvent, slu_netcharge, cube_size, charge_method, 
                                 slu_spinmult, outputFile, srun_use=srun_use, 
-                                gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome)
+                                gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, tolerance=tolerance)
     builder.build()
 
 if __name__ == '__main__':

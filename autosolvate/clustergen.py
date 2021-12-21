@@ -4,16 +4,20 @@ import mdtraj as md
 import numpy as np
 
 
-def clustergen(filename='water_solvated', frame=-1, size=2, run_use=False):
+def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', startframe=0, interval=100, size=2, srun_use=False):
     r"""
     Extract microsolvated cluster around center solute
 
     Parameters
     ----------
     filename : str, Optional, default: 'water_solvated'
-        Filename prefix for .prmtop and .netcdf files
-    frame : int, Optional, default: -1
-        Frame of the .netcdf file to extract the microsolvated cluster from
+        Filename prefix for .prmtop and output files
+    trajname :  str, Optional, default: 'water_solvated.netcdf'
+        Name of trajectory
+    startframe : int, Optional, default: 0
+        First frame to extract the microsolvated clusters from trajectory
+    interval : int, Optional, default: 100
+        Interval at which to extract microsolvated clusters from trajectory
     size : float, Optional, default: 2
         size of solvent shell around center solute in Angstrom
     srun_use : bool, Optional, default: False
@@ -26,7 +30,7 @@ def clustergen(filename='water_solvated', frame=-1, size=2, run_use=False):
     """
     
     print('Loading trajectory')
-    a=md.load(filename+'.netcdf', top=filename+'.prmtop')
+    a=md.load(trajname, top=filename+'.prmtop')
     traj2=a.xyz
     if frame>-1 and traj2.shape[0]<frame:
       print("trajectory too short")
@@ -78,17 +82,23 @@ def clustergen(filename='water_solvated', frame=-1, size=2, run_use=False):
 
 def startclustergen(argumentList):
     print(argumentList)
-    options = "f:m:s:r"
-    long_options = ["filename", "frame", "size", "srunuse"]
+    options = "f:t:a:i:s:r"
+    long_options = ["filename", "trajname", "startframe", "interval", "size", "srunuse"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-f", "-filename"):
             print ("Filename:", currentValue)
             filename=str(currentValue)
-        elif currentArgument in ("-m", "-frame"):
-            print ("frame from trajectory:", currentValue)
+        elif currentArgument in ("-t", "-trajname"):
+            print ("Trajectory name:", currentValue)
+            trajname=str(currentValue)
+        elif currentArgument in ("-a", "-startframe"):
+            print ("startframe to extract:", currentValue)
             frame=int(currentValue)
+        elif currentArgument in ("-i", "-interval"):
+            print ("interval to extract:", currentValue)
+            interval=int(currentValue)
         elif currentArgument in ("-s", "-size"):
             print ("Cutout size in Angstrom:", currentValue)
             size=float(currentValue)
@@ -96,7 +106,7 @@ def startclustergen(argumentList):
             print("usign srun")
             srun_use=True
 
-    clustergen(filename=filename, frame=frame, size=size, srun_use=srun_use)
+    clustergen(filename=filename, trajname=trajname, startframe=startframe, interval=interval, size=size, srun_use=srun_use)
 
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
