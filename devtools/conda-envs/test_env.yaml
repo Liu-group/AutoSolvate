@@ -23,6 +23,13 @@ dependencies:
     # MDtraj
   - mdtraj
 
+    # Documentation
+  - sphinx
+  - sphinx_rtd_theme
+
+    # Packmol
+  - packmol
+
     # Pip-only installs
   - pip:
     - imolecule
