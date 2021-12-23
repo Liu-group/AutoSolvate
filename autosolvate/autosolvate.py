@@ -64,8 +64,8 @@ class solventBoxBuilder():
 
     def inputCheck(self):
         if self.slu_spinmult > 1:
-            if charge_method != "resp":
-                print("Error: solute spin multiplicity: ", self.slu_spinmult, " charge method: ", charge_method)
+            if self.charge_method != "resp":
+                print("Error: solute spin multiplicity: ", self.slu_spinmult, " charge method: ", self.charge_method)
                 print("Error: atomic charge fitting for open-shell system only works for resp charge method")
                 print("Error: exiting...")
                 exit(1)
