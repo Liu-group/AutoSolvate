@@ -518,8 +518,8 @@ def startboxgen(argumentList):
     solutexyz=""
     solvent='water'
     slu_netcharge=0
-    cubesize=54
-    charge_method="resp"
+    cube_size=54
+    charge_method="bcc"
     slu_spinmult=1
     outputFile='water_solvated'
     srun_use=False
