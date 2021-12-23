@@ -17,6 +17,12 @@ dependencies:
     # Molecule visualization
   - nglview
 
+    # AmberTools
+  - ambertools
+
+    # MDtraj
+  - mdtraj
+
     # Pip-only installs
   - pip:
     - imolecule
