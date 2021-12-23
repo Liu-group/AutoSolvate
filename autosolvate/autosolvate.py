@@ -515,18 +515,22 @@ def startboxgen(argumentList):
     options = "m:s:o:c:k:b:g:u:r:e:d:a:t"
     long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "tolerance"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
-    solvent='acetonitrile'
+    solutexyz=""
+    solvent='water'
+    slu_netcharge=0
+    cubesize=54
+    charge_method="resp"
+    slu_spinmult=1
     outputFile='water_solvated'
-    slu_netcharge=1
-    slu_spinmult=2
     srun_use=False
     amberhome=None
     gaussianexe=None
     gaussiandir=None
+    tolerance=2
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-m", "-main"):
-            print ("Main/solute", currentValue)
-            solute=str(currentValue)     
+            print ("Main/solutexyz", currentValue)
+            solutexyz=str(currentValue)     
         elif currentArgument in ("-s", "-solvent"):
             print ("Solvent:", currentValue)
             solvent=str(currentValue)
@@ -561,8 +565,21 @@ def startboxgen(argumentList):
             print("Tolerance for Packmol", currentValue)
             tolerance = currentValue
 
+    if solutexyz == "":
+        print("Error! Solute xyzfile must be provided!\nExiting...")
+        exit()
+    elif not os.path.exists(solutexyz):
+        print("Error! Solute xyzfile path ",solutexyz, " does not exist!\nExiting...")
+        exit()
+
+    try:
+        pybel.readfile('xyz', solutexyz).__next__()
+    except:
+        print("Error! Solute xyzfile format issue!")
+        print(solutexyz," cannot be opened with openbabel.\n Exiting...")
+        exit()
      
-    builder = solventBoxBuilder(solute, solvent, slu_netcharge, cube_size, charge_method, 
+    builder = solventBoxBuilder(solutexyz, solvent, slu_netcharge, cube_size, charge_method, 
                                 slu_spinmult, outputFile, srun_use=srun_use, 
                                 gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, tolerance=tolerance)
     builder.build()
