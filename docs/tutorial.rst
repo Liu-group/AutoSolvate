@@ -3,7 +3,7 @@ Tutorial
 
 Following code walkthrough illustrates the usage of Autosolvate.
 
-There will be two full example systems: napthalene in water and napthalene radical in chlorform
+There will be two full example systems: napthalene in water and napthalene radical in chloroform
 
 Prerequisites
 -------------------------------------------
@@ -84,25 +84,27 @@ The semi-emperical charge fitting available through Amber performs well for clos
 Step 2: Equilibrate and generate QM/MM trajectory
 -----------------------------------------------------
 
-Bash commands::
 
->>> python generatetrajs.py
+Bash command for a fast demonstration run::
 
+>>> autosolvate mdrun -f nap_neutral_water -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10
+
+Longer MM and QM/MM steps are necessary to reach equilibration. Main output is the QM/MM trajectory nap_neutral_water-qmmmnvt.netcdf.
 
 Step 3: Microsolvated cluster extraction
 ----------------------------------------------------------
 
-Bash commands::
+Bash commands to extract 4 Angstrom solvent shell for each 10th frame or every 5fs::
 
->>> python extract.py
+>>> autosolvate clustergen -f nap_neutral_water -t nap_neutral_water-qmmmnvt.netcdf -a 0 -i 10 -s 4
+
+Main output are the microsolvated clusters nap_neutral_water-cutoutn-*.xyz. 
 
 
 Second System: Napthalene Radical
 ----------------------------------------------------------
 
 >>> autosolvate.py boxgen -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3
->>> python generatetrajs.py
->>> python extract.py
 
 
 

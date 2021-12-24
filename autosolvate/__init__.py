@@ -6,6 +6,7 @@ Automated workflow for adding explict solvent to molecules
 # Add imports here
 from .autosolvate import *
 from .generatetrajs import *
+from .clustergen import *
 
 # Handle versioneer
 from ._version import get_versions

@@ -5,11 +5,11 @@ AutoSolvate
 [![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/AutoSolvate/branch/master/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/AutoSolvate/branch/master)
 
 
-Automated workflow for adding explict solvent to molecules
+Automated workflow for adding explicit solvent to molecules
 
 ### Copyright
 
-Copyright (c) 2020, Liu Group
+Copyright (c) 2022, Liu Group
 
 
 #### Acknowledgements

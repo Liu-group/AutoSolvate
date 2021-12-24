@@ -32,53 +32,57 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
     print('Loading trajectory')
     a=md.load(trajname, top=filename+'.prmtop')
     traj2=a.xyz
-    if frame>-1 and traj2.shape[0]<frame:
+    if traj2.shape[0]<startframe:
       print("trajectory too short")
     print('selecting center solute')
     molecules=a.topology.find_molecules()
     center_list=[]
     for atom in molecules[0]:
       center_list.append(atom.index)
+    print('extracting from frames:', list(range(startframe, traj2.shape[0], interval)))
     print('calculating distance to all solvent molecules')
-    center_xyz=traj2[frame, np.array(center_list),:]
-    center_xyz=np.average(center_xyz,axis=0)
-    unit_cell_list=a.unitcell_lengths[0]
-    tshape=traj2.shape
-    unit_cell_list3 = np.repeat(unit_cell_list[np.newaxis, :], tshape[1], axis=0)
-    shift=-center_xyz+unit_cell_list3/2.
-    traj3=np.remainder(traj2[frame,:,:]+shift,unit_cell_list3)
-    dist_molecules=np.empty(len(molecules))
-    select_molecules=[]
-    size_molecules=[]
-    use_molecules=0
-    for i in range(len(molecules)):
-      select_true=False
-      dist_atom=10000
-      for atom in molecules[i]:
-        for center_idx in center_list:
+    for iframe in range(startframe, traj2.shape[0], interval):
+      center_xyz=traj2[iframe, np.array(center_list),:]
+      center_xyz=np.average(center_xyz,axis=0)
+      unit_cell_list=a.unitcell_lengths[0]
+      tshape=traj2.shape
+      unit_cell_list3 = np.repeat(unit_cell_list[np.newaxis, :], tshape[1], axis=0)
+      shift=-center_xyz+unit_cell_list3/2.
+      traj3=np.remainder(traj2[iframe,:,:]+shift,unit_cell_list3)
+      dist_molecules=np.empty(len(molecules))
+      select_molecules=[]
+      size_molecules=[]
+      use_molecules=0
+      for i in range(len(molecules)):
+        select_true=False
+        dist_atom=10000
+        for atom in molecules[i]:
+          for center_idx in center_list:
             dist4=np.linalg.norm(traj3[atom.index,:]-traj3[center_idx,:])
             if dist4<dist_atom:
                 dist_atom=dist4
-      dist_molecules[i]=dist_atom
-    print('select solvent molecules')
-    dist_use=np.sort(dist_molecules)
-    ncutout=np.argwhere(dist_use>size)[0][0]
-    if ncutout>1:
+        dist_molecules[i]=dist_atom
+      if iframe==startframe:
+        print('select solvent molecules')
+      dist_use=np.sort(dist_molecules)*10.
+      ncutout=np.argwhere(dist_use>size)[0][0]
       ncutout=ncutout+1
-    print("selected", ncutout, 'solvent molecules')
-    select_mol=np.sort(np.argsort(dist_molecules)[:ncutout])
-    print('saving xyz')
-    select_list=[]
-    for i in select_mol:
-      for atom in molecules[i]:
-        select_list.append(atom.index)
-    select_list.sort()
-    print("select atoms", select_list)
-    b=a.slice(frame)
-    select_xyz=traj3[select_list,:]
-    c=b.atom_slice(select_list)
-    c.xyz[0,:,:]=select_xyz
-    c.save_xyz(filename+'-cutoutn.xyz')
+      if iframe==startframe:
+        print("for first frame selected", ncutout, 'solvent molecules')
+      select_mol=np.sort(np.argsort(dist_molecules)[:ncutout])
+      if iframe==startframe:
+        print('saving xyz')
+      select_list=[]
+      for i in select_mol:
+        for atom in molecules[i]:
+          select_list.append(atom.index)
+      select_list.sort()
+      #print("select atoms", select_list)
+      b=a.slice(iframe)
+      select_xyz=traj3[select_list,:]
+      c=b.atom_slice(select_list)
+      c.xyz[0,:,:]=select_xyz
+      c.save_xyz(filename+'-cutoutn-'+str(iframe)+'.xyz')
 
 def startclustergen(argumentList):
     print(argumentList)
@@ -86,6 +90,9 @@ def startclustergen(argumentList):
     long_options = ["filename", "trajname", "startframe", "interval", "size", "srunuse"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
+    size=4
+    startframe=0
+    interval=100
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-f", "-filename"):
             print ("Filename:", currentValue)
@@ -95,7 +102,7 @@ def startclustergen(argumentList):
             trajname=str(currentValue)
         elif currentArgument in ("-a", "-startframe"):
             print ("startframe to extract:", currentValue)
-            frame=int(currentValue)
+            startframe=int(currentValue)
         elif currentArgument in ("-i", "-interval"):
             print ("interval to extract:", currentValue)
             interval=int(currentValue)
