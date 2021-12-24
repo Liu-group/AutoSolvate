@@ -421,13 +421,13 @@ class boxgenGUI(baseGUI):
                 cmd += " -u {:d}".format(self.spin_multiplicity.get())
             if self.cube_size.get() != "":
                 cmd += " -b {:f}".format(self.cube_size.get())
-            if self.output_prefix !="":
+            if self.output_prefix.get() !="":
                 cmd += " -o {:s}".format(self.output_prefix.get())
-            if self.gaussianexe !="None":
+            if self.gaussianexe.get() !="None":
                 cmd += " -e {:s}".format(self.gaussianexe.get())
-            if self.gaussiandir !="":
+            if len(self.gaussiandir.get()) > 0:
                 cmd += " -d {:s}".format(self.gaussiandir.get())
-            if self.amberhome !="":
+            if len(self.amberhome.get()) > 0:
                 cmd += " -a {:s}".format(self.amberhome.get())
             return cmd
         
