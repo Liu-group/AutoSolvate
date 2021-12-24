@@ -214,9 +214,11 @@ class boxgenGUI(baseGUI):
         
         
         self.txt19 = Entry(self.master)
+        default_output_prefix = self.solvent.get()+"_solvated"
+        self.txt19.insert(0,default_output_prefix)
         self.txt19.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
-        self.output_prefix = StringVar()
+        self.output_prefix = StringVar(value=default_output_prefix)
         
         def set_prefix():
             if self.txt19.get()!= "":
@@ -236,9 +238,11 @@ class boxgenGUI(baseGUI):
         
         
         self.txt110 = Entry(self.master)
+        defaultCharge = 0
+        self.txt110.insert(0, str(defaultCharge))
         self.txt110.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
-        self.charge = IntVar()
+        self.charge = IntVar(value=defaultCharge)
         
         def set_charge():
             answer = 0
@@ -251,7 +255,6 @@ class boxgenGUI(baseGUI):
                 self.txt110.delete(0,END)
                 self.txt110.insert(0,answer)
             self.charge.set(answer)
-            res = self.charge.get()
         
         self.btn210 = Button(self.master, text="Set", command=set_charge, width=colwidth[3])
         self.btn210.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
@@ -263,9 +266,11 @@ class boxgenGUI(baseGUI):
         
         
         self.txt111 = Entry(self.master)
+        defaultSpin = 1
+        self.txt111.insert(0, str(defaultSpin))
         self.txt111.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
-        self.spin_multiplicity = IntVar()
+        self.spin_multiplicity = IntVar(value=defaultSpin)
         
         def set_spin_multiplicity():
             answer = 0
@@ -291,9 +296,11 @@ class boxgenGUI(baseGUI):
         
         
         self.txt112 = Entry(self.master)
+        defaultCubesize = 54
+        self.txt112.insert(0, str(defaultCubesize))
         self.txt112.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
         
-        self.cube_size = DoubleVar()
+        self.cube_size = DoubleVar(value=defaultCubesize)
         
         def set_cubesize():
             answer = 0
@@ -311,9 +318,20 @@ class boxgenGUI(baseGUI):
         self.btn212 = Button(self.master, text="Set", command=set_cubesize, width=colwidth[3])
         self.btn212.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         self.irow += 1
+
+        ### Reminder that the following options are not required
+        #self.lblMsg1 = Label(self.master, text="The following entry is optional", font='Helvetica 18 bold')
+        #self.lblMsg1.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        #self.irow += 1
+        #msg2 = "AmberTools have been installed automatically when installing autosolvate\n"
+        #msg2 += "You will want to specify another AMBERHOME directory only if you have another version\n"
+        #msg2 += "of Amber installed and you prefer to use that. Otherwise, simply skip this entry."
+        #self.lblMsg2 = Label(self.master, text=msg2)
+        #self.lblMsg2.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        #self.irow += 1
         
         ### AMBERHOME path
-        self.lbl013 = Label(self.master, text="AMBERHOME directory", width=colwidth[0])
+        self.lbl013 = Label(self.master, text="AMBERHOME directory (optional)", width=colwidth[0])
         self.lbl013.grid(column=0, row=self.irow)
         
         self.txt113 = Entry(self.master)
@@ -336,8 +354,18 @@ class boxgenGUI(baseGUI):
         self.btn213.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         self.irow += 1
 
+        ### Reminder that the following options are required if using RESP
+        #self.lblMsg3 = Label(self.master, text="The following entries are required if using RESP for charge fitting", font='Helvetica 18 bold')
+        #self.lblMsg3.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        #self.irow += 1
+        #msg4 = "If you skip the specifying the following entries, default path for Gaussian 16 will be set.\n"
+        #msg4 = "That may not work because the default path may not exist.\n"
+        #msg4 = "If failed, you should re-run AutoSolvate and enter the Gaussian path.\n"
+        #self.lblMsg4 = Label(self.master, text=msg4)
+        #self.lblMsg4.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        #self.irow += 1
         ### Gaussian EXE
-        self.lbl014 = Label(self.master, text="Select gaussian exe", width=colwidth[0])
+        self.lbl014 = Label(self.master, text="Select gaussian exe (optional)", width=colwidth[0])
         self.lbl014.grid(column=0, row=self.irow)
         self.n6 = StringVar()
         self.gaussianexe = Combobox(self.master, textvariable=self.n6, width=colwidth[3])
@@ -350,7 +378,7 @@ class boxgenGUI(baseGUI):
         self.irow += 1
 
         ### Gaussian path
-        self.lbl015 = Label(self.master, text="Gaussian EXE directory", width=colwidth[0])
+        self.lbl015 = Label(self.master, text="Gaussian EXE directory (optional)", width=colwidth[0])
         self.lbl015.grid(column=0, row=self.irow)
         
         self.txt115 = Entry(self.master)
