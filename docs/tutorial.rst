@@ -67,7 +67,7 @@ Step 1: Solvate system
 -------------------------------------------
 Bash commands::
 
->>> python autosolvate.py -m napthalene_neutral.xyz 
+>>> autosolvate boxgen -m napthalene_neutral.xyz 
 
 Using this command, Autosolvate will initial using the default values of water as the solvent, solute charge of 0, solute multiplicity of 0, charge fitting method of resp, box size of 54, and output file name of water_solvated. In order to change some of these or make sure everything is defined explicitly, we can use more of the flag options.
 
@@ -100,7 +100,7 @@ Bash commands::
 Second System: Napthalene Radical
 ----------------------------------------------------------
 
->>> python autosolvate.py -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3
+>>> autosolvate.py boxgen -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3
 >>> python generatetrajs.py
 >>> python extract.py
 
