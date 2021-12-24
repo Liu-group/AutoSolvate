@@ -382,8 +382,8 @@ class boxgenGUI(baseGUI):
             else:
                   print("Solute molecule xyz file: ", self.xyzfile.get())
             # Check charge method based on spin multiplicity
-            if self.spin_multiplicity.get() > 1 and  self.charge_method_chose.get()!='resp':
-                print("{:s} charge method cannot ".format(self.charge_method_chose.get()) +
+            if self.spin_multiplicity.get() > 1 and  self.charge_method.get()!='resp':
+                print("{:s} charge method cannot ".format(self.charge_method.get()) 
                     + "handle open-shell system with spin multiplicity"
                     + "{:d}".format(self.spin_multiplicity.get()))
                 boxgen_error = 2
@@ -394,7 +394,7 @@ class boxgenGUI(baseGUI):
             # TODO: add check for number of electrons and spin multiplicity
             if self.amberhome.get()=="":
                 print("WARNING: AMBERHOME not provided from GUI.")
-            if self.charge_method_chose.get()=='resp':
+            if self.charge_method.get()=='resp':
                 if self.gaussianexe.get()=='None':
                     print("WARNING: Gaussian exe file name not specified for RESP charge fitting.")
                     print("WARNING: Will use default value with the risk to fail later.")
