@@ -79,6 +79,11 @@ class solventBoxBuilder():
                 print("WARNING: Setting to default path: /opt/packages/gaussian/g16RevC.01/g16/")
                 print("WARNING: If failed later, please rerun with the option -d specified!")
                 self.gaussian_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
+                gspath = os.path.join(self.gaussian_dir, self.gaussian_exe)
+                if not os.path.exists(gspath):
+                    print("Error! Gaussian executable path",gspath)
+                    print("Does not exist! Exiting...")
+                    exit()
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
             print("WARNING: Checking AMBERHOME environment virable...")
