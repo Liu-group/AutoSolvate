@@ -4,7 +4,7 @@ import mdtraj as md
 import numpy as np
 
 
-def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', startframe=0, interval=100, size=2, srun_use=False):
+def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', startframe=0, interval=100, size=4, srun_use=False):
     r"""
     Extract microsolvated cluster around center solute
 
@@ -18,7 +18,7 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
         First frame to extract the microsolvated clusters from trajectory
     interval : int, Optional, default: 100
         Interval at which to extract microsolvated clusters from trajectory
-    size : float, Optional, default: 2
+    size : float, Optional, default: 4
         size of solvent shell around center solute in Angstrom
     srun_use : bool, Optional, default: False
         Run all commands with a srun prefix.
@@ -85,6 +85,29 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
       c.save_xyz(filename+'-cutoutn-'+str(iframe)+'.xyz')
 
 def startclustergen(argumentList):
+    r"""
+    Wrap function that parses commandline options for autosolvate clustergen,
+    extracts microsolvated clusters from trajectory,
+
+    Parameters
+    ----------
+    argumentList: list
+       The list contains the command line options to specify input trajectory, microsolvated cluster size, and other options
+       related to microsolvated cluster extraction.
+
+       Flag definitions:
+
+       -m, --filename, prefix of the .prmtop file and output .xyz files
+       -t, --trajname, name of .netcdf trajectory to extract the microsolvate clusters from
+       -a, --startframe, first frame at which to start extracting from the trajectory the microsolvated clusters
+       -i, --interval, interval in frames at which to extract microsolvated clusters from the trajectory
+       -s, --size, solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance
+       -r, --srunuse, option to run inside a slurm job
+
+
+    Returns
+    -------
+    """
     print(argumentList)
     options = "f:t:a:i:s:r"
     long_options = ["filename", "trajname", "startframe", "interval", "size", "srunuse"]

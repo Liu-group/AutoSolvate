@@ -4,6 +4,9 @@ API Documentation
 .. autosummary::
    :toctree: autosummary
 
+   autosolvate.startboxgen
+   autosolvate.clustergen.startclustergen
+   autosolvate.generatetrajs.startmd
    autosolvate.solventBoxBuilder
    autosolvate.solventBoxBuilder.build
    autosolvate.solventBoxBuilder.getSolutePDB
@@ -16,6 +19,7 @@ API Documentation
    autosolvate.solventBoxBuilder.packSLUSLV
    autosolvate.solventBoxBuilder.writeTleapcmd_ch3cn_solvated
    autosolvate.solventBoxBuilder.createAmberParm
+   autosolvate.generatetrajs.startmd
    autosolvate.generatetrajs.writeMMminInput
    autosolvate.generatetrajs.writeMMheatInput
    autosolvate.generatetrajs.writeMMNPTInput
@@ -24,3 +28,4 @@ API Documentation
    autosolvate.generatetrajs.writeQMMMMinInput
    autosolvate.generatetrajs.writeQMMMInput
    autosolvate.generatetrajs.runQMMM
+   autosolvate.clustergen.clustergen

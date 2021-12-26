@@ -31,7 +31,7 @@ def writeMMminInput():
 
 def writeMMheatInput(temperature=300, stepsmmheat=10000):
         r"""
-        Write Amber MM heat input file 
+        Write Amber MM heating input file 
 
         Parameters
         ----------
@@ -77,7 +77,9 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
         Parameters
         ----------
         temperature : float, Optional, default: 300
-            temperature 
+            temperature in Kelvin
+        pressure : float, Optional, default: 1
+            pressure in bar
         stepsmmnpt : int, Optional, default: 10000
             MM NPT steps
 
@@ -111,16 +113,24 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
 
 
 
-def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, stepsmmnvt=0, srun_use=False, pmemduse=False, dryrun=False):
+def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, srun_use=False, pmemduse=False, dryrun=False):
     r"""
     Equilibrate with MM
    
     Parameters
     ----------
     filename : str, Optional, default: 'water_solvated'
-        Filename prefix for .prmtop and inpcrd files
+        Filename prefix for .prmtop and .inpcrd files
+    stepsmmheat : int, Optional, default: 10000
+        MM heating steps
+    stepsmmnpt : int, Optional, default: 300000
+        MM NPT steps
     srun_use : bool, Optional, default: False
         Run all commands with a srun prefix.
+    pmemduse :  bool, Optional, default: False
+        Use pmemd.CUDA instead of sander
+    dryrun : bool, Optional, default: False
+        Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands
     
     Returns
     -------
@@ -180,7 +190,7 @@ def writeQMMMTemplate(spinmult=1,charge=0):
         Returns
         -------
         None
-            Result stored as mmnpt.in
+            Result stored as tc_job.tpl
         """
         f = open("tc_job.tpl","w")
         f.write("basis        lacvps_ecp\n")
@@ -209,10 +219,8 @@ def writeQMMMMinInput(stepsqmmmmin=250):
 
         Parameters
         ----------
-        temperature : float, Optional, default: 300
-            temperature to heat to
         stepsqmmmmin : int, Optional, default: 250
-            QMMM steps for minimise.
+            QMMM steps for minimization
 
         Returns
         -------
@@ -261,14 +269,18 @@ def writeQMMMMinInput(stepsqmmmmin=250):
 
 def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmheat.in'):
         r"""
-        Write QMMM heating input file
+        Write QMMM heating or NPT trajectory input file
 
         Parameters
         ----------
         temperature : float, Optional, default: 300
             temperature to heat to
+        charge : int, Optional, default: 0
+            Total charge of system
         stepsqmmm : int, Optional, default: 250
             QMMM steps 
+        infilename : str, Optional, default: 'qmmmheat.in'
+            Filename to save Amber input file
 
         Returns
         -------
@@ -318,14 +330,24 @@ def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmhea
 
 def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=250, stepsqmmmheat=1000, stepsqmmmnvt=10000, dryrun=False):
     r"""
-    Run QMMM minimisation, heating, trajectory run
+    Run QMMM minimization, heating and NVT trajectory run
 
     Parameters
     ----------
     filename : str, Optional, default: 'water_solvated'
-        Filename prefix for .prmtop and inpcrd files
+        Filename prefix for .prmtop input file and .netcdf output file
+    spinmult : int, Optional, default: 1
+        Spin multiplicity of system
     srun_use : bool, Optional, default: False
         Run all commands with a srun prefix.
+    stepsqmmmmin : int, Optional, default: 250
+        Number of QMMM minimization steps
+    stepsqmmmheat : int, Optional, default: 1000
+        Number of QMMM heating steps
+    stepsqmmmnvt : int, Optional, default: 10000
+        Number of QMMM NVT trajectory steps
+    dryrun : bool, Optional, default: False
+        Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands
 
     Returns
     -------
@@ -385,6 +407,34 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
 
 
 def startmd(argumentList):
+    r"""
+    Wrap function that parses commandline options for autosolvate clustergen,
+    generates inputfiles for Amber and TeraChem,
+    runs MM and QMMM stages.
+
+    Parameters
+    ----------
+    argumentList: list
+       The list contains the command line options to specify MM and QMMM stage options.
+       Flag definitions:
+       -f, --filename, prefix of .prmtop and .inpcrd files`` 
+       -t, --temp, temperature in Kelvin to equilibrate``
+       -p, --pressure, pressure in bar to equilibrate during MM NPT step
+       -m, --stepsmmheat, Number of MM heating steps, setting to 0 skips the MM heating step
+       -n, --stepsmmnpt, Number of MM NPT steps, setting to 0 skips the MM NPT step
+       -l, --stepsqmmmmin, Number of QMMM minimization steps, setting to 0 skips the QMMM minimization step
+       -o, --stepsqmmmheat, Number of QMMM heating steps, setting to 0 skips the QMMM heating step
+       -s, --stepsqmmmnvt, Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step
+       -q, --charge, Total charge of system
+       -u, --spinmultiplicity, Spin multiplicity of whole system
+       -r, --srunuse, option to run inside a slurm job 
+       -x, --pmemduse, Speed up MM with pmemd.CUDA instead of sander       
+       -d, --dryrun, Dry run mode: only generate the commands to run MD programs and save them into a file without executing the command
+
+
+    Returns
+    -------
+    """
     print(argumentList)
     options = "f:t:p:m:n:l:o:s:q:u:r:x:d"
     long_options = ["filename", "temp", "pressure", "stepsmmheat", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnvt", "charge", "spinmultiplicity", "srunuse", "pmemduse","dryrun"]

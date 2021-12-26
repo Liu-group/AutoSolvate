@@ -493,34 +493,33 @@ class solventBoxBuilder():
 
 def startboxgen(argumentList):
     r"""
-    Wrap function that parses commandline options,
+    Wrap function that parses commandline options for autosolvate boxgen,
     adds solvent box to a given solute,
     and generates related force field parameters.
     
     Parameters
     ----------
     argumentList: list
-       The sist contains the command line options to specify solute, solvent, and other options
-       related structure and force field parameter generation.
+       The list contains the command line options to specify solute, solvent, and other options
+       related to structure and force field parameter generation.
 
        Flag definitions:
 
        -m, --main, solute xyz file
        -s, --solvent, name of solvent (water, methanol, chloroform, nma)
        -o, --output, prefix of the output file names
-       -c, --charge, formal charge of solute 
-       -u, --spinmultiplicity, spin multiplicity of solute 
+       -c, --charge, formal charge of solute
+       -u, --spinmultiplicity, spin multiplicity of solute
        -g, --chargemethod, name of charge fitting method (bcc, resp)
-       -b, --cubesize, size of solvent cube in angstroms 
-       -r, --srunuse, option to use slurm to submit as a job
+       -b, --cubesize, size of solvent cube in angstroms
+       -r, --srunuse, option to run inside a slurm job
        -e, --gaussianexe, name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
-       -d, --gaussiandir, path to the Gaussian package.
-       -a, --amberhome, path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME.
+       -d, --gaussiandir, path to the Gaussian package
+       -a, --amberhome, path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
 
 
     Returns
     -------
-    None
     """
     print(argumentList)
     options = "m:s:o:c:k:b:g:u:r:e:d:a:t"

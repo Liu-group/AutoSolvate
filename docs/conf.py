@@ -23,7 +23,7 @@ import autosolvate
 # -- Project information -----------------------------------------------------
 
 project = 'AutoSolvate'
-copyright = ("2021, Liu Group. Project structure based on the "
+copyright = ("2022, Liu Group. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.3")
 author = 'Liu Group'
 
