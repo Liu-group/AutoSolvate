@@ -29,3 +29,4 @@ API Documentation
    autosolvate.generatetrajs.writeQMMMInput
    autosolvate.generatetrajs.runQMMM
    autosolvate.clustergen.clustergen
+   autosolvate.clustergen.startclustergen

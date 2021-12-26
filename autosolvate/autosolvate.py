@@ -503,23 +503,24 @@ def startboxgen(argumentList):
        The list contains the command line options to specify solute, solvent, and other options
        related to structure and force field parameter generation.
 
-       Flag definitions:
-
-       -m, --main, solute xyz file
-       -s, --solvent, name of solvent (water, methanol, chloroform, nma)
-       -o, --output, prefix of the output file names
-       -c, --charge, formal charge of solute
-       -u, --spinmultiplicity, spin multiplicity of solute
-       -g, --chargemethod, name of charge fitting method (bcc, resp)
-       -b, --cubesize, size of solvent cube in angstroms
-       -r, --srunuse, option to run inside a slurm job
-       -e, --gaussianexe, name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
-       -d, --gaussiandir, path to the Gaussian package
-       -a, --amberhome, path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
+       Command line option definitions
+         -m, --main  solute xyz file
+         -s, --solvent  name of solvent (water, methanol, chloroform, nma)
+         -o, --output  prefix of the output file names
+         -c, --charge  formal charge of solute
+         -u, --spinmultiplicity  spin multiplicity of solute
+         -g, --chargemethod  name of charge fitting method (bcc, resp)
+         -b, --cubesize  size of solvent cube in angstroms
+         -r, --srunuse  option to run inside a slurm job
+         -e, --gaussianexe  name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
+         -d, --gaussiandir  path to the Gaussian package
+         -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
 
 
     Returns
     -------
+    None
+        Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     print(argumentList)
     options = "m:s:o:c:k:b:g:u:r:e:d:a:t"

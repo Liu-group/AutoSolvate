@@ -95,18 +95,19 @@ def startclustergen(argumentList):
        The list contains the command line options to specify input trajectory, microsolvated cluster size, and other options
        related to microsolvated cluster extraction.
 
-       Flag definitions:
-
-       -m, --filename, prefix of the .prmtop file and output .xyz files
-       -t, --trajname, name of .netcdf trajectory to extract the microsolvate clusters from
-       -a, --startframe, first frame at which to start extracting from the trajectory the microsolvated clusters
-       -i, --interval, interval in frames at which to extract microsolvated clusters from the trajectory
-       -s, --size, solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance
-       -r, --srunuse, option to run inside a slurm job
+       Command line option definitions:
+         -m, --filename  prefix of the .prmtop file and output .xyz files
+         -t, --trajname  name of .netcdf trajectory to extract the microsolvate clusters from
+         -a, --startframe  first frame at which to start extracting from the trajectory the microsolvated clusters
+         -i, --interval  interval in frames at which to extract microsolvated clusters from the trajectory
+         -s, --size  solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance
+         -r, --srunuse  option to run inside a slurm job
 
 
     Returns
     -------
+    None
+        Generates the ```.xyz`` file containing the microsolvated cluster
     """
     print(argumentList)
     options = "f:t:a:i:s:r"
