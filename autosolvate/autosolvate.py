@@ -139,6 +139,17 @@ class solventBoxBuilder():
             newline = line.replace('UNL','SLU')
             pdb2.write(newline)
         pdb2.close()
+
+    def removeConectFromPDB(self):
+        print("cleaning up solute.xyz.pdb")
+        pdb1 = open('solute.xyz.pdb').readlines()
+        pdb2 = open('solute.xyz.pdb','w')
+        for line in pdb1:
+            if 'CONECT' not in line:
+                pdb2.write(line)
+        pdb2.close()
+
+
             
     def getFrcmod(self):
         r"""
@@ -179,12 +190,7 @@ class solventBoxBuilder():
                 sys.exit()
             print("Gaussian ESP calculation done")
         if self.charge_method == "bcc":
-            cmda ="sed -i '/CONECT/d' solute.xyz.pdb"
-            print("cleaning up solute.xyz.pdb")
-            print(cmda)
-            if self.srun_use:
-                    cmda='srun -n 1 '+cmda
-            subprocess.call(cmda, shell=True)
+           self.removeConectFromPDB()
         print("Then write out mol2")
         if self.charge_method == "resp":
             cmd3="$AMBERHOME/bin/antechamber -i solute.gesp -fi gesp -o solute.mol2 -fo mol2 -c resp -eq 2 -rn SLU"
