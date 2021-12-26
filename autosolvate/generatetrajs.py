@@ -415,25 +415,26 @@ def startmd(argumentList):
     Parameters
     ----------
     argumentList: list
-       The list contains the command line options to specify MM and QMMM stage options.
-       Flag definitions:
-       -f, --filename, prefix of .prmtop and .inpcrd files`` 
-       -t, --temp, temperature in Kelvin to equilibrate``
-       -p, --pressure, pressure in bar to equilibrate during MM NPT step
-       -m, --stepsmmheat, Number of MM heating steps, setting to 0 skips the MM heating step
-       -n, --stepsmmnpt, Number of MM NPT steps, setting to 0 skips the MM NPT step
-       -l, --stepsqmmmmin, Number of QMMM minimization steps, setting to 0 skips the QMMM minimization step
-       -o, --stepsqmmmheat, Number of QMMM heating steps, setting to 0 skips the QMMM heating step
-       -s, --stepsqmmmnvt, Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step
-       -q, --charge, Total charge of system
-       -u, --spinmultiplicity, Spin multiplicity of whole system
-       -r, --srunuse, option to run inside a slurm job 
-       -x, --pmemduse, Speed up MM with pmemd.CUDA instead of sander       
-       -d, --dryrun, Dry run mode: only generate the commands to run MD programs and save them into a file without executing the command
+        The list contains the command line options to specify MM and QMMM stage options.
 
-
+        Command line options:
+          -f, --filename  prefix of .prmtop and .inpcrd files
+          -t, --temp  temperature in Kelvin to equilibrate
+          -p, --pressure  pressure in bar to equilibrate during MM NPT step
+          -m, --stepsmmheat  Number of MM heating steps, setting to 0 skips the MM heating step
+          -n, --stepsmmnpt  Number of MM NPT steps, setting to 0 skips the MM NPT step
+          -l, --stepsqmmmmin  Number of QMMM minimization steps, setting to 0 skips the QMMM minimization step
+          -o, --stepsqmmmheat  Number of QMMM heating steps, setting to 0 skips the QMMM heating step
+          -s, --stepsqmmmnvt  Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step
+          -q, --charge  Total charge of system
+          -u, --spinmultiplicity  Spin multiplicity of whole system
+          -r, --srunuse  option to run inside a slurm job
+          -x, --pmemduse  Speed up MM with pmemd.CUDA instead of sander
+          -d, --dryrun  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the command
     Returns
     -------
+    None
+        Generate MD simulation input files and execute MD programs, or same the MD program execution commands in runMM.sh and runQMMM.sh
     """
     print(argumentList)
     options = "f:t:p:m:n:l:o:s:q:u:r:x:d"
