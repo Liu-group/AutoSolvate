@@ -16,8 +16,11 @@ API Documentation
    autosolvate.solventBoxBuilder.packSLUSLV
    autosolvate.solventBoxBuilder.writeTleapcmd_ch3cn_solvated
    autosolvate.solventBoxBuilder.createAmberParm
-   autosolvate.generatetrajs.writeminin
-   autosolvate.generatetrajs.writeheatin
+   autosolvate.generatetrajs.writeMMminInput
+   autosolvate.generatetrajs.writeMMheatInput
+   autosolvate.generatetrajs.writeMMNPTInput
    autosolvate.generatetrajs.runMM
-   autosolvate.generatetrajs.writeqmmmheatin
+   autosolvate.generatetrajs.writeQMMMTemplate
+   autosolvate.generatetrajs.writeQMMMMinInput
+   autosolvate.generatetrajs.writeQMMMInput
    autosolvate.generatetrajs.runQMMM

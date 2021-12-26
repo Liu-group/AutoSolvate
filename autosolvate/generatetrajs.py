@@ -2,7 +2,7 @@ import getopt, sys, os
 import subprocess
 
 
-def writemmminin():
+def writeMMminInput():
     r"""
     Write Amber MM minimization input file 
     
@@ -29,7 +29,7 @@ def writemmminin():
     f.close()
 
 
-def writemmheatin(temperature=300, stepsmmheat=10000):
+def writeMMheatInput(temperature=300, stepsmmheat=10000):
         r"""
         Write Amber MM heat input file 
 
@@ -70,7 +70,7 @@ def writemmheatin(temperature=300, stepsmmheat=10000):
         f.write("&wt type='END' /\n")
         f.close()
 
-def writemmnptin(temperature=300, pressure=1, stepsmmnpt=300000):
+def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
         r"""
         Write Amber MM NPT input file
 
@@ -150,7 +150,7 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, steps
       subprocess.call(cmd, shell=True)
 
 
-def writeqmmmtpl(spinmult=1,charge=0):
+def writeQMMMTemplate(spinmult=1,charge=0):
         r"""
         Write Terachem file-based interface to Amber
 
@@ -187,7 +187,7 @@ def writeqmmmtpl(spinmult=1,charge=0):
         f.write("end\n")
         f.close()
 
-def writeqmmmminin(stepsqmmmmin=250):
+def writeQMMMMinInput(stepsqmmmmin=250):
         r"""
         Write QMMM min input file
 
@@ -243,7 +243,7 @@ def writeqmmmminin(stepsqmmmmin=250):
         f.write(" /\n")
         f.close()
 
-def writeqmmmin(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmheat.in'):
+def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmheat.in'):
         r"""
         Write QMMM heating input file
 
@@ -399,14 +399,14 @@ def startmd(argumentList):
             srun_use=True
 
 
-    writemmminin()
-    writemmheatin(temperature=temperature, stepsmmheat=stepsmmheat)
-    writemmnptin(temperature=temperature, pressure=pressure, stepsmmnpt=stepsmmnpt)
+    writeMMminInput()
+    writeMMheatInput(temperature=temperature, stepsmmheat=stepsmmheat)
+    writeMMNPTInput(temperature=temperature, pressure=pressure, stepsmmnpt=stepsmmnpt)
     
-    writeqmmmminin(stepsqmmmmin=stepsqmmmmin)
-    writeqmmmtpl(spinmult=spinmult, charge=charge)
-    writeqmmmin(temperature=temperature, stepsqmmm=stepsqmmmheat, charge=charge, infilename='qmmmheat.in')
-    writeqmmmin(temperature=temperature, stepsqmmm=stepsqmmmnvt, charge=charge, infilename='qmmmnvt.in' )
+    writeQMMMMinInput(stepsqmmmmin=stepsqmmmmin)
+    writeQMMMTemplate(spinmult=spinmult, charge=charge)
+    writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmheat, charge=charge, infilename='qmmmheat.in')
+    writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmnvt, charge=charge, infilename='qmmmnvt.in' )
     
     runMM(filename=filename, stepsmmheat=stepsmmheat, stepsmmnpt=stepsmmnpt, srun_use=srun_use, pmemduse=pmemduse)
     
