@@ -217,7 +217,9 @@ If AutoSolvate is running successfully, the following messages will be printed t
 
 The main output here is the QM/MM trajectory nap_neutral_water-qmmmnvt.netcdf.
 
-***********
+
+
+
 Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
 
 MM heat
