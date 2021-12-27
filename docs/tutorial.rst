@@ -7,17 +7,12 @@ There will be two full example systems: napthalene in water and napthalene radic
 
 Prerequisites
 -------------------------------------------
-In order to follow along with this tutorial, you need:
-
-
->>> conda activate autosolvate
-
->>> vim napthalene_neutral.xyz
+Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The napthalene neutral and radical coordinates are provided below so that you can follow along on your own computer:
 
 ::
 
   18
-  -3.8580765971568428e+02 neutral napthalene
+  napthalene neutral 
        C     2.4397703245   -0.7099883961    0.0000206200
        C     2.4397218526    0.7099981201    0.0000271508
        C     1.2475921776    1.4061556571    0.0000203110
@@ -37,12 +32,10 @@ In order to follow along with this tutorial, you need:
        H     3.3839630326    1.2452901872    0.0000373621
        H     3.3840333383   -1.2452476243    0.0000259290
 
->>> vim napthalene_radical.xyz
-
 ::
 
   18
-  -3.8552686324110755e+02 napthalene radical
+  napthalene radical
        C     2.4584929186   -0.6980401434    0.0000208854
        C     2.4584830542    0.6980208281    0.0000273558
        C     1.2392834454    1.4064616303    0.0000201346
@@ -61,6 +54,9 @@ In order to follow along with this tutorial, you need:
        H     1.2471333000    2.4919523490    0.0000239494
        H     3.3951743890    1.2429028846    0.0000376679
        H     3.3951863936   -1.2429173191    0.0000261673
+
+Now that you have the structures, make a neutral and radical directory. We will start with the neutral molecule. 
+
 
 
 Step 1: Solvate system
