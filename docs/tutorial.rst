@@ -118,9 +118,13 @@ If AutoSolvate is running successfully, the following messages will be printed t
 Additionally, you should now have the following files in your directory:
 ::
 
-  ANTECHAMBER_AC.AC      ANTECHAMBER_AM1BCC_PRE.AC  ATOMTYPE.INF             leap.cmd          nap_neutral.xyz  solute.mol2     sqm.in   water_solvated.inpcrd
-  ANTECHAMBER_AC.AC0     ANTECHAMBER_BOND_TYPE.AC   leap_add_solventbox.cmd  leap.log          solute.frcmod    solute.pdb      sqm.out  water_solvated.pdb
-  ANTECHAMBER_AM1BCC.AC  ANTECHAMBER_BOND_TYPE.AC0  leap_add_solventbox.log  leap_savelib.log  solute.lib       solute.xyz.pdb  sqm.pdb  water_solvated.prmtop
+  ANTECHAMBER_AC.AC           ATOMTYPE.INF              nap_neutral.xyz   sqm.in   
+  ANTECHAMBER_AC.AC0          leap_add_solventbox.cmd   solute.frcmod     sqm.out  
+  ANTECHAMBER_AM1BCC.AC       leap_add_solventbox.log   solute.lib        sqm.pdb  
+  ANTECHAMBER_AM1BCC_PRE.AC   leap.cmd                  solute.mol2       water_solvated.inpcrd
+  ANTECHAMBER_BOND_TYPE.AC    leap.log                  solute.pdb        water_solvated.pdb
+  ANTECHAMBER_BOND_TYPE.AC0   leap_savelib.log          solute.xyz.pdb    water_solvated.prmtop
+
 
 The three files that we care about for moving forward to the next step are water_solvated.pdb, water_solvated.inpcrd, and water_solvated.prmtop.
 
