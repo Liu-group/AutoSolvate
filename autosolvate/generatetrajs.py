@@ -182,7 +182,7 @@ def writeQMMMTemplate(spinmult=1,charge=0):
 
         Parameters
         ----------
-        spinmult : float, Optional, default: 1
+        spinmult : float, default: 1
             spin multiplicity of solvated system
         charge : int, Optional, default: 0
             charge of solvated system
@@ -305,7 +305,7 @@ def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmhea
         f.write("  gamma_ln = 5.0, !Langevin dynamics collision frequency\n")
         f.write("  nstlim = "+str(stepsqmmm)+",  !num steps\n")
         f.write("  dt     = 0.0005,  !in ps\n")
-        f.write("  ntpr   = 1, !print detials to log every step\n")
+        f.write("  ntpr   = 1, !print details to log every step\n")
         f.write("  ntwx   = 1, !write coordinates to mdcrd every step\n")
         f.write("  ntwr   = 1, !write restart file every step\n")
         f.write("  ifqnt  = 1,!turn on QM/MM\n")
@@ -485,10 +485,10 @@ def startmd(argumentList):
             print ("Spinmultiplicity:", currentValue)
             spinmult=int(currentValue)
         elif currentArgument in ("-r", "-srunuse"):
-            print("usign srun")
+            print("using srun")
             srun_use=True
         elif currentArgument in ("-x", "-pmemduse"):
-            print("usign pmemd.cuda instead of sander")
+            print("using pmemd.cuda instead of sander")
             pmemduse=True
         elif currentArgument in ("-d", "-dryrun"):
             print("Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands")
