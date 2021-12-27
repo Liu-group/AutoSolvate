@@ -448,6 +448,9 @@ def startmd(argumentList):
     stepsqmmmmin=250
     stepsqmmmheat=1000
     stepsqmmmnvt=10000
+    charge=0
+    spinmult=1
+    srun_use=False
     pmemduse=False
     dryrun=False
     for currentArgument, currentValue in arguments:
@@ -486,7 +489,7 @@ def startmd(argumentList):
             srun_use=True
         elif currentArgument in ("-x", "-pmemduse"):
             print("usign pmemd.cuda instead of sander")
-            srun_use=True
+            pmemduse=True
         elif currentArgument in ("-d", "-dryrun"):
             print("Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands")
             dryrun=True

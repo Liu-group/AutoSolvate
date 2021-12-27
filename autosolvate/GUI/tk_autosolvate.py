@@ -515,8 +515,8 @@ class mdGUI(baseGUI):
         
         def set_prefix():
             mypath = self.txt01.get()
-            inpcrd = "{}.inpcrd".format(mypath)
-            prmtop = "{}.prmtop".format(mypath)
+            inpcrd = "{:s}.inpcrd".format(mypath)
+            prmtop = "{:s}.prmtop".format(mypath)
             if mypath !="" and os.path.exists(inpcrd) and os.path.exists(prmtop):
                     self.prefix.set(self.txt01.get())
             else:
@@ -535,8 +535,8 @@ class mdGUI(baseGUI):
                     answer = simpledialog.askstring(parent=self.master,
                                                title="Dialog",
                                                prompt=msg)
-                    inpcrd = "{}.inpcrd".format(mypath)
-                    prmtop = "{}.prmtop".format(mypath)
+                    inpcrd = "{:s}.inpcrd".format(answer)
+                    prmtop = "{:s}.prmtop".format(answer)
                     msg = "Invalid prefix provided!\n"
                     answerValid = True
                     if not os.path.exists(inpcrd):
@@ -591,7 +591,7 @@ class mdGUI(baseGUI):
             self.txtTemp.delete(0,END)
             self.txtTemp.insert(0,answer)
         
-        self.btnTemp = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnTemp = Button(self.master, text="Set", command=set_Temp, width=colwidth[3])
         self.btnTemp.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -631,7 +631,7 @@ class mdGUI(baseGUI):
             self.txtPressure.delete(0,END)
             self.txtPressure.insert(0,answer)
         
-        self.btnPressure = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnPressure = Button(self.master, text="Set", command=set_Pressure, width=colwidth[3])
         self.btnPressure.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -676,7 +676,7 @@ class mdGUI(baseGUI):
             self.txtMMMinSteps.delete(0,END)
             self.txtMMMinSteps.insert(0,answer)
         
-        self.btnMMMinSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMMinSteps = Button(self.master, text="Set", command=set_MMMinSteps, width=colwidth[3])
         self.btnMMMinSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -717,7 +717,7 @@ class mdGUI(baseGUI):
             self.txtMMHeatSteps.delete(0,END)
             self.txtMMHeatSteps.insert(0,answer)
 
-        self.btnMMHeatSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMHeatSteps = Button(self.master, text="Set", command=set_MMHeatSteps, width=colwidth[3])
         self.btnMMHeatSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -757,7 +757,7 @@ class mdGUI(baseGUI):
             self.txtMMNPTSteps.delete(0,END)
             self.txtMMNPTSteps.insert(0,answer)
         
-        self.btnMMNPTSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMNPTSteps = Button(self.master, text="Set", command=set_MMNPTSteps, width=colwidth[3])
         self.btnMMNPTSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -798,7 +798,7 @@ class mdGUI(baseGUI):
             self.txtMMNVESteps.insert(0,answer)
         
         style = Style()
-        self.btnMMNVESteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnMMNVESteps = Button(self.master, text="Set", command=set_MMNVESteps, width=colwidth[3])
         self.btnMMNVESteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -825,6 +825,64 @@ class mdGUI(baseGUI):
         ### QM/MM MD control block starts
         self.lblQMMM1 = Label(self.master, text="QM/MM control options", font='Helvetica 18 bold')
         self.lblQMMM1.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        self.irow += 1
+
+        ### Solute charge 
+        self.lblcharge = Label(self.master, text="solute charge", width=colwidth[0])
+        self.lblcharge.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        
+        self.txtcharge = Entry(self.master)
+        defaultCharge = 0
+        self.txtcharge.insert(0, str(defaultCharge))
+        self.txtcharge.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        
+        self.charge = IntVar(value=defaultCharge)
+        
+        def set_charge():
+            answer = 0
+            try: 
+                answer = int(self.txtcharge.get())
+            except ValueError:
+                answer = simpledialog.askinteger(parent=self.master,
+                                                 title="Dialog",
+                                                 prompt="Charge must be an integer! Please re-enter.") 
+                self.txtcharge.delete(0,END)
+                self.txtcharge.insert(0,answer)
+            self.charge.set(answer)
+        
+        self.btncharge = Button(self.master, text="Set", command=set_charge, width=colwidth[3])
+        self.btncharge.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
+
+        ### Solute spin multiplicity
+        self.lblspin = Label(self.master, text="solute spin multiplicity", width=colwidth[0])
+        self.lblspin.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        
+        self.txtspin = Entry(self.master)
+        defaultSpin = 1
+        self.txtspin.insert(0, str(defaultSpin))
+        self.txtspin.grid(column=1, row=self.irow, columnspan=3, sticky=W+E)
+        
+        self.spin_multiplicity = IntVar(value=defaultSpin)
+        
+        def set_spin_multiplicity():
+            answer = 0
+            try: 
+                answer = int(self.txtspin.get())
+            except ValueError:
+                answer = simpledialog.askinteger(parent=self.master,
+                                     title="Dialog",
+                                     prompt="Spin multiplicity must be a positive integer! Please re-enter.")
+                self.txtspin.delete(0,END)
+                self.txtspin.insert(0,answer)
+            self.spin_multiplicity.set(answer)
+            res = self.spin_multiplicity.get()
+        
+        self.btnspin = Button(self.master, text="Set", command=set_spin_multiplicity, width=colwidth[3])
+        self.btnspin.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+
         self.irow += 1
 
         ### Set number of QM/MM minimization steps
@@ -863,7 +921,7 @@ class mdGUI(baseGUI):
             self.txtQMMMminSteps.insert(0,answer)
         
         style = Style()
-        self.btnQMMMminSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMminSteps = Button(self.master, text="Set", command=set_QMMMminSteps, width=colwidth[3])
         self.btnQMMMminSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -904,7 +962,7 @@ class mdGUI(baseGUI):
             self.txtQMMMheatSteps.insert(0,answer)
         
         style = Style()
-        self.btnQMMMheatSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMheatSteps = Button(self.master, text="Set", command=set_QMMMheatSteps, width=colwidth[3])
         self.btnQMMMheatSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
@@ -944,15 +1002,15 @@ class mdGUI(baseGUI):
             self.txtQMMMeqNVTSteps.delete(0,END)
             self.txtQMMMeqNVTSteps.insert(0,answer)
         
-        self.btnQMMMeqNVTSteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMeqNVTSteps = Button(self.master, text="Set", command=set_QMMMeqNVTSteps, width=colwidth[3])
         self.btnQMMMeqNVTSteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
         
         self.irow += 1
 
-        ### set number of steps for MM NVE production run steps 
+        ### set number of steps for QMMM NVE production run steps 
 
 
-        self.lblQMMMNVESteps = Label(self.master, text="MM NPT pressure equilibration steps", width=colwidth[0],foreground='blue')
+        self.lblQMMMNVESteps = Label(self.master, text="QMMM NVE steps", width=colwidth[0],foreground='blue')
         self.lblQMMMNVESteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
         self.txtQMMMNVESteps = Entry(self.master)
@@ -986,8 +1044,58 @@ class mdGUI(baseGUI):
             self.txtQMMMNVESteps.delete(0,END)
             self.txtQMMMNVESteps.insert(0,answer)
         
-        self.btnQMMMNVESteps = Button(self.master, text="Set", command=set_prefix, width=colwidth[3])
+        self.btnQMMMNVESteps = Button(self.master, text="Set", command=set_QMMMNVESteps, width=colwidth[3])
         self.btnQMMMNVESteps.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### Job control block starts
+        self.lblJobControl = Label(self.master, text="Simulation job control options", font='Helvetica 18 bold')
+        self.lblJobControl.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        self.irow += 1
+
+        ### Use srun or not
+        self.srunuse = BooleanVar(value=False)
+        
+        self.lblsrunuse = Label(self.master, text="Use srun to execute commands ?", width=colwidth[4])
+        self.lblsrunuse.grid(column=0, row=self.irow,  columnspan=2, sticky=W, padx=self.padx)
+        
+        self.radsrunyes = Radiobutton(self.master, text='Yes', value=True, variable=self.srunuse, width=colwidth[3])
+        self.radsrunyes.grid(column=2, row=self.irow)
+        
+        self.radsrunno = Radiobutton(self.master, text='No', value=False, variable=self.srunuse)
+        self.radsrunno.grid(column=3, row=self.irow)
+        
+        self.irow += 1
+
+
+        ### Use GPU accelerated MM or not
+        self.pmemduse = BooleanVar(value=False)
+        
+        self.lblpmemduse = Label(self.master, text="Use GPU accelerated Amber MM (PMEMD instead of Sander) ?", width=colwidth[4])
+        self.lblpmemduse.grid(column=0, row=self.irow, columnspan=2, sticky=W, padx=self.padx)
+        
+        self.radpmemdyes = Radiobutton(self.master, text='Yes', value=True, variable=self.pmemduse, width=colwidth[3])
+        self.radpmemdyes.grid(column=2, row=self.irow)
+        
+        self.radpmemdno = Radiobutton(self.master, text='No', value=False, variable=self.pmemduse)
+        self.radpmemdno.grid(column=3, row=self.irow)
+        
+        self.irow += 1
+
+        ### Dry run mode or not
+        self.dryrun = BooleanVar(value=True)
+        
+        dryrunmsg = "Dry run mode?\n(Only generate the commands "
+        dryrunmsg += "to run MD programs without executing.)"
+        self.lbldryrun = Label(self.master, text=dryrunmsg, width=colwidth[4])
+        self.lbldryrun.grid(column=0, row=self.irow,  columnspan=2,  sticky=W, padx=self.padx)
+        
+        self.raddryrunyes = Radiobutton(self.master, text='Yes', value=True, variable=self.dryrun, width=colwidth[3])
+        self.raddryrunyes.grid(column=2, row=self.irow)
+        
+        self.raddryrunno = Radiobutton(self.master, text='No', value=False, variable=self.dryrun)
+        self.raddryrunno.grid(column=3, row=self.irow)
         
         self.irow += 1
 
@@ -1014,15 +1122,23 @@ class mdGUI(baseGUI):
             cmd += " -f " + self.prefix.get()
             cmd += " -t {:.2f}".format(self.Temp.get())
             cmd += " -p {:.4f}".format(self.Pressure.get())
-            cmd += " -m {:d} ".format(self.MMMinSteps.get())
-            cmd += " -h {:d} ".format(self.MMHeatSteps.get())
-            cmd += " -s {:d} ".format(self.MMNPTSteps.get())
+            #cmd += " -m {:d} ".format(self.MMMinSteps.get())
+            cmd += " -m {:d} ".format(self.MMHeatSteps.get())
+            cmd += " -n {:d} ".format(self.MMNPTSteps.get())
+            #cmd += " -e {:d} ".format(self.MMNVESteps.get())
             if self.doQMMM.get() == True:
-                 cmd += " -e {:d} ".format(self.MMNVESteps.get())
-                 cmd += " -s {:d} ".format(self.QMMMminSteps.get())
-                 cmd += " -s {:d} ".format(self.QMMMheatSteps.get())
+                 cmd += " -l {:d} ".format(self.QMMMminSteps.get())
+                 cmd += " -o {:d} ".format(self.QMMMheatSteps.get())
                  cmd += " -s {:d} ".format(self.QMMMeqNVTSteps.get())
-                 cmd += " -s {:d} ".format(self.QMMMNVESteps.get())
+                 #cmd += " -s {:d} ".format(self.QMMMNVESteps.get())
+                 cmd += " -q {:d} ".format(self.charge.get())
+                 cmd += " -u {:d} ".format(self.spin_multiplicity.get())
+            if self.srunuse.get() == True:
+                cmd += "-r"
+            if self.pmemduse.get() == True:
+                cmd += "-x"
+            if self.dryrun.get() == True:
+                cmd += "-d"
             return cmd
 
         ### Execute  python command to generate MD input files and jobscripts
@@ -1031,12 +1147,20 @@ class mdGUI(baseGUI):
             if mdrun_error == 0:
                 cmd = write_mdrun_input()
                 res = "Congratulations! MDrun command line generated: \n" + cmd
-                messagebox.showinfo(title="Confirmation", message=res)
+                messagebox.showinfo(title="Confirmation", message=res, icon='info')
                 question = "Do you want to continue to generate the "\
                          + "MD input and job scripts?"
-                answer = messagebox.askyesno(title="Confirmation", message=question)
+                answer = messagebox.askyesno(title="Confirmation", message=question, icon='question')
                 if answer == True:
                     subprocess.call(cmd, shell=True)
+                    if self.dryrun.get() == True:
+                       res = "MD input and job script generation finished! \n"
+                       res += "Please check the job scripts in runMM.sh and runQMMM.sh\n"
+                    else:
+                       res = "MD input generation and simulation finished! \n"
+                    res += "Thanks for using AutoSolvate. Have a nice day!\n"
+                    messagebox.showinfo(title="Success", message=res, icon='info')
+
         
             else:
                 res = "Error found in input.\n"
