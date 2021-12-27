@@ -336,7 +336,7 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
     ----------
     filename : str, Optional, default: 'water_solvated'
         Filename prefix for .prmtop input file and .netcdf output file
-    spinmult : int, Optional, default: 1
+    spinmult : int, Required
         Spin multiplicity of system
     srun_use : bool, Optional, default: False
         Run all commands with a srun prefix.
