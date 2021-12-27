@@ -125,7 +125,6 @@ Additionally, you should now have the following files in your directory:
   ANTECHAMBER_BOND_TYPE.AC    leap.log                  solute.pdb        water_solvated.pdb
   ANTECHAMBER_BOND_TYPE.AC0   leap_savelib.log          solute.xyz.pdb    water_solvated.prmtop
 
-
 The three files that we care about for moving forward to the next step are water_solvated.pdb, water_solvated.inpcrd, and water_solvated.prmtop.
 
 The .inpcrd file contains the input coordinates, and the .prmtop file contains the Amber paramter topology. The .pdb file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there:
@@ -183,12 +182,90 @@ Step 2: Equilibrate and generate QM/MM trajectory
 
 The second step is running QM/MM, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.
 
-To run a short, example run of QM/MM use the following command:
+To do a short example run of QM/MM use the following command:
 ::
 
-  autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10
+  autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"
+  
+The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). It is also important to use the srun option if you are using HPC or having a queueing system, because otherwise it will run on the login node and will exceed the acceptable time limit.
 
-Longer MM and QM/MM steps are necessary to reach equilibration. Main output is the QM/MM trajectory nap_neutral_water-qmmmnvt.netcdf.
+If AutoSolvate is running successfully, the following messages will be printed to your screen:
+::
+
+  AutoSolvate is starting in command line mode!
+  Running the module to automatically run MD simulations of solvated structure.
+  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-t', '300', '-p', '1', '-m', '10000', '-n', '10000', '-o', '100', '-s', '100', '-l', '10', '-r', 'True']
+  Filename: water_solvated
+  Charge: 0
+  Spinmultiplicity: 1
+  Temperature in K: 300
+  Pressure in bar: 1
+  Steps MM heat: 10000
+  Steps MM NPT: 10000
+  Steps QMMM heat: 100
+  Steps QMMM NPT: 100
+  Steps QMMM min: 10
+  using srun
+  MM Energy minimization
+  srun: job 5791719 queued and waiting for resources
+  srun: job 5791719 has been allocated resources
+  MM Heating
+  srun: job 5791725 queued and waiting for resources
+  srun: job 5791725 has been allocated resources
+
+
+
+The main output here is the QM/MM trajectory nap_neutral_water-qmmmnvt.netcdf.
+
+***********
+Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
+
+MM heat
+    temperature=300 K
+    stepsmmheat=10000 steps
+MM NPT
+    pressure=1 bar
+    stepsmmnpt=300000 steps
+QM/MM
+    charge=0
+    spinmult=1
+QM/MM min
+    stepsqmmmmin=250 steps
+QM/MM heat
+    stepsqmmmheat=1000 steps
+QM/MM NVT
+    stepsqmmmnvt=10000 steps
+    
+When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
+::
+
+  autosolvate mdrun -f water_solvated -q 0 -u 1 -d
+  
+If AutoSolvate is running correctly, it will print the following messages:
+::
+
+  AutoSolvate is starting in command line mode!
+  Running the module to automatically run MD simulations of solvated structure.
+  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-d']
+  Filename: water_solvated
+  Charge: 0
+  Spinmultiplicity: 1
+  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands
+  MM Energy minimization
+  MM Heating
+  MM NPT equilibration
+  QMMM Energy minimization
+  QMMM Heating
+  QMMM NVT Run
+  
+The following files will be added to your directory:
+::
+
+  mmheat.in  qmmmheat.in  runMM.sh
+  mmmin.in   qmmmmin.in   runQMMMM.sh
+  mmnpt.in   qmmmnvt.in   tc_job.tpl
+
+
 
 Step 3: Microsolvated cluster extraction
 ----------------------------------------------------------
