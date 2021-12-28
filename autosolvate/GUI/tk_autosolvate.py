@@ -88,7 +88,7 @@ class boxgenGUI(baseGUI):
         self.txt_torsion = []
         
         def set_xyz():
-            my_filetypes = [('xyz files', '.xyz')
+            my_filetypes = [('xyz files', '.xyz'),
                             ('all files', '.*')]
             mypath = self.txt01.get()
             if mypath !="" and os.path.exists(mypath):
