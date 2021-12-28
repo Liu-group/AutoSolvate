@@ -124,10 +124,10 @@ class boxgenGUI(baseGUI):
         self.lbl20.grid(column=0, row=self.irow)
         
         # Adding combobox drop down list 
-        self.n = StringVar()
-        self.view_chosen = Combobox(self.master, textvariable=self.n, width=colwidth[3])
+        self.vtxt = StringVar()
+        self.view_chosen = Combobox(self.master, textvariable=self.vtxt, width=colwidth[3])
         self.view_chosen['values'] = ('imolecule',
-                                     'nglview',)
+                                     'nglview')
         
         self.view_chosen.current(0)
         self.view_chosen.grid(column=1, row=self.irow,columnspan=3,sticky=W+E)
@@ -162,8 +162,8 @@ class boxgenGUI(baseGUI):
         ### Adding combobox drop down list for selecting solvent 
         self.lbl050 = Label(self.master, text="Select solvent", width=colwidth[0])
         self.lbl050.grid(column=0, row=self.irow)
-        self.n5 = StringVar()
-        self.solvent = Combobox(self.master, textvariable=self.n5, width=colwidth[3])
+        self.stxt = StringVar()
+        self.solvent = Combobox(self.master, textvariable=self.stxt, width=colwidth[3])
         self.solvent['values'] = ('water',
                                      'methanol',
                                      'chloroform',
@@ -177,8 +177,8 @@ class boxgenGUI(baseGUI):
         ### Adding combobox drop down list for selecting charge method
         self.lbl060 = Label(self.master, text="Select charge method for\n force field fitting", width=colwidth[0])
         self.lbl060.grid(column=0, row=self.irow)
-        self.n6 = StringVar()
-        self.charge_method = Combobox(self.master, textvariable=self.n6, width=colwidth[3])
+        self.chargetxt = StringVar()
+        self.charge_method = Combobox(self.master, textvariable=self.chargetxt, width=colwidth[3])
         self.charge_method['values'] = ('bcc',
                                      'resp')
         
@@ -369,8 +369,8 @@ class boxgenGUI(baseGUI):
         ### Gaussian EXE
         self.lbl014 = Label(self.master, text="Select gaussian exe (optional)", width=colwidth[0])
         self.lbl014.grid(column=0, row=self.irow)
-        self.n6 = StringVar()
-        self.gaussianexe = Combobox(self.master, textvariable=self.n6, width=colwidth[3])
+        self.gstxt = StringVar()
+        self.gaussianexe = Combobox(self.master, textvariable=self.gstxt, width=colwidth[3])
         self.gaussianexe['values'] = ('None',
                                       'g09',
                                       'g16')
