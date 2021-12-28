@@ -54,7 +54,9 @@ class baseGUI():
 
         #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object. Scale the image to fix into the current window
         self.master.update()
-        win_width = self.master.winfo_width() - self.padx*2
+        #win_width = self.master.winfo_width() - self.padx*2
+        win_width = 360
+        logo_padx = (self.master.winfo_width() - win_width)/2.0
         img = Image.open(path)
         zoom = win_width/img.size[0]
         #multiple image size by zoom
@@ -64,9 +66,8 @@ class baseGUI():
         #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
         self.logo = Label(self.master, image = scaled_img)
         self.logo.image = scaled_img
-        self.logo.grid(column=0, row=self.irow, columnspan=6, sticky=W+E, padx=self.padx)
+        self.logo.grid(column=0, row=self.irow, columnspan=6, sticky=W+E, padx=logo_padx)
         self.irow += 1
-
 
 
 class boxgenGUI(baseGUI):
