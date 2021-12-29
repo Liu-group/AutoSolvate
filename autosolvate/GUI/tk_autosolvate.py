@@ -1406,25 +1406,25 @@ class clusterGUI(baseGUI):
         self.irow += 1
 
         def GUI_input_sanity_check():
-            clusterrun_error =0 
+            clustergen_error =0 
             print("### Start ClusterGen input option fact check ###")
             if self.prmtop.get() =="":
                   print("Input prmtop file must be provided!")
-                  clusterrun_error = 1
+                  clustergen_error = 1
             else:
                   print("Input prmtop: ", self.prmtop.get())
             if self.netcdf.get() =="":
                   print("Input netcdf file must be provided!")
-                  clusterrun_error = 2
+                  clustergen_error = 2
             else:
                   print("Input netcdf: ", self.netcdf.get())
             if self.ShellSize.get() <=0:
                 print("Solvent shell thickness specified: {:.2f} (Angstrom) is not valid\n".format(self.ShellSize.get() )) 
-                clusterrun_error = 3
-            return clusterrun_error
+                clustergen_error = 3
+            return clustergen_error
 
-        def write_clusterrun_input():
-            cmd = "autosolvate clusterrun"
+        def write_clustergen_input():
+            cmd = "autosolvate clustergen"
         
             cmd += " -f " + self.prmtop.get()
             cmd += " -t " + self.netcdf.get()
@@ -1436,9 +1436,9 @@ class clusterGUI(baseGUI):
             return cmd
 
         def execute():
-            clusterrun_error = GUI_input_sanity_check()
-            if clusterrun_error == 0:
-                cmd = write_clusterrun_input()
+            clustergen_error = GUI_input_sanity_check()
+            if clustergen_error == 0:
+                cmd = write_clustergen_input()
                 res = "Congratulations! ClusterGen command line generated: \n" + cmd
                 messagebox.showinfo(title="Confirmation", message=res)
                 question = "Do you want to continue to generate the "\
