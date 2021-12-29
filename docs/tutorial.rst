@@ -272,11 +272,11 @@ The following files will be added to your directory:
 Step 3: Microsolvated cluster extraction
 ----------------------------------------------------------
 
-Bash commands to extract 4 Angstrom solvent shell for each 10th frame or every 5fs::
+Bash commands to extract 4 Angstrom solvent shell for each 10th frame or every 5fs:
 
 >>> autosolvate clustergen -f nap_neutral_water -t nap_neutral_water-qmmmnvt.netcdf -a 0 -i 10 -s 4
 
-Main output are the microsolvated clusters nap_neutral_water-cutoutn-*.xyz. 
+Main output are the microsolvated clusters ``nap_neutral_water-cutoutn-*.xyz``.
 
 
 Second System: Napthalene Radical
