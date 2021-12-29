@@ -74,7 +74,7 @@ class boxgenGUI(baseGUI):
     def __init__(self,master):
         super().__init__(master)
         self.master.title("Automated solvated box structure and MD parameter generator")
-        self.master.geometry('820x600')
+        self.master.geometry('820x500')
         self.cube_size_max = 100
         
         self.display_logo()
@@ -497,7 +497,7 @@ class mdGUI(baseGUI):
     def __init__(self, master):
         super().__init__(master)
         self.master.title("MD simulation automation")
-        self.master.geometry('820x800')
+        self.master.geometry('820x720')
         self.display_logo()
         self.padx = 10
         self.pady = 5
@@ -1180,7 +1180,7 @@ class clusterGUI(baseGUI):
     def __init__(self,master):
         super().__init__(master)
         master.title("Microsolvated cluster extraction")
-        master.geometry('820x400')
+        master.geometry('820x280')
         self.display_logo()
         ### Enter .prmtop filename 
         self.lblParm = Label(self.master, text="Path for .prmtop file", width=colwidth[0])
