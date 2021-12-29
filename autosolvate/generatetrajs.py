@@ -428,6 +428,7 @@ def startmd(argumentList):
           -s, --stepsqmmmnvt  Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step
           -q, --charge  Total charge of system
           -u, --spinmultiplicity  Spin multiplicity of whole system
+          -k, --functional  DFT functional to use for the QM part in QM/MM
           -r, --srunuse  option to run inside a slurm job
           -x, --pmemduse  Speed up MM with pmemd.CUDA instead of sander
           -d, --dryrun  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the command
