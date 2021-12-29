@@ -497,7 +497,7 @@ class mdGUI(baseGUI):
     def __init__(self, master):
         super().__init__(master)
         self.master.title("MD simulation automation")
-        self.master.geometry('820x720')
+        self.master.geometry('820x730')
         self.display_logo()
         self.padx = 10
         self.pady = 5
@@ -887,6 +887,36 @@ class mdGUI(baseGUI):
 
         self.irow += 1
 
+        # DFT functional for QMMM 
+        self.lblfunc = Label(self.master, text="Select QM method", width=colwidth[0])
+        self.lblfunc.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        self.functxt = StringVar()
+        self.func_chosen = Combobox(self.master, textvariable=self.functxt, width=colwidth[3])
+        self.func_chosen['values'] = ("b3lyp",
+                                      "hf",
+                                      "case",
+                                      "dftb",
+                                      "svwn",
+                                      "blyp",
+                                      "bhandhlyp",
+                                      "pbe",
+                                      "revpbe",
+                                      "pbe0",
+                                      "revpbe0",
+                                      "wpbe",
+                                      "wpbeh",
+                                      "bop",
+                                      "mubop",
+                                      "camb3lyp",
+                                      "b97",
+                                      "wb97",
+                                      "wb97x",
+                                      "wb97xd3")
+        
+        self.func_chosen.current(0)
+        self.func_chosen.grid(column=1, row=self.irow,columnspan=3,sticky=W+E)
+        self.irow += 1
+
         ### Set number of QM/MM minimization steps
         self.lblQMMMminSteps = Label(self.master, text="QM/MM minimization steps", width=colwidth[0],foreground='blue')
         self.lblQMMMminSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
@@ -1135,6 +1165,7 @@ class mdGUI(baseGUI):
                  #cmd += " -s {:d} ".format(self.QMMMNVESteps.get())
                  cmd += " -q {:d} ".format(self.charge.get())
                  cmd += " -u {:d} ".format(self.spin_multiplicity.get())
+                 cmd += " -k {:s} ".format(self.func_chosen.get())
             if self.srunuse.get() == True:
                 cmd += "-r"
             if self.pmemduse.get() == True:

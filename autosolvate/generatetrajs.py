@@ -176,7 +176,7 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, srun_
     if dryrun:
        frun.close()
 
-def writeQMMMTemplate(spinmult=1,charge=0):
+def writeQMMMTemplate(spinmult=1,charge=0,functional="b3lyp"):
         r"""
         Write Terachem file-based interface to Amber
 
@@ -195,9 +195,9 @@ def writeQMMMTemplate(spinmult=1,charge=0):
         f = open("tc_job.tpl","w")
         f.write("basis        lacvps_ecp\n")
         if spinmult==1:
-          f.write("method       b3lyp\n")
+          f.write("method       "+functional+"\n")
         else: 
-          f.write("method       ub3lyp\n")
+          f.write("method       u"+functional+"\n")
         f.write("dispersion   yes\n")
         f.write("scf          diis+a\n")
         f.write("threall      1e-13\n")
@@ -437,8 +437,8 @@ def startmd(argumentList):
         Generate MD simulation input files and execute MD programs, or same the MD program execution commands in runMM.sh and runQMMM.sh
     """
     print(argumentList)
-    options = "f:t:p:m:n:l:o:s:q:u:r:x:d"
-    long_options = ["filename", "temp", "pressure", "stepsmmheat", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnvt", "charge", "spinmultiplicity", "srunuse", "pmemduse","dryrun"]
+    options = "f:t:p:m:n:l:o:s:q:u:k:r:x:d"
+    long_options = ["filename", "temp", "pressure", "stepsmmheat", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     temperature=300
@@ -450,6 +450,7 @@ def startmd(argumentList):
     stepsqmmmnvt=10000
     charge=0
     spinmult=1
+    functional="b3lyp"
     srun_use=False
     pmemduse=False
     dryrun=False
@@ -484,6 +485,9 @@ def startmd(argumentList):
         elif currentArgument in ("-u", "-spinmultiplicity"):
             print ("Spinmultiplicity:", currentValue)
             spinmult=int(currentValue)
+        elif currentArgument in ("-k", "-functional"):
+            print ("DFT functional:", currentValue)
+            functional=currentValue
         elif currentArgument in ("-r", "-srunuse"):
             print("using srun")
             srun_use=True
@@ -500,7 +504,7 @@ def startmd(argumentList):
     writeMMNPTInput(temperature=temperature, pressure=pressure, stepsmmnpt=stepsmmnpt)
     
     writeQMMMMinInput(stepsqmmmmin=stepsqmmmmin)
-    writeQMMMTemplate(spinmult=spinmult, charge=charge)
+    writeQMMMTemplate(spinmult=spinmult, charge=charge, functional=functional)
     writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmheat, charge=charge, infilename='qmmmheat.in')
     writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmnvt, charge=charge, infilename='qmmmnvt.in' )
     
