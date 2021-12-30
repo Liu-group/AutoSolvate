@@ -65,7 +65,7 @@ Step 1: Solvate system
 
 The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the defaults, use the following command:
 
->>> autosolvate boxgen -m napthalene_neutral.xyz 
+``autosolvate boxgen -m napthalene_neutral.xyz``
 
 Autosolvate will use the default values of water as the solvent, solute charge of 0, solute multiplicity of 1, charge fitting method of resp, box size of 54, and output file name of water_solvated. 
 
@@ -125,10 +125,11 @@ Additionally, you should now have the following files in your directory::
   ANTECHAMBER_BOND_TYPE.AC    leap.log                  solute.pdb        water_solvated.pdb
   ANTECHAMBER_BOND_TYPE.AC0   leap_savelib.log          solute.xyz.pdb    water_solvated.prmtop
 
-The three files that we care about for moving forward to the next step are water_solvated.pdb, water_solvated.inpcrd, and water_solvated.prmtop.
+The three files that we care about for moving forward to the next step are the ones with the output prefix, water_solvated (the last three listed above).
 
 The .inpcrd file contains the input coordinates, and the .prmtop file contains the Amber paramter topology. The .pdb file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
 
+        **vim water_solvated.pdb**
         CRYST1   66.461   66.696   66.822  90.00  90.00  90.00 P 1           1
         ATOM      1  C   SLU     1       2.302  -0.634   0.016  1.00  0.00
         ATOM      2  C1  SLU     1       2.302   0.786   0.016  1.00  0.00
@@ -163,16 +164,16 @@ With these three files, we are ready to proceed to the next step!
 
 
 
-Step 2: Equilibrate and generate QM/MM trajectory
+Step 2: MD Simulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The second step is running QM/MM, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.
 
 To do a short example run of QM/MM use the following command:
 
->>> autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
   
-The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). It is also important to use the srun option if you are using HPC or having a queueing system, because otherwise it will run on the login node and will exceed the acceptable time limit.
+The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). It is also important to use the srun option if you are using HPC or having a queueing system, because otherwise it will run on the head node and will exceed the acceptable time limit.
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
@@ -207,15 +208,20 @@ The main output here is the QM/MM trajectory nap_neutral_water-qmmmnvt.netcdf.
 Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
 
 MM heat:    temperature=300 K, stepsmmheat=10000 steps
+
 MM NPT:     pressure=1 bar, stepsmmnpt=300000 steps
+
 QM/MM:      charge=0, spinmult=1
+
 QM/MM min:  stepsqmmmmin=250 steps
+
 QM/MM heat: stepsqmmmheat=1000 steps
+
 QM/MM NVT:  stepsqmmmnvt=10000 steps
     
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
 
->>> autosolvate mdrun -f water_solvated -q 0 -u 1 -d
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -d``
   
 If AutoSolvate is running correctly, it will print the following messages::
 
@@ -239,12 +245,16 @@ The following files will be added to your directory::
   mmmin.in   qmmmmin.in   runQMMMM.sh
   mmnpt.in   qmmmnvt.in   tc_job.tpl
 
-Inside runMM.sh and runQMMMM.sh you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
+Inside runMM.sh and runQMMMM.sh, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
 
 **Warning**
+
 Especially in this step, it is important to know where your job is running!
+
 If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
+
 If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
+
 If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
 
 Step 3: Microsolvated cluster extraction
