@@ -57,18 +57,19 @@ Once you have AutoSolvate and all dependencies installed you will need the solut
 
 Now that you have the structures, make a neutral and radical directory. We will start with the neutral molecule. 
 
-Step 1: Solvate system
+Example 1: Napthalene in Water
 -------------------------------------------
 
-The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the defaults, use the following command:
-::
+Step 1: Solvate system
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  autosolvate boxgen -m napthalene_neutral.xyz 
+The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the defaults, use the following command:
+
+>>> autosolvate boxgen -m napthalene_neutral.xyz 
 
 Autosolvate will use the default values of water as the solvent, solute charge of 0, solute multiplicity of 1, charge fitting method of resp, box size of 54, and output file name of water_solvated. 
 
-If AutoSolvate is running successfully, the following messages will be printed to your screen:
-::
+If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
   AutoSolvate is starting in command line mode!
   Running the module to generate solvent box and force field parameters.
@@ -115,8 +116,7 @@ If AutoSolvate is running successfully, the following messages will be printed t
   Now add pre-equlibrated solvent box to the solute
   The script has finished successfully
 
-Additionally, you should now have the following files in your directory:
-::
+Additionally, you should now have the following files in your directory::
 
   ANTECHAMBER_AC.AC           ATOMTYPE.INF              nap_neutral.xyz   sqm.in   
   ANTECHAMBER_AC.AC0          leap_add_solventbox.cmd   solute.frcmod     sqm.out  
@@ -127,8 +127,7 @@ Additionally, you should now have the following files in your directory:
 
 The three files that we care about for moving forward to the next step are water_solvated.pdb, water_solvated.inpcrd, and water_solvated.prmtop.
 
-The .inpcrd file contains the input coordinates, and the .prmtop file contains the Amber paramter topology. The .pdb file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there:
-::
+The .inpcrd file contains the input coordinates, and the .prmtop file contains the Amber paramter topology. The .pdb file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
 
         CRYST1   66.461   66.696   66.822  90.00  90.00  90.00 P 1           1
         ATOM      1  C   SLU     1       2.302  -0.634   0.016  1.00  0.00
@@ -164,33 +163,18 @@ With these three files, we are ready to proceed to the next step!
 
 
 
-
-In order to change some of these or make sure everything is defined explicitly, we can use more of the flag options.
-
->>> python autosolvate.py -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral_water
-
-Now, the charge fitting has been changed to semi-emperical bcc fitting in Amber, which is appropriate for a closed-shell system, and the output file name is more specific. The solvent, charge, and multiplicity have all been defined explicitly as well.
-
-
-
-** A note on charge fitting methods **
-
-The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and resp in Gaussian.
-
 Step 2: Equilibrate and generate QM/MM trajectory
------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The second step is running QM/MM, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.
 
 To do a short example run of QM/MM use the following command:
-::
 
-  autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"
+>>> autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"
   
 The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). It is also important to use the srun option if you are using HPC or having a queueing system, because otherwise it will run on the login node and will exceed the acceptable time limit.
 
-If AutoSolvate is running successfully, the following messages will be printed to your screen:
-::
+If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
   AutoSolvate is starting in command line mode!
   Running the module to automatically run MD simulations of solvated structure.
@@ -222,29 +206,18 @@ The main output here is the QM/MM trajectory nap_neutral_water-qmmmnvt.netcdf.
 
 Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
 
-MM heat
-    temperature=300 K
-    stepsmmheat=10000 steps
-MM NPT
-    pressure=1 bar
-    stepsmmnpt=300000 steps
-QM/MM
-    charge=0
-    spinmult=1
-QM/MM min
-    stepsqmmmmin=250 steps
-QM/MM heat
-    stepsqmmmheat=1000 steps
-QM/MM NVT
-    stepsqmmmnvt=10000 steps
+MM heat:    temperature=300 K, stepsmmheat=10000 steps
+MM NPT:     pressure=1 bar, stepsmmnpt=300000 steps
+QM/MM:      charge=0, spinmult=1
+QM/MM min:  stepsqmmmmin=250 steps
+QM/MM heat: stepsqmmmheat=1000 steps
+QM/MM NVT:  stepsqmmmnvt=10000 steps
     
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
-::
 
-  autosolvate mdrun -f water_solvated -q 0 -u 1 -d
+>>> autosolvate mdrun -f water_solvated -q 0 -u 1 -d
   
-If AutoSolvate is running correctly, it will print the following messages:
-::
+If AutoSolvate is running correctly, it will print the following messages::
 
   AutoSolvate is starting in command line mode!
   Running the module to automatically run MD simulations of solvated structure.
@@ -260,23 +233,40 @@ If AutoSolvate is running correctly, it will print the following messages:
   QMMM Heating
   QMMM NVT Run
   
-The following files will be added to your directory:
-::
+The following files will be added to your directory::
 
   mmheat.in  qmmmheat.in  runMM.sh
   mmmin.in   qmmmmin.in   runQMMMM.sh
   mmnpt.in   qmmmnvt.in   tc_job.tpl
 
+Inside runMM.sh and runQMMMM.sh you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
 
+**Warning**
+Especially in this step, it is important to know where your job is running!
+If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
+If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
+If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
 
 Step 3: Microsolvated cluster extraction
-----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Bash commands to extract 4 Angstrom solvent shell for each 10th frame or every 5fs:
 
 >>> autosolvate clustergen -f nap_neutral_water.prmtop -t nap_neutral_water-qmmmnvt.netcdf -a 0 -i 10 -s 4
 
 Main output are the microsolvated clusters ``nap_neutral_water-cutoutn-*.xyz``.
+
+
+Notes on each step
+----------------------------------------------------------
+
+:boxgen
+  The first example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
+
+>>> python autosolvate.py -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral_water
+
+  Charge fitting methods
+  The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and resp in Gaussian. RESP is the default setting.
 
 
 Second System: Napthalene Radical
