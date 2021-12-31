@@ -3,7 +3,7 @@ Tutorial
 
 Following code walkthrough illustrates the usage of Autosolvate.
 
-There will be two full example systems: napthalene in water and napthalene radical in chloroform
+There will be two example systems: napthalene in water and napthalene radical in chloroform
 
 Prerequisites
 -------------------------------------------
@@ -129,7 +129,6 @@ The three files that we care about for moving forward to the next step are the o
 
 The .inpcrd file contains the input coordinates, and the .prmtop file contains the Amber paramter topology. The .pdb file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
 
-        **vim water_solvated.pdb**
         CRYST1   66.461   66.696   66.822  90.00  90.00  90.00 P 1           1
         ATOM      1  C   SLU     1       2.302  -0.634   0.016  1.00  0.00
         ATOM      2  C1  SLU     1       2.302   0.786   0.016  1.00  0.00
@@ -162,18 +161,24 @@ The fourth column has 18 'SLU' entries, or solvent, and under that there are 6 '
 
 With these three files, we are ready to proceed to the next step!
 
+**Notes**
 
+This example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
+
+``python autosolvate.py -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral_water``
+
+The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
 
 Step 2: MD Simulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The second step is running QM/MM, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.
+The second step is running molecular dynamics, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.
 
 To do a short example run of QM/MM use the following command:
 
 ``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
   
-The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). It is also important to use the srun option if you are using HPC or having a queueing system, because otherwise it will run on the head node and will exceed the acceptable time limit.
+The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( , -m, -n, -l, -o, -s).
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
@@ -197,27 +202,41 @@ If AutoSolvate is running successfully, the following messages will be printed t
   MM Heating
   srun: job 5791725 queued and waiting for resources
   srun: job 5791725 has been allocated resources
+  MM NPT equilibration
+  srun: job 5792049 queued and waiting for resources
+  srun: job 5792049 has been allocated resources
+  QMMM Energy minimization
+  srun: job 5792146 queued and waiting for resources
+  srun: job 5792146 has been allocated resources
+  QMMM Heating
+  srun: job 5792524 queued and waiting for resources
+  srun: job 5792524 has been allocated resources
+  QMMM NVT Run
+  srun: job 5792524 queued and waiting for resources
+  srun: job 5792524 has been allocated resources
+
+Once everything has finished, the main output is the QM/MM trajectory water_solvated-qmmmnvt.netcdf. When you have this file, you can move on to the next step!
 
 
-
-The main output here is the QM/MM trajectory nap_neutral_water-qmmmnvt.netcdf.
-
-
-
+**Notes for production runs**
 
 Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
 
-MM heat:    temperature=300 K, stepsmmheat=10000 steps
+MM min:     temperature= 300 K, pressure=1 bar    -t, -p
 
-MM NPT:     pressure=1 bar, stepsmmnpt=300000 steps
+MM heat:    stepsmmheat=10000 steps               -m
+  
+MM NPT:     stepsmmnpt=300000 steps               -n
 
-QM/MM:      charge=0, spinmult=1
+MM NVE:     
 
-QM/MM min:  stepsqmmmmin=250 steps
+QMMM:      charge=0, spinmult=1                   -q, -u
 
-QM/MM heat: stepsqmmmheat=1000 steps
+QMMM min:  stepsqmmmmin=250 steps                 -l
 
-QM/MM NVT:  stepsqmmmnvt=10000 steps
+QMMM heat: stepsqmmmheat=1000 steps               -o
+
+QMMM NVT:  stepsqmmmnvt=10000 steps               -s
     
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
 
@@ -251,32 +270,23 @@ Inside runMM.sh and runQMMMM.sh, you will find the commands to run each step of 
 
 Especially in this step, it is important to know where your job is running!
 
-If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
+* If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
 
-If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
+* If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
 
-If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
+* If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
 
 Step 3: Microsolvated cluster extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Bash commands to extract 4 Angstrom solvent shell for each 10th frame or every 5fs:
 
->>> autosolvate clustergen -f nap_neutral_water.prmtop -t nap_neutral_water-qmmmnvt.netcdf -a 0 -i 10 -s 4
+``autosolvate clustergen -f nap_neutral_water.prmtop -t nap_neutral_water-qmmmnvt.netcdf -a 0 -i 10 -s 4``
 
 Main output are the microsolvated clusters ``nap_neutral_water-cutoutn-*.xyz``.
 
 
-Notes on each step
-----------------------------------------------------------
 
-:boxgen
-  The first example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
-
->>> python autosolvate.py -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral_water
-
-  Charge fitting methods
-  The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and resp in Gaussian. RESP is the default setting.
 
 
 Second System: Napthalene Radical
