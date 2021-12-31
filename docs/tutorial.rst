@@ -215,7 +215,7 @@ If AutoSolvate is running successfully, the following messages will be printed t
   srun: job 5792524 queued and waiting for resources
   srun: job 5792524 has been allocated resources
   
- Additionally, these files should all be in your directory now::
+Additionally, these files should all be in your directory now::
  
   inpfile.xyz       mmnpt.info          qmmmmin.ncrst     water_solvated.inpcrd
   mmheat.in         mmnpt.out           qmmmmin.out       water_solvated-heat.netcdf
