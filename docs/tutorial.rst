@@ -214,6 +214,20 @@ If AutoSolvate is running successfully, the following messages will be printed t
   QMMM NVT Run
   srun: job 5792524 queued and waiting for resources
   srun: job 5792524 has been allocated resources
+  
+ Additionally, these files should all be in your directory now::
+ 
+  inpfile.xyz       mmnpt.info          qmmmmin.ncrst     water_solvated.inpcrd
+  mmheat.in         mmnpt.out           qmmmmin.out       water_solvated-heat.netcdf
+  mmheat.info       old.tc_job.dat      qmmmnvt.in        water_solvated-mmnpt.netcdf
+  mmheat.ncrst      old.tc_job.inp      qmmmnvt.info      water_solvated-qmmmheat.netcdf
+  mmheat.out        ptchrg.xyz          qmmmnvt.out       water_solvated-qmmmmin.netcdf
+  mmmin.in          qmmmheat.in         qmmm_region.pdb   water_solvated-qmmmnvt.netcdf
+  mmmin.info        qmmmheat.info       tc_job.dat
+  mmmin.ncrst       qmmmheat.ncrst      tc_job.inp
+  mmmin.out         qmmmheat.out        tc_job.tpl
+  mm.ncrst          qmmmmin.in          tc_job.tpl.bak
+  mmnpt.in          qmmmmin.info        tc_job.tpl.bak
 
 Once everything has finished, the main output is the QM/MM trajectory water_solvated-qmmmnvt.netcdf. When you have this file, you can move on to the next step!
 
@@ -275,6 +289,7 @@ Especially in this step, it is important to know where your job is running!
 * If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
 
 * If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
+
 
 Step 3: Microsolvated cluster extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
