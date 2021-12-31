@@ -236,22 +236,24 @@ Once everything has finished, the main output is the QM/MM trajectory water_solv
 
 Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
 
-MM min:     temperature= 300 K, pressure=1 bar    -t, -p
++-----------+---------------------------------+------------+
+| MD step   | default settings                |flag        |
++===========+=================================+============+
+| MM min    |300 K, 1 bar                     |   -t, -p   |
++-----------+---------------------------------+------------+  
+| MM heat   |10000 steps                      |   -m       |
++-----------+---------------------------------+------------+  
+| MM NPT    |300000 steps                     |   -n       |
++-----------+---------------------------------+------------+  
+| QMMM      |0, 1, b3lyp                      |-q, -u, -k  |
++-----------+---------------------------------+------------+  
+| QMMM min  |250 steps                        |   -l       |
++-----------+---------------------------------+------------+  
+| QMMM heat |1000 steps                       |  -o        |
++-----------+---------------------------------+------------+  
+| QMMM NVT  |10000 steps                      |   -s       |
++-----------+---------------------------------+------------+  
 
-MM heat:    stepsmmheat=10000 steps               -m
-  
-MM NPT:     stepsmmnpt=300000 steps               -n
-
-MM NVE:     
-
-QMMM:      charge=0, spinmult=1                   -q, -u
-
-QMMM min:  stepsqmmmmin=250 steps                 -l
-
-QMMM heat: stepsqmmmheat=1000 steps               -o
-
-QMMM NVT:  stepsqmmmnvt=10000 steps               -s
-    
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
 
 ``autosolvate mdrun -f water_solvated -q 0 -u 1 -d``
