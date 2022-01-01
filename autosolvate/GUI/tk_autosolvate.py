@@ -474,6 +474,8 @@ class boxgenGUI(baseGUI):
                 answer = messagebox.askyesno(title="Confirmation", message=question)
                 if answer == True:
                     subprocess.call(cmd, shell=True)
+                    res = "Solvent box structure and parameter generation finished!"
+                    messagebox.showinfo(title="Success", message=res, icon='info')
         
             else:
                 res = "Error found in input.\n"

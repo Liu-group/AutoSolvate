@@ -34,6 +34,7 @@ For the generation of QM/MM following packages are supported:
 
    installation
    tutorial
+   tutorialGUI
    api
 
 
