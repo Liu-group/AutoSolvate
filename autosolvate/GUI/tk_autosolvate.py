@@ -509,8 +509,8 @@ class mdGUI(baseGUI):
         self.lblMain.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         self.irow += 1
 
-        ### Enter .parmtop and .inpcrd filename prefix 
-        self.lbl00 = Label(self.master, text="File name prefix for existing\n.inpcrd and .parmtop files", width=colwidth[0])
+        ### Enter .prmtop and .inpcrd filename prefix 
+        self.lbl00 = Label(self.master, text="File name prefix for existing\n.inpcrd and .prmtop files", width=colwidth[0])
         self.lbl00.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
         self.txt01 = Entry(self.master)

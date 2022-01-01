@@ -107,9 +107,9 @@ Another dialog window will pop up and ask you whether you want to continue to ex
 After a few seconds, you will see a diaglog window pop up with the message to show the generation has finished.
 
 .. image:: _images/tutorial1_10.png
-   :width: 800
+   :width: 400
 
-At the same time, in the original terminal where you launched AutoSolvate, you will see information about each step of the structure and force field genearation
+At the same time, in the original terminal where you launched AutoSolvate, and you will see information about each step of the structure and force field genearation
 
 .. image:: _images/tutorial1_11.png
    :width: 800
@@ -117,160 +117,86 @@ At the same time, in the original terminal where you launched AutoSolvate, you w
 Step 2: MD Simulation
 -------------------------------------------
 
-The second step is running molecular dynamics, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.
+The second step is running molecular dynamics, which includes multiple steps with MM or QM/MM dynamics. 
+We will show how to quickly enable automated MD input file generation and MD simulation execution from the graphical interface.
 
-To do a short example run of QM/MM use the following command:
-
-``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
+Assuming you just finished Step 1, now we can safely close the window for boxgen (you can also leave it there), and focus back on the main GUI. This time select the second task: ``MD simulation automation``
   
-The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( , -m, -n, -l, -o, -s).
+.. image:: _images/tutorial2_1.png
+   :width: 300
 
-If AutoSolvate is running successfully, the following messages will be printed to your screen::
+Then click ``Go!``: A new window will pop up, which is the *mdrun* GUI for MD automation.
+The *mdrun* GUI has many options categorized into 4 groups, about essnetial setting of the MD simulation, classical MM, QM/MM, and job control. 
+Don't be scared by the many options. The only required options are filename, charge, and multiplicity (needed for QMMM), as shown in the green circles blow.
 
-  AutoSolvate is starting in command line mode!
-  Running the module to automatically run MD simulations of solvated structure.
-  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-t', '300', '-p', '1', '-m', '10000', '-n', '10000', '-o', '100', '-s', '100', '-l', '10', '-r', 'True']
-  Filename: water_solvated
-  Charge: 0
-  Spinmultiplicity: 1
-  Temperature in K: 300
-  Pressure in bar: 1
-  Steps MM heat: 10000
-  Steps MM NPT: 10000
-  Steps QMMM heat: 100
-  Steps QMMM NPT: 100
-  Steps QMMM min: 10
-  using srun
-  MM Energy minimization
-  srun: job 5791719 queued and waiting for resources
-  srun: job 5791719 has been allocated resources
-  MM Heating
-  srun: job 5791725 queued and waiting for resources
-  srun: job 5791725 has been allocated resources
-  MM NPT equilibration
-  srun: job 5792049 queued and waiting for resources
-  srun: job 5792049 has been allocated resources
-  QMMM Energy minimization
-  srun: job 5792146 queued and waiting for resources
-  srun: job 5792146 has been allocated resources
-  QMMM Heating
-  srun: job 5792524 queued and waiting for resources
-  srun: job 5792524 has been allocated resources
-  QMMM NVT Run
-  srun: job 5792524 queued and waiting for resources
-  srun: job 5792524 has been allocated resources
-  
-Additionally, these files should all be in your directory now::
- 
-  inpfile.xyz       mmnpt.info          qmmmmin.ncrst     water_solvated.inpcrd
-  mmheat.in         mmnpt.out           qmmmmin.out       water_solvated-heat.netcdf
-  mmheat.info       old.tc_job.dat      qmmmnvt.in        water_solvated-mmnpt.netcdf
-  mmheat.ncrst      old.tc_job.inp      qmmmnvt.info      water_solvated-qmmmheat.netcdf
-  mmheat.out        ptchrg.xyz          qmmmnvt.out       water_solvated-qmmmmin.netcdf
-  mmmin.in          qmmmheat.in         qmmm_region.pdb   water_solvated-qmmmnvt.netcdf
-  mmmin.info        qmmmheat.info       tc_job.dat
-  mmmin.ncrst       qmmmheat.ncrst      tc_job.inp
-  mmmin.out         qmmmheat.out        tc_job.tpl
-  mm.ncrst          qmmmmin.in          tc_job.tpl.bak
-  mmnpt.in          qmmmmin.info        tc_job.tpl.bak
+.. image:: _images/tutorial2_2.png
+   :width: 800
 
-Once everything has finished, the main output is the QM/MM trajectory water_solvated-qmmmnvt.netcdf. When you have this file, you can move on to the next step!
 
-**Notes for production runs**
+You will then go through each item listed on the GUI. Some options/entries are pre-populated with default setting. If you want to change from the default setting, enter your input in the corresponding entry and click ``Set``.
 
-Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
+.. warning::
+   When you change an entry, make sure to click the ``Set`` button to make the change take effect.
 
-+-----------+---------------------------------+------------+
-| MD step   | default settings                |flag        |
-+===========+=================================+============+
-| MM min    |300 K, 1 bar                     |   -t, -p   |
-+-----------+---------------------------------+------------+  
-| MM heat   |10000 steps                      |   -m       |
-+-----------+---------------------------------+------------+  
-| MM NPT    |300000 steps                     |   -n       |
-+-----------+---------------------------------+------------+  
-| QMMM      |0, 1, b3lyp                      |-q, -u, -k  |
-+-----------+---------------------------------+------------+  
-| QMMM min  |250 steps                        |   -l       |
-+-----------+---------------------------------+------------+  
-| QMMM heat |1000 steps                       |  -o        |
-+-----------+---------------------------------+------------+  
-| QMMM NVT  |10000 steps                      |   -s       |
-+-----------+---------------------------------+------------+  
+For some required entries, if you don't entry anything and directly click ``Set``, a dialog window will pop up and remind you to enter eligible inputs.
 
-When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
+For example, you can leave the entry about file prefix for ``.inpcrd`` and ``.prmtop`` file blank, and directly click ``Set file prefix``. Then a new window will popup and ask you to enter the valid system prefix, as shown below.
 
-``autosolvate mdrun -f water_solvated -q 0 -u 1 -d``
-  
-If AutoSolvate is running successfully, the following messages will be printed to your screen::
+.. image:: _images/tutorial2_3.png
+   :width: 400
 
-  AutoSolvate is starting in command line mode!
-  Running the module to automatically run MD simulations of solvated structure.
-  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-d']
-  Filename: water_solvated
-  Charge: 0
-  Spinmultiplicity: 1
-  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands
-  MM Energy minimization
-  MM Heating
-  MM NPT equilibration
-  QMMM Energy minimization
-  QMMM Heating
-  QMMM NVT Run
-  
-The following files will be added to your directory::
+.. warning:: The program will automatically check whether the file prefix you provided is valid, i.e., whether ``prefix.inpcrd`` and ``prefix.prmtop`` both exist. If not, the window will pop up again until you enter a valid file prefix there.
 
-  mmheat.in  qmmmheat.in  runMM.sh
-  mmmin.in   qmmmmin.in   runQMMMM.sh
-  mmnpt.in   qmmmnvt.in   tc_job.tpl
 
-Inside runMM.sh and runQMMMM.sh, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
+Once you entered a valid file prefix, the dialog will automatically close, and you can make other neccessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default, because the TeraChem package is not automatically installed with AutoSolvate, so the user may not neccessary have acceess to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
 
-**Warning**
+.. image:: _images/tutorial2_4.png
+   :width: 400
 
-Especially in this step, it is important to know where your job is running!
+If you do want to run QM/MM, simply change the radio button to ``Yes`` (shown in the green circle below), and set corresponding options in the QM/MM control section.
 
-* If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
+.. image:: _images/tutorial2_5.png
+   :width: 400
 
-* If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
+The most important option for QM/MM is the QM method, which is by default DFT with B3LYP functional. You can change it to other available options by choosing from the dropdown menu:
 
-* If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
+.. image:: _images/tutorial2_6.png
+   :width: 400
+
+Another very important feature is the ``dryrun`` mode, that means the GUI will only generate the MD input files, and save the commands to run Amber/sander MD simulations input bash script files ``runMM.sh`` and ``runQMMM.sh``. The GUI will not directly execute Amber or Amber/TeraChem to run the MD simulations, because usually we expect the users to use the GUI on their desktop, which is not suitable for running long-time MD simulations. By using the ``dryrun`` mode, the user can get the needed files and scripts, and then copy them to high-performance computers to finish the simulation.
+
+Therefore, the ``dryrun`` mode is by default turned on, as shown below:
+
+.. image:: _images/tutorial2_6_2.png
+   :width: 400
+
+If everything looks good to you, you can click the last button to generate MD simulation inputs and execute MD.
+A dialog window will pop up and let you know that the corresponding command line input has been generated, which will be executed to generate the MD simulation files. You can click "OK".
+
+.. image:: _images/tutorial2_7.png
+   :width: 400
+
+Another dialog window will pop up and ask you whether you want to continue to execute the command and generate the files. You can click ``Cancel`` and no file will be generated, if you want to make changes to the settings. Otherwise, click ``Yes``.
+
+.. image:: _images/tutorial2_8.png
+   :width: 400
+
+If you selected ``dryrun`` mode, after a few seconds, you will see a diaglog window pop up with the message to show the MD simulation generation has finished. If you selected to turn off ``dryrun`` mode, then AutoSolvate will call Amber/sander in the background and run the MD simulations, which may take minutes or hours to finish. But at the end you will also see a dialog window saying that the simulation has finished.
+
+.. image:: _images/tutorial2_9.png
+   :width: 400
+
+At the same time, in the original terminal where you launched AutoSolvate ``mdrun`` module, and you will see information about each step of the MD simulation
+
+.. image:: _images/tutorial2_10.png
+   :width: 400
 
 
 Step 3: Microsolvated cluster extraction
 -------------------------------------------
 
-The last step is extracting a cluster from the previous results that can be used for microsolvation. In the QMMM above, the solute is treated with QM and the explicit solvent molecules are treated with MM. In this step, a cluster will be extracted from the QMMM box so that the cluster can be treated with QM. The explicitly solvated cluster will be surrounded by implicit solvent, and we refer to the implicit + explict combination as microsolvation.
+The last step is extracting a cluster from the previous results that can be used for microsolvation. 
 
-To extract the cluster from the final QMMM results, use the following command:
-
-``autosolvate clustergen -f water_solvated -t water_solvated-qmmmnvt.netcdf -a 0 -i 10 -s 4``
-
-If AutoSolvate is running successfully, the following messages will be printed to your screen::
-
-    AutoSolvate is starting in command line mode!
-    Running the module to extract solvated cluster (sphere) from MD trajectories of solvent box.
-    ['-f', 'water_solvated', '-t', 'water_solvated-qmmmnvt.netcdf', '-a', '0', '-i', '10', '-s', '4']
-    Filename: water_solvated
-    Trajectory name: water_solvated-mmnpt.netcdf
-    startframe to extract: 0
-    interval to extract: 10
-    Cutout size in Angstrom: 4
-    Loading trajectory
-    selecting center solute
-    extracting from frames: [0]
-    calculating distance to all solvent molecules
-    select solvent molecules
-    for first frame selected 35 solvent molecules
-    saving xyz
-
-The only output of this command will be the cartesian coordinates of the cluster in water_solvated-cutoutn-0.xyz. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files.
-
-``autosolvate clustergen -f water_solvated -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
-
-As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from::
-
-  extracting from frames: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
 **Warning** 
 
