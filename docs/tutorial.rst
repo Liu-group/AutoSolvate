@@ -319,7 +319,7 @@ If AutoSolvate is running successfully, the following messages will be printed t
     for first frame selected 35 solvent molecules
     saving xyz
 
-The only output of this command will be the cartesian coordinates of the cluster in ``water_solvated-cutoutn-0.xyz``. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files.
+The only output of this command will be the cartesian coordinates of the cluster in water_solvated-cutoutn-0.xyz. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files.
 
 ``autosolvate clustergen -f water_solvated -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
 
