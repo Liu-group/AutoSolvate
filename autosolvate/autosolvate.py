@@ -10,6 +10,8 @@ amber_solv_dict = {'water': [' ','TIP3PBOX '],
                    'chloroform': ['loadOff solvents.lib\n loadamberparams frcmod.chcl3\n', 'CHCL3BOX '],
                    'nma': ['loadOff solvents.lib\n loadamberparams frcmod.nma\n', 'NMABOX ']}
 
+custom_solv_dict = {'acetonitrile':'ch3cn'}
+
 class solventBoxBuilder():
     r"""
     Solvated molecule in specified solvent.
@@ -328,7 +330,7 @@ class solventBoxBuilder():
 
     def processPackmolPDB(self):
         r"""
-        Convert file for CH3CN
+        Convert file for custom solvents like CH3CN
 
         Parameters
         ----------
@@ -338,8 +340,9 @@ class solventBoxBuilder():
         -------
         None
         """
-        data=open('ch3cn_solvated.packmol.pdb').readlines()
-        output=open('ch3cn_solvated.processed.pdb','w')
+        solvPrefix = custom_solv_dict[self.solvent]
+        data=open(solvPrefix + '_solvated.packmol.pdb').readlines()
+        output=open(solvPrefix + '_solvated.processed.pdb','w')
         this_resid = 1
         last_resid = 1
         for line in data:
@@ -353,7 +356,7 @@ class solventBoxBuilder():
     
     def packSLUSLV(self):
         r"""
-        Write packmol input file
+        Write packmol input file for custom solvents
 
         Parameters
         ----------
@@ -364,15 +367,19 @@ class solventBoxBuilder():
         None
         """
         print("Now use packmol to pack the solute and solvent into a box")
-        if self.solvent != 'acetonitrile':
+        if self.solvent not in  custom_solv_dict.keys():
             print("The type of solvent is not implemented yet")
             return
         else:
             # Solvent pdb file stored in our package data folder
             # Path is too long for Packmol to recognize. Copy to current rundir 
-            solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 'data/ch3cn/ch3cn.pdb')
-            tmp_solvent_pdb = 'ch3cn.pdb'
-            subprocess.call(['cp',solvent_pdb_path,tmp_solvent_pdb])
+            solvPrefix = custom_solv_dict[self.solvent]
+            solvent_pdb = solvPrefix+'.pdb'
+            solvent_pdb_origin = pkg_resources.resource_filename('autosolvate', 
+                    os.path.join('data/', solvPrefix, solvent_pdb))
+            subprocess.call(['cp',solvent_pdb_origin,solvent_pdb])
+
+            output_pdb = solvPrefix + "_solvated.packmol.pdb"
 
             packmol_inp = open('packmol.inp','w')
             packmol_inp.write("# All atoms from diferent molecules will be at least 2.0 Angstroms apart\n")
@@ -380,7 +387,7 @@ class solventBoxBuilder():
             packmol_inp.write("\n")
             packmol_inp.write("filetype pdb\n")
             packmol_inp.write("\n")
-            packmol_inp.write("output ch3cn_solvated.packmol.pdb\n")
+            packmol_inp.write("output " + output_pdb + "\n")
             packmol_inp.write("\n")
             packmol_inp.write("# add the solute\n")
             packmol_inp.write("structure solute.pdb\n")
@@ -391,7 +398,7 @@ class solventBoxBuilder():
             packmol_inp.write("end structure\n")
             packmol_inp.write("\n")
             packmol_inp.write("# add first type of solvent molecules\n")
-            packmol_inp.write("structure "+ tmp_solvent_pdb + "\n")
+            packmol_inp.write("structure "+ solvent_pdb + "\n")
             packmol_inp.write("  number " + str(self.slv_count) + " \n")
             packmol_inp.write("  inside cube 0. 0. 0. " + str(self.cube_size) + " \n")
             packmol_inp.write("  resnumbers 2 \n")
@@ -404,9 +411,9 @@ class solventBoxBuilder():
                             cmd='srun -n 1 '+cmd
             self.processPackmolPDB()
 
-    def writeTleapcmd_ch3cn_solvated(self):
+    def writeTleapcmd_custom_solvated(self):
         r"""
-        Write tleap file for CH3CN
+        Write tleap file for custom solvents like CH3CN
 
         Parameters
         ----------
@@ -416,8 +423,14 @@ class solventBoxBuilder():
         -------
         None
         """
-        solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 'data/ch3cn/ch3cn.frcmod')
-        solvent_prep_path = pkg_resources.resource_filename('autosolvate', 'data/ch3cn/ch3cn.prep')
+        solvPrefix = custom_solv_dict[self.solvent]
+        solvent_frcmod = solvPrefix+'.frcmod'
+        solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvent_frcmod))
+
+        solvent_prep = solvPrefix+'.prep'
+        solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvent_prep))
         f = open("leap_packmol_solvated.cmd","w")
         f.write("source leaprc.protein.ff14SB\n")
         f.write("source leaprc.gaff\n")
@@ -427,7 +440,7 @@ class solventBoxBuilder():
         f.write("loadamberparams solute.frcmod\n")
         f.write("loadoff solute.lib\n")
         f.write("\n")
-        f.write("SYS = loadpdb ch3cn_solvated.processed.pdb\n")
+        f.write("SYS = loadpdb " + solvPrefix + "_solvated.processed.pdb\n")
         f.write("check SYS\n")
         f.write("\n")
         if self.slu_netcharge > 0:
@@ -470,9 +483,9 @@ class solventBoxBuilder():
             if self.srun_use:
                             cmd='srun -n 1 '+cmd
             subprocess.call(cmd, shell=True)
-        elif self.solvent == 'acetonitrile':
+        elif self.solvent in custom_solv_dict.keys():
             self.packSLUSLV()
-            self.writeTleapcmd_ch3cn_solvated()
+            self.writeTleapcmd_custom_solvated()
             cmd ="tleap -s -f leap_packmol_solvated.cmd > leap_packmol_solvated.log"
             if self.srun_use:
                             cmd='srun -n 1 '+cmd
