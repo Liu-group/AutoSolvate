@@ -10,8 +10,8 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
 
     Parameters
     ----------
-    filename : str, Optional, default: 'water_solvated'
-        Filename prefix for .prmtop and output files
+    filename : str, Optional, default: 'water_solvated.prmtop'
+        Filename name of .prmtop files
     trajname :  str, Optional, default: 'water_solvated.netcdf'
         Name of trajectory
     startframe : int, Optional, default: 0
@@ -30,7 +30,7 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
     """
     
     print('Loading trajectory')
-    a=md.load(trajname, top=filename+'.prmtop')
+    a=md.load(trajname, top=filename)
     traj2=a.xyz
     if traj2.shape[0]<startframe:
       print("trajectory too short")
@@ -82,7 +82,7 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
       select_xyz=traj3[select_list,:]
       c=b.atom_slice(select_list)
       c.xyz[0,:,:]=select_xyz
-      c.save_xyz(filename+'-cutoutn-'+str(iframe)+'.xyz')
+      c.save_xyz(filename.replace(".prmtop","")+'-cutoutn-'+str(iframe)+'.xyz')
 
 def startclustergen(argumentList):
     r"""

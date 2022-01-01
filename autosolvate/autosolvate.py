@@ -2,6 +2,7 @@ from openbabel import pybel
 import getopt, sys, os
 from openbabel import openbabel as ob
 import subprocess
+import pkg_resources
 
 
 amber_solv_dict = {'water': [' ','TIP3PBOX '],
@@ -367,6 +368,12 @@ class solventBoxBuilder():
             print("The type of solvent is not implemented yet")
             return
         else:
+            # Solvent pdb file stored in our package data folder
+            # Path is too long for Packmol to recognize. Copy to current rundir 
+            solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 'data/ch3cn/ch3cn.pdb')
+            tmp_solvent_pdb = 'ch3cn.pdb'
+            subprocess.call(['cp',solvent_pdb_path,tmp_solvent_pdb])
+
             packmol_inp = open('packmol.inp','w')
             packmol_inp.write("# All atoms from diferent molecules will be at least 2.0 Angstroms apart\n")
             packmol_inp.write("tolerance %s\n" % self.tolerance)
@@ -384,7 +391,7 @@ class solventBoxBuilder():
             packmol_inp.write("end structure\n")
             packmol_inp.write("\n")
             packmol_inp.write("# add first type of solvent molecules\n")
-            packmol_inp.write("structure ch3cn.pdb\n")
+            packmol_inp.write("structure "+ tmp_solvent_pdb + "\n")
             packmol_inp.write("  number " + str(self.slv_count) + " \n")
             packmol_inp.write("  inside cube 0. 0. 0. " + str(self.cube_size) + " \n")
             packmol_inp.write("  resnumbers 2 \n")
@@ -409,12 +416,14 @@ class solventBoxBuilder():
         -------
         None
         """
+        solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 'data/ch3cn/ch3cn.frcmod')
+        solvent_prep_path = pkg_resources.resource_filename('autosolvate', 'data/ch3cn/ch3cn.prep')
         f = open("leap_packmol_solvated.cmd","w")
         f.write("source leaprc.protein.ff14SB\n")
         f.write("source leaprc.gaff\n")
         f.write("source leaprc.water.tip3p\n") # This will load the Ions. Neccessary
-        f.write("loadamberparams ch3cn.frcmod\n")
-        f.write("loadAmberPrep ch3cn.prep\n")
+        f.write("loadamberparams " + solvent_frcmod_path + "\n")
+        f.write("loadAmberPrep " + solvent_prep_path + "\n")
         f.write("loadamberparams solute.frcmod\n")
         f.write("loadoff solute.lib\n")
         f.write("\n")
