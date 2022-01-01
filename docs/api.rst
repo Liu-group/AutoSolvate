@@ -17,7 +17,7 @@ API Documentation
    autosolvate.solventBoxBuilder.writeTleapcmd_add_solvent
    autosolvate.solventBoxBuilder.processPackmolPDB
    autosolvate.solventBoxBuilder.packSLUSLV
-   autosolvate.solventBoxBuilder.writeTleapcmd_ch3cn_solvated
+   autosolvate.solventBoxBuilder.writeTleapcmd_custom_solvated
    autosolvate.solventBoxBuilder.createAmberParm
    autosolvate.generatetrajs.startmd
    autosolvate.generatetrajs.writeMMminInput
