@@ -1,7 +1,7 @@
 Tutorial
 =============================
 
-Following code walkthrough illustrates the usage of Autosolvate.
+Following code walkthrough illustrates the usage of Autosolvate in the commnand line interface.
 
 There will be two example systems: napthalene in water and napthalene radical in chloroform
 
@@ -165,7 +165,7 @@ With these three files, we are ready to proceed to the next step!
 
 This example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
-``python autosolvate.py -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral_water``
+``autosolvate boxgen -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_netural``
 
 The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
 
@@ -231,7 +231,6 @@ Additionally, these files should all be in your directory now::
 
 Once everything has finished, the main output is the QM/MM trajectory water_solvated-qmmmnvt.netcdf. When you have this file, you can move on to the next step!
 
-
 **Notes for production runs**
 
 Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
@@ -258,7 +257,7 @@ When you are ready to do a production run and want to use all of these defaults,
 
 ``autosolvate mdrun -f water_solvated -q 0 -u 1 -d``
   
-If AutoSolvate is running correctly, it will print the following messages::
+If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
   AutoSolvate is starting in command line mode!
   Running the module to automatically run MD simulations of solvated structure.
@@ -296,21 +295,56 @@ Especially in this step, it is important to know where your job is running!
 Step 3: Microsolvated cluster extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Bash commands to extract 4 Angstrom solvent shell for each 10th frame or every 5fs:
+The last step is extracting a cluster from the previous results that can be used for microsolvation. In the QMMM above, the solute is treated with QM and the explicit solvent molecules are treated with MM. In this step, a cluster will be extracted from the QMMM box so that the cluster can be treated with QM. The explicitly solvated cluster will be surrounded by implicit solvent, and we refer to the implicit + explict combination as microsolvation.
 
-``autosolvate clustergen -f nap_neutral_water.prmtop -t nap_neutral_water-qmmmnvt.netcdf -a 0 -i 10 -s 4``
+To extract the cluster from the final QMMM results, use the following command:
 
-Main output are the microsolvated clusters ``nap_neutral_water-cutoutn-*.xyz``.
+``autosolvate clustergen -f water_solvated -t water_solvated-qmmmnvt.netcdf -a 0 -i 10 -s 4``
 
+If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
+    AutoSolvate is starting in command line mode!
+    Running the module to extract solvated cluster (sphere) from MD trajectories of solvent box.
+    ['-f', 'water_solvated', '-t', 'water_solvated-qmmmnvt.netcdf', '-a', '0', '-i', '10', '-s', '4']
+    Filename: water_solvated
+    Trajectory name: water_solvated-mmnpt.netcdf
+    startframe to extract: 0
+    interval to extract: 10
+    Cutout size in Angstrom: 4
+    Loading trajectory
+    selecting center solute
+    extracting from frames: [0]
+    calculating distance to all solvent molecules
+    select solvent molecules
+    for first frame selected 35 solvent molecules
+    saving xyz
 
+The only output of this command will be the cartesian coordinates of the cluster in ``water_solvated-cutoutn-0.xyz``. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files.
 
+``autosolvate clustergen -f water_solvated -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
+
+As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from::
+
+  extracting from frames: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+
+**Warning** 
+
+The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, the new coordinates will overwrite the old ones (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
 
 Second System: Napthalene Radical
 ----------------------------------------------------------
 
->>> autosolvate.py boxgen -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3
+Now that we have gone through the details of one example, the second example will be the compact version of a production run.
 
+``autosolvate boxgen -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3``
+  * must designate charge and multiplicty for the radical system
+  * must use resp for open-shell system
+``autosolvate mdrun -f nap_radical_chcl3 -q 1 -u 2 -d``
+  * must designate charge and multiplicty for the radical system
+  * make sure to track the output filename from boxgen as the input filename
+  * copy the contents of runMM.sh and runQMMM.sh into a submit script that calls Terachem and submits the (very long) job into a queue with sufficient time
+``autosolvate clustergen -f nap_radical_chcl3 -t nap_radical_chcl3-qmmmnvt.netcdf -a 0 -i 10 -s 4``
+  * make sure to make note of which trajectory the clusters come from
 
 
 Example 3: Napthalene in custom solvent: acetonitrile
