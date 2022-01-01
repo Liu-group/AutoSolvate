@@ -313,3 +313,6 @@ Second System: Napthalene Radical
 
 
 
+Example 3: Napthalene in custom solvent: acetonitrile
+
+>>> autosolvate boxgen -m napthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN
