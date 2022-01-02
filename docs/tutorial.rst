@@ -179,7 +179,7 @@ The second step is running molecular dynamics, which includes equilibration and 
 
 To do a short example run of QM/MM use the following command:
 
-``autosolvate mdrun -f water_solvated -q 0 -u 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
   
 The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( , -m, -n, -l, -o, -s).
 
@@ -350,7 +350,7 @@ Now that we have gone through the details of one example, the second example wil
   * make sure to make note of which trajectory the clusters come from
 
 
-Example 3: Napthalene in custom solvent: Acetonitrile
+Example 3: Napthalene in Acetonitrile (custom solvent)
 ----------------------------------------------------------
 
 ``autosolvate boxgen -m napthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN``
