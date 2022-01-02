@@ -1,5 +1,3 @@
-AutoSolvate
-==============================
 ![AutoSolvate](autosolvate/GUI/images/logo.png)
 
 [//]: # (Badges)
