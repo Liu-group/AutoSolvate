@@ -7,26 +7,21 @@ Welcome to AutoSolvate's documentation!
 =====================================================================
 *Automated workflow to solvate molecules and run QM/MM trajectories*
 
+.. image:: ../autosolvate/GUI/images/logo.png
+   :align: center
+
 Description
 ---------------------
 
 This package enables automated initial structure generation for explicitly solvate systems. This includes input file preparation. Additionally automated QM/MM trajectory generation is supported for the explicitly solvated systems. These features empower the user to rapidly generate large computational data sets.
 
-
-Dependencies
--------------------
-
-Currently Autosolvate depends on following packages:
-
-#. `Open Babel <http://openbabel.org/>`_
-#. `AmberTools21 <https://ambermd.org/AmberTools.php>`_
-#. `Packmol <http://leandro.iqm.unicamp.br/m3g/packmol/home.shtml>`_
-
-Optionally `Gaussian <http://gaussian.com/>`_ can be used to estimate partial charges.
-
-For the generation of QM/MM following packages are supported:
-
-#. `TeraChem <http://www.petachem.com/products.html>`_
+Quickstart
+----------------------
+#. To start using AutoSolvate, you may read the :doc:`installation` page.
+#. To learn to use the command line interface (CLI), you may read the :doc:`tutorial`.
+#. To learn to use the graphical user interface (GUI), you may read the :doc:`tutorialGUI`.
+#. To import AutoSolvate as a Python API, you may refer to the :doc:`api`.
+ 
 
 .. toctree::
    :maxdepth: 2
