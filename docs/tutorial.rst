@@ -13,31 +13,31 @@ Once you have AutoSolvate and all dependencies installed you will need the solut
 
 ::
 
-  18
-  napthalene neutral 
-       C     2.4397703245   -0.7099883961    0.0000206200
-       C     2.4397218526    0.7099981201    0.0000271508
-       C     1.2475921776    1.4061556571    0.0000203110
-       C    -0.0000128759    0.7189947033    0.0000073141
-       C    -1.2476290200    1.4061688746    0.0000008829
-       C    -2.4397553974    0.7100487925   -0.0000117263
-       C    -2.4397460082   -0.7099448889   -0.0000182422
-       C    -1.2476288777   -1.4062156405   -0.0000121401
-       C     0.0000138676   -0.7190995078    0.0000006641
-       C     1.2476602178   -1.4062240260    0.0000074983
-       H     1.2448250471   -2.4927306634    0.0000020169
-       H    -1.2447711187   -2.4927196649   -0.0000168971
-       H    -3.3840069825   -1.2452230520   -0.0000277743
-       H    -3.3839437525    1.2454155894   -0.0000167697
-       H    -1.2448430780    2.4926825384    0.0000062499
-       H     1.2447883528    2.4926610011    0.0000242506
-       H     3.3839630326    1.2452901872    0.0000373621
-       H     3.3840333383   -1.2452476243    0.0000259290
+    18
+    napthalene neutral
+     C     2.4397703245   -0.7099883961    0.0000206200
+     C     2.4397218526    0.7099981201    0.0000271508
+     C     1.2475921776    1.4061556571    0.0000203110
+     C    -0.0000128759    0.7189947033    0.0000073141
+     C    -1.2476290200    1.4061688746    0.0000008829
+     C    -2.4397553974    0.7100487925   -0.0000117263
+     C    -2.4397460082   -0.7099448889   -0.0000182422
+     C    -1.2476288777   -1.4062156405   -0.0000121401
+     C     0.0000138676   -0.7190995078    0.0000006641
+     C     1.2476602178   -1.4062240260    0.0000074983
+     H     1.2448250471   -2.4927306634    0.0000020169
+     H    -1.2447711187   -2.4927196649   -0.0000168971
+     H    -3.3840069825   -1.2452230520   -0.0000277743
+     H    -3.3839437525    1.2454155894   -0.0000167697
+     H    -1.2448430780    2.4926825384    0.0000062499
+     H     1.2447883528    2.4926610011    0.0000242506
+     H     3.3839630326    1.2452901872    0.0000373621
+     H     3.3840333383   -1.2452476243    0.0000259290
 
 ::
 
-  18
-  napthalene radical
+       18
+       napthalene radical
        C     2.4584929186   -0.6980401434    0.0000208854
        C     2.4584830542    0.6980208281    0.0000273558
        C     1.2392834454    1.4064616303    0.0000201346
@@ -65,7 +65,7 @@ Example 1: Napthalene in Water
 Step 1: Solvate system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the defaults, use the following command:
+The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the default settings, use the following command:
 
 ``autosolvate boxgen -m napthalene_neutral.xyz``
 
@@ -127,9 +127,7 @@ Additionally, you should now have the following files in your directory::
   ANTECHAMBER_BOND_TYPE.AC    leap.log                  solute.pdb        water_solvated.pdb
   ANTECHAMBER_BOND_TYPE.AC0   leap_savelib.log          solute.xyz.pdb    water_solvated.prmtop
 
-The three files that we care about for moving forward to the next step are the ones with the output prefix, water_solvated (the last three listed above).
-
-The .inpcrd file contains the input coordinates, and the .prmtop file contains the Amber paramter topology. The .pdb file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
+The three files that we care about for moving forward to the next step are the ones with the output prefix water_solvated (the last three listed above). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber paramter topology. The ``.pdb`` file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
 
         CRYST1   66.461   66.696   66.822  90.00  90.00  90.00 P 1           1
         ATOM      1  C   SLU     1       2.302  -0.634   0.016  1.00  0.00
@@ -181,7 +179,7 @@ The second step is running molecular dynamics, which includes equilibration and 
 
 To do a short example run of QM/MM use the following command:
 
-``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
   
 The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( , -m, -n, -l, -o, -s).
 
@@ -234,7 +232,7 @@ Additionally, these files should all be in your directory now::
   mm.ncrst          qmmmmin.in          tc_job.tpl.bak
   mmnpt.in          qmmmmin.info        tc_job.tpl.bak
 
-Once everything has finished, the main output is the QM/MM trajectory water_solvated-qmmmnvt.netcdf. When you have this file, you can move on to the next step!
+Once everything has finished, the main output is the QM/MM trajectory ``water_solvated-qmmmnvt.netcdf``. When you have this file, you can move on to the next step!
 
 **Notes for production runs**
 
@@ -284,7 +282,7 @@ The following files will be added to your directory::
   mmmin.in   qmmmmin.in   runQMMMM.sh
   mmnpt.in   qmmmnvt.in   tc_job.tpl
 
-Inside runMM.sh and runQMMMM.sh, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
+Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
 
 **WARNING**
 
@@ -324,7 +322,7 @@ If AutoSolvate is running successfully, the following messages will be printed t
     for first frame selected 35 solvent molecules
     saving xyz
 
-The only output of this command will be the cartesian coordinates of the cluster in water_solvated-cutoutn-0.xyz. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files.
+The only output of this command will be the cartesian coordinates of the cluster in ``water_solvated-cutoutn-0.xyz``. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files.
 
 ``autosolvate clustergen -f water_solvated -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
 
