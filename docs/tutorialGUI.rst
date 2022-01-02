@@ -1,7 +1,7 @@
 GUI Tutorial
 =============================
 
-Following code walkthrough illustrates the usage of Autosolvate in the graphical user interface (GUI).
+Following code illustrates the usage of Autosolvate in the graphical user interface (GUI).
 
 We will focus on an example systems: napthalene in water.
 
