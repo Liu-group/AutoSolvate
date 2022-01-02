@@ -6,6 +6,9 @@ AutoSolvate
 
 Automated workflow for adding explicit solvent to molecules
 
+### Online Documentation
+https://autosolvate.readthedocs.io/en/latest/
+
 ### Copyright
 
 Copyright (c) 2022, Liu Group
