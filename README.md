@@ -11,7 +11,7 @@ https://autosolvate.readthedocs.io/en/latest/
 
 ### Copyright
 
-Copyright (c) 2022, Liu Group
+Copyright (c) 2022, Liu Group at Department of Chemistry, Emory University
 
 
 #### Acknowledgements

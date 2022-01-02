@@ -22,14 +22,14 @@ except:
 setup(
     # Self-descriptive entries which should always be present
     name='autosolvate',
-    author='Liu Group',
+    author='Liu Group at Department of Chemistry, Emory University',
     author_email='fangliu.ustc@gmail.com',
     description=short_description[0],
     long_description=long_description,
     long_description_content_type="text/markdown",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    license='Not Open Source',
+    license='BSD-3-Clause',
 
     # Which Python importable modules should be included when your package is installed
     # Handled automatically by setuptools. Use 'exclude' to prevent some specific
@@ -58,7 +58,7 @@ setup(
     #            'Mac OS-X',
     #            'Unix',
     #            'Windows'],            # Valid platforms your code works on, adjust to your flavor
-    # python_requires=">=3.5",          # Python version restrictions
+    python_requires=">=3.7",          # Python version restrictions
 
     # Manual control if final package is compressible or not, set False to prevent the .egg from being made
     # zip_safe=False,
