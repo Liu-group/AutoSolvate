@@ -69,6 +69,11 @@ By default, we use the ``imolecule`` package to view the molecule, and you will 
 .. image:: _images/tutorial1_6.png
    :width: 800
 
+You can also select the other molecule visualizer ``nglview``, which will automatically launch a Jupyter notebook in your browswer. You can then run the notebook and view the molecule with atom indices label, as shown below:
+
+.. image:: _images/tutorial1_6_2.png
+   :width: 800
+
 For this example, because it is neutral napthalene molecule, the default settings will work OK, so you can skip setting the rest options, and directly click the last button to generate structure and force field files:
 
 .. image:: _images/tutorial1_7.png
