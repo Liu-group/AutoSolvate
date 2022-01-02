@@ -1,36 +1,48 @@
 Installation
 =============================
-AutoSolvate can be installed with pip. 
+AutoSolvate can be installed with conda. 
 
 Dependencies
 -----------------
 
-Ensure you have pip and conda installed. Install dependencies openbabel, packmol and Ambertools:
+* If you install AutoSolvate :ref:`from conda <condainstall>`, you don't need to worry about the dependencies of AutoSolvate because they are automatically installed.
 
-   >>> conda install -c conda-forge openbabel
-   >>> conda install -c conda-forge packmol
-   >>> conda install -c conda-forge ambertools=21 compilers 
-   >>> pip install mdtraj
+* If you choose to install AutoSolvated :ref:`from source code <sourceinstall>`, you can still install all dependencies automatically, which we will explain :ref:`later in this document <sourceinstall>`.
 
-Alternative ways to install Ambertools is described `here <https://ambermd.org/AmberTools.php>`_.
+However, if you are curious about the dependencies of AutoSolvate, please take a look at ``devtools/conda-envs/test_env.yaml`` in the AutoSolvate source code directory. This `YAML <https://yaml.org/>`_ file summarizes all dependencies of AutoSolvate. These packages will allow you to use most functionalities of AutoSolvate.
 
-Pip install
+However, if you'd like to use AutoSolvate to directly drive QM/MM calculations, you need to install TeraChem. `TeraChem <http://www.petachem.com/>`_ is a comercial quantum chemistry software, so you need to purchase and install separately. 
+
+AutoSolvate use the AmberTools to run classical MD simulations without GPU acceleration. If you'd like to use the GPU accelerated version of Amber, please refer to `Amber website <https://ambermd.org/AmberTools.php>`_.
+
+.. _condainstall:
+
+Conda install
 ----------------
 
-Install autosolvate as following from the commandline:
+Install autosolvate as following from the commandline::
 
->>> pip install autosolvate
+   >>> conda install -c conda-forge autosolvate
+
+.. _sourceinstall:
 
 From source
 ---------------
-Alternative to pip install is installing from source. Download the source code from github.::
+Alternative to conda install is installing from source. Download the source code from github.::
 
    >>> git clone git@github.com:Liu-group/AutoSolvate.git
 
+First set up a conda environment for AutoSolvate with the needed dependencies::
+
+   >>> conda env create -f devtools/conda-envs/test_env.yaml
+
+This will automatically create a conda environment called ``autosolvate``. Now activate this environment::
+
+   >>> conda activate autosolvate
+
 Go inside the AutoSolvate directory and install it:: 
 
-
-   python setup.py install
+   >>> python setup.py install
 
 
 Check
