@@ -1,6 +1,8 @@
 Installation
 =============================
-AutoSolvate can be installed with conda. 
+AutoSolvate can be installed with :ref:`conda <condainstall>` or :ref:`from source code <sourceinstall>`. 
+
+For either approach, you want to make sure to have `conda <https://docs.conda.io/en/latest/>`_ and `git <https://git-scm.com/>`_ installed on your computer.
 
 Dependencies
 -----------------

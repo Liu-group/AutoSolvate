@@ -15,6 +15,12 @@ Description
 
 This package enables automated initial structure generation for explicitly solvate systems. This includes input file preparation. Additionally automated QM/MM trajectory generation is supported for the explicitly solvated systems. These features empower the user to rapidly generate large computational data sets.
 
+AutoSolvate can be run in three ways:
+
+#. graphical user interface (GUI)
+#. command line interface (CLI)
+#. Python API
+
 Quickstart
 ----------------------
 #. To start using AutoSolvate, you may read the :doc:`installation` page.
@@ -31,6 +37,7 @@ Quickstart
    tutorial
    tutorialGUI
    api
+   citation
 
 
 
