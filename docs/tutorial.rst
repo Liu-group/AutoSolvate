@@ -1,9 +1,8 @@
 Tutorial
 =============================
+The following code walkthrough illustrates the usage of Autosolvate in the commnand line interface (CLI).
 
-Following code walkthrough illustrates the usage of Autosolvate in the commnand line interface.
-
-There will be two example systems: napthalene in water and napthalene radical in chloroform
+There will be three example systems: napthalene in water and napthalene radical in chloroform
 
 Prerequisites
 -------------------------------------------
@@ -281,7 +280,7 @@ The following files will be added to your directory::
 
 Inside runMM.sh and runQMMMM.sh, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
 
-**Warning**
+**WARNING**
 
 Especially in this step, it is important to know where your job is running!
 
@@ -327,11 +326,11 @@ As Autosolvate is running, you will notice this line now includes the list of th
 
   extracting from frames: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
-**Warning** 
+**WARNING** 
 
-The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, the new coordinates will overwrite the old ones (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
+The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, *the new coordinates will overwrite the old ones* (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
 
-Second System: Napthalene Radical
+Second System: Napthalene Radical in Chloroform
 ----------------------------------------------------------
 
 Now that we have gone through the details of one example, the second example will be the compact version of a production run.
@@ -347,6 +346,17 @@ Now that we have gone through the details of one example, the second example wil
   * make sure to make note of which trajectory the clusters come from
 
 
-Example 3: Napthalene in custom solvent: acetonitrile
+Third System: Napthalene in custom solvent: Acetonitrile
+----------------------------------------------------------
 
->>> autosolvate boxgen -m napthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN
+``autosolvate boxgen -m napthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN``
+  * custom solvent called the same as Amber pre-equilibrated solvent boxes
+  * bcc charge method is sufficient for closed-shell system
+``autosolvate mdrun -f nap_neutral_MeCN -q 0 -u 1 -l 0 -o 0 -s 0 -d``
+  * example with only MM steps in the MDrun
+``autosolvate clustergen -f nap_neutral_MeCN -t nap_neutral_MeCN-mmnpt.netcdf -a 0 -i 300 -s 4``
+  * make sure the trajectory name is for the MM NPT step
+  * MM NPT has 30,000 steps, so you want to significantly increase the interval
+  
+
+
