@@ -4,7 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/autosolvate/badge/?version=latest)](https://autosolvate.readthedocs.io/en/latest/?badge=latest)
 
 
-Automated workflow for adding explicit solvent to molecules
+Automated workflow for setting up explicit solvent quantum chemistry calculations for molecules.
 
 ### Online Documentation
 https://autosolvate.readthedocs.io/en/latest/
