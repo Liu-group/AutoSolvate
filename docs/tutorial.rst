@@ -159,7 +159,7 @@ The three files that we care about for moving forward to the next step are the o
 
 The fourth column has 18 'SLU' entries, or solvent, and under that there are 6 'WAT' entries, which we can see makes up two water molecules. When you visualize ``water_solvated.pdb`` you should be able to see the water box containing the solute:
 
-.. image:: _images/tutorial4_22.jpg
+.. image:: _images/tutorial4_22.tga
    :width: 400
 
 With these three files, we are ready to proceed to the next step!
