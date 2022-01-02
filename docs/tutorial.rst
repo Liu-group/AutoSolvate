@@ -164,7 +164,7 @@ With these three files, we are ready to proceed to the next step!
 .. image:: _images/tutorial4_1.jpg
    :width: 400
 
-**Notes**
+.. note::
 
 This example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
@@ -234,9 +234,9 @@ Additionally, these files should all be in your directory now::
 
 Once everything has finished, the main output is the QM/MM trajectory ``water_solvated-qmmmnvt.netcdf``. When you have this file, you can move on to the next step!
 
-**Notes for production runs**
+.. warning::
 
-Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
+   Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
 
 +-----------+---------------------------------+------------+
 | MD step   | default settings                |flag        |
@@ -284,15 +284,14 @@ The following files will be added to your directory::
 
 Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
 
-**WARNING**
 
-Especially in this step, it is important to know where your job is running!
+.. warning::
 
-* If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
+   Especially in this step, it is important to know where your job is running!
 
-* If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
-
-* If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
+   * If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
+   * If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
+   * If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
 
 
 Step 3: Microsolvated cluster extraction
@@ -322,7 +321,10 @@ If AutoSolvate is running successfully, the following messages will be printed t
     for first frame selected 35 solvent molecules
     saving xyz
 
-The only output of this command will be the cartesian coordinates of the cluster in ``water_solvated-cutoutn-0.xyz``. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files.
+The only output of this command will be the cartesian coordinates of the cluster in ``water_solvated-cutoutn-0.xyz``. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files. When you open one of cut out files, the microsolvated cluster should look like this:
+
+.. image:: _images/tutorial4_3.jpg
+   :width: 400
 
 ``autosolvate clustergen -f water_solvated -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
 
@@ -330,9 +332,9 @@ As Autosolvate is running, you will notice this line now includes the list of th
 
   extracting from frames: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
-**WARNING** 
+.. warning::
 
-The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, *the new coordinates will overwrite the old ones* (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
+   The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, *the new coordinates will overwrite the old ones* (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
 
 Example 2: Napthalene Radical in Chloroform
 ----------------------------------------------------------
