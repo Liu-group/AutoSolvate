@@ -10,29 +10,9 @@ Prerequisites
 Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! 
 Make a working directory and create the ``napthalene_neutral.xyz`` file, so that you can follow along on your own computer: 
 
-::
+:download:`napthalene_neutral.xyz <_data/napthalene_neutral.xyz>`
 
-  18
-  napthalene neutral 
-       C     2.4397703245   -0.7099883961    0.0000206200
-       C     2.4397218526    0.7099981201    0.0000271508
-       C     1.2475921776    1.4061556571    0.0000203110
-       C    -0.0000128759    0.7189947033    0.0000073141
-       C    -1.2476290200    1.4061688746    0.0000008829
-       C    -2.4397553974    0.7100487925   -0.0000117263
-       C    -2.4397460082   -0.7099448889   -0.0000182422
-       C    -1.2476288777   -1.4062156405   -0.0000121401
-       C     0.0000138676   -0.7190995078    0.0000006641
-       C     1.2476602178   -1.4062240260    0.0000074983
-       H     1.2448250471   -2.4927306634    0.0000020169
-       H    -1.2447711187   -2.4927196649   -0.0000168971
-       H    -3.3840069825   -1.2452230520   -0.0000277743
-       H    -3.3839437525    1.2454155894   -0.0000167697
-       H    -1.2448430780    2.4926825384    0.0000062499
-       H     1.2447883528    2.4926610011    0.0000242506
-       H     3.3839630326    1.2452901872    0.0000373621
-       H     3.3840333383   -1.2452476243    0.0000259290
-
+.. _guistep1:
 
 Step 1: Solvate system
 -------------------------------------------
@@ -114,13 +94,22 @@ At the same time, in the original terminal where you launched AutoSolvate, and y
 .. image:: _images/tutorial1_11.png
    :width: 800
 
+
+.. _guistep2:
+
 Step 2: MD Simulation
 -------------------------------------------
 
 The second step is running molecular dynamics, which includes multiple steps with MM or QM/MM dynamics. 
 We will show how to quickly enable automated MD input file generation and MD simulation execution from the graphical interface.
 
-Assuming you just finished Step 1, now we can safely close the window for boxgen (you can also leave it there), and focus back on the main GUI. This time select the second task: ``MD simulation automation``
+Assuming you just finished :ref:`Step 1<guistep1>`, now we can safely close the window for boxgen (you can also leave it there). In case you didn't run :ref:`Step 1<guistep1>`, you can directly download the following files to make sure you can follow this section:
+
+:download:`water_solvated.prmtop <_data/water_solvated.prmtop>`
+:download:`water_solvated.inpcrd <_data/water_solvated.inpcrd>`
+
+
+Let's focus back on the main GUI. This time select the second task: ``MD automation``
   
 .. image:: _images/tutorial2_1.png
    :width: 300
@@ -151,54 +140,104 @@ For example, you can leave the entry about file prefix for ``.inpcrd`` and ``.pr
 Once you entered a valid file prefix, the dialog will automatically close, and you can make other neccessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default, because the TeraChem package is not automatically installed with AutoSolvate, so the user may not neccessary have acceess to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
 
 .. image:: _images/tutorial2_4.png
-   :width: 400
+   :width: 800
 
 If you do want to run QM/MM, simply change the radio button to ``Yes`` (shown in the green circle below), and set corresponding options in the QM/MM control section.
 
 .. image:: _images/tutorial2_5.png
-   :width: 400
+   :width: 800
 
 The most important option for QM/MM is the QM method, which is by default DFT with B3LYP functional. You can change it to other available options by choosing from the dropdown menu:
 
 .. image:: _images/tutorial2_6.png
-   :width: 400
+   :width: 800
 
 Another very important feature is the ``dryrun`` mode, that means the GUI will only generate the MD input files, and save the commands to run Amber/sander MD simulations input bash script files ``runMM.sh`` and ``runQMMM.sh``. The GUI will not directly execute Amber or Amber/TeraChem to run the MD simulations, because usually we expect the users to use the GUI on their desktop, which is not suitable for running long-time MD simulations. By using the ``dryrun`` mode, the user can get the needed files and scripts, and then copy them to high-performance computers to finish the simulation.
 
 Therefore, the ``dryrun`` mode is by default turned on, as shown below:
 
 .. image:: _images/tutorial2_6_2.png
-   :width: 400
+   :width: 800
 
 If everything looks good to you, you can click the last button to generate MD simulation inputs and execute MD.
 A dialog window will pop up and let you know that the corresponding command line input has been generated, which will be executed to generate the MD simulation files. You can click "OK".
 
 .. image:: _images/tutorial2_7.png
-   :width: 400
+   :width: 800
 
 Another dialog window will pop up and ask you whether you want to continue to execute the command and generate the files. You can click ``Cancel`` and no file will be generated, if you want to make changes to the settings. Otherwise, click ``Yes``.
 
 .. image:: _images/tutorial2_8.png
-   :width: 400
+   :width: 800
 
 If you selected ``dryrun`` mode, after a few seconds, you will see a diaglog window pop up with the message to show the MD simulation generation has finished. If you selected to turn off ``dryrun`` mode, then AutoSolvate will call Amber/sander in the background and run the MD simulations, which may take minutes or hours to finish. But at the end you will also see a dialog window saying that the simulation has finished.
 
 .. image:: _images/tutorial2_9.png
-   :width: 400
+   :width: 800
 
-At the same time, in the original terminal where you launched AutoSolvate ``mdrun`` module, and you will see information about each step of the MD simulation
+At the same time, in the original terminal where you launched AutoSolvate, you will see information about each step of the MD simulation
 
 .. image:: _images/tutorial2_10.png
-   :width: 400
+   :width: 800
 
+
+.. _guistep3:
 
 Step 3: Microsolvated cluster extraction
 -------------------------------------------
 
 The last step is extracting a cluster from the previous results that can be used for microsolvation. 
 
+Let's focus back on the main GUI. This time select the second task: ``Microsolvated cluster extraction``
 
-**Warning** 
+.. image:: _images/tutorial3_1.png
+   :width: 400
 
-The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, the new coordinates will overwrite the old ones (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
+Then click ``Go!``: A new window will pop up, which is the *clustergen* GUI for MD automation.
+
+.. image:: _images/tutorial3_2.png
+   :width: 800
+
+The *clustergen* GUI has very simple interface, only requesting 4 entries. First select the ``.prmtop`` file and trajectory ``.netcdf`` file by directly enter the files names in the entries and clicking ``Set``, or leave the entries blank and directly clicking the ``Set`` buttons . You will be prompted with a dialog to select the files from your computer.
+
+.. image:: _images/tutorial3_3.png
+   :width: 800
+
+Here let's select the ``water_solvated.prmtop`` file generated in Step 1, and a trajectory file ``nap_neutral_water-heat.netcdf`` generated in :ref:`Step 2<guistep2>`. 
+In case you did run the MD simulation in :ref:`Step 2<guistep2>`, you can directly download the files here:
+
+:download:`nap_neutral_water-heat.netcdf <_data/nap_neutral_water-heat.netcdf>`
+
+:download:`water_solvated.prmtop <_data/water_solvated.prmtop>`
+
+After selection, the file names will automatically update in the entries. Set the rest options to control how the solvent shell is cut out.
+
+.. image:: _images/tutorial3_4.png
+   :width: 800
+
+.. warning::
+   When you change an entry, make sure to click the ``Set`` button to make the change take effect.
+
+Then click the last button start cluster extraction. You will first see the following diaglog window:
+
+.. image:: _images/tutorial3_5.png
+   :width: 300
+
+After clicking ``OK``, another dialog window will pop up and ask you whether you want to continue to execute the command and generate the files. You can click ``Cancel`` and no file will be generated, if you want to make changes to the settings. Otherwise, click ``Yes``. 
+
+.. image:: _images/tutorial3_6.png
+   :width: 300
+
+After a few seconds, you will see a diaglog window pop up with the message to show themicrosolvated cluster extraction has finished.
+
+.. image:: _images/tutorial3_7.png
+   :width: 300
+
+At the same time, in the original terminal where you launched AutoSolvate, you will see information about the extraction process.
+
+.. image:: _images/tutorial3_8.png
+   :width: 800
+
+
+.. warning:: The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, the new coordinates will overwrite the old ones (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
 
