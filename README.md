@@ -1,5 +1,7 @@
 AutoSolvate
 ==============================
+![AutoSolvate](autosolvate/GUI/images/logo.png)
+
 [//]: # (Badges)
 [![Documentation Status](https://readthedocs.org/projects/autosolvate/badge/?version=latest)](https://autosolvate.readthedocs.io/en/latest/?badge=latest)
 
