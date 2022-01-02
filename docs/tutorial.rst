@@ -2,11 +2,14 @@ Tutorial
 =============================
 The following code walkthrough illustrates the usage of Autosolvate in the commnand line interface (CLI).
 
-There will be three example systems: napthalene in water and napthalene radical in chloroform
+There will be three example systems: napthalene in water, napthalene radical in chloroform, napthalene in acetonitrile
 
 Prerequisites
 -------------------------------------------
 Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The napthalene neutral and radical coordinates are provided below so that you can follow along on your own computer:
+
+.. image:: _images/tutorial4_1.jpg
+   :width: 400
 
 ::
 
@@ -159,6 +162,9 @@ The .inpcrd file contains the input coordinates, and the .prmtop file contains t
 The fourth column has 18 'SLU' entries, or solvent, and under that there are 6 'WAT' entries, which we can see makes up two water molecules. 
 
 With these three files, we are ready to proceed to the next step!
+
+.. image:: _images/tutorial4_1.jpg
+   :width: 400
 
 **Notes**
 
