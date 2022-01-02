@@ -57,7 +57,7 @@ Once you have AutoSolvate and all dependencies installed you will need the solut
        H     3.3951743890    1.2429028846    0.0000376679
        H     3.3951863936   -1.2429173191    0.0000261673
 
-Now that you have the structures, make a neutral and radical directory. We will start with the neutral molecule. 
+Now that you have the structures, make a directory for each example. We will start with the neutral molecule. 
 
 Example 1: Napthalene in Water
 -------------------------------------------
@@ -157,20 +157,20 @@ The three files that we care about for moving forward to the next step are the o
         ATOM     23  H1  WAT     3      28.109  28.738  28.742  1.00  0.00
         ATOM     24  H2  WAT     3      29.536  28.538  28.277  1.00  0.00
 
-The fourth column has 18 'SLU' entries, or solvent, and under that there are 6 'WAT' entries, which we can see makes up two water molecules. 
+The fourth column has 18 'SLU' entries, or solvent, and under that there are 6 'WAT' entries, which we can see makes up two water molecules. When you visualize ``water_solvated.pdb`` you should be able to see the water box containing the solute:
+
+.. image:: _images/tutorial4_22.jpg
+   :width: 400
 
 With these three files, we are ready to proceed to the next step!
 
-.. image:: _images/tutorial4_1.jpg
-   :width: 400
-
 .. note::
 
-This example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
+   This example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
-``autosolvate boxgen -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_netural``
+   ``autosolvate boxgen -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_netural``
 
-The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
+   The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
 
 Step 2: MD Simulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -238,23 +238,23 @@ Once everything has finished, the main output is the QM/MM trajectory ``water_so
 
    Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
 
-+-----------+---------------------------------+------------+
-| MD step   | default settings                |flag        |
-+===========+=================================+============+
-| MM min    |300 K, 1 bar                     |   -t, -p   |
-+-----------+---------------------------------+------------+  
-| MM heat   |10000 steps                      |   -m       |
-+-----------+---------------------------------+------------+  
-| MM NPT    |300000 steps                     |   -n       |
-+-----------+---------------------------------+------------+  
-| QMMM      |0, 1, b3lyp                      |-q, -u, -k  |
-+-----------+---------------------------------+------------+  
-| QMMM min  |250 steps                        |   -l       |
-+-----------+---------------------------------+------------+  
-| QMMM heat |1000 steps                       |  -o        |
-+-----------+---------------------------------+------------+  
-| QMMM NVT  |10000 steps                      |   -s       |
-+-----------+---------------------------------+------------+  
++-----------+-----------------------+------------+
+| MD step   | default settings      |flag        |
++===========+=======================+============+
+| MM min    |300 K, 1 bar           |   -t, -p   |
++-----------+-----------------------+------------+  
+| MM heat   |10000 steps            |   -m       |
++-----------+-----------------------+------------+  
+| MM NPT    |300000 steps           |   -n       |
++-----------+-----------------------+------------+  
+| QMMM      |0, 1, b3lyp            |-q, -u, -k  | 
++-----------+-----------------------+------------+  
+| QMMM min  |250 steps              |   -l       |
++-----------+-----------------------+------------+  
+| QMMM heat |1000 steps             |  -o        |
++-----------+-----------------------+------------+  
+| QMMM NVT  |10000 steps            |   -s       |
++-----------+-----------------------+------------+  
 
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
 
@@ -284,7 +284,6 @@ The following files will be added to your directory::
 
 Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
 
-
 .. warning::
 
    Especially in this step, it is important to know where your job is running!
@@ -292,7 +291,6 @@ Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each 
    * If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
    * If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
    * If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
-
 
 Step 3: Microsolvated cluster extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -321,10 +319,12 @@ If AutoSolvate is running successfully, the following messages will be printed t
     for first frame selected 35 solvent molecules
     saving xyz
 
-The only output of this command will be the cartesian coordinates of the cluster in ``water_solvated-cutoutn-0.xyz``. This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files. When you open one of cut out files, the microsolvated cluster should look like this:
+The only output of this command will be the cartesian coordinates of the cluster in ``water_solvated-cutoutn-0.xyz``. 
 
 .. image:: _images/tutorial4_3.jpg
    :width: 400
+
+This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files. When you open one of cut out files, the microsolvated cluster should look like this:
 
 ``autosolvate clustergen -f water_solvated -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
 
@@ -363,6 +363,3 @@ Example 3: Napthalene in Acetonitrile (custom solvent)
 ``autosolvate clustergen -f nap_neutral_MeCN -t nap_neutral_MeCN-mmnpt.netcdf -a 0 -i 300 -s 4``
   * make sure the trajectory name is for the MM NPT step
   * MM NPT has 30,000 steps, so you want to significantly increase the interval
-  
-
-
