@@ -1,11 +1,13 @@
 AutoSolvate
 ==============================
 [//]: # (Badges)
-[![Travis Build Status](https://travis-ci.com/REPLACE_WITH_OWNER_ACCOUNT/AutoSolvate.svg?branch=master)](https://travis-ci.com/REPLACE_WITH_OWNER_ACCOUNT/AutoSolvate)
-[![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/AutoSolvate/branch/master/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/AutoSolvate/branch/master)
+[![Documentation Status](https://readthedocs.org/projects/autosolvate/badge/?version=latest)](https://autosolvate.readthedocs.io/en/latest/?badge=latest)
 
 
 Automated workflow for adding explicit solvent to molecules
+
+### Online Documentation
+https://autosolvate.readthedocs.io/en/latest/
 
 ### Copyright
 

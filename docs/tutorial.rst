@@ -2,11 +2,14 @@ Tutorial
 =============================
 The following code walkthrough illustrates the usage of Autosolvate in the commnand line interface (CLI).
 
-There will be three example systems: napthalene in water and napthalene radical in chloroform
+There will be three example systems: napthalene in water, napthalene radical in chloroform, napthalene in acetonitrile
 
 Prerequisites
 -------------------------------------------
 Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The napthalene neutral and radical coordinates are provided below so that you can follow along on your own computer:
+
+.. image:: _images/tutorial4_1.jpg
+   :width: 400
 
 ::
 
@@ -159,6 +162,9 @@ The .inpcrd file contains the input coordinates, and the .prmtop file contains t
 The fourth column has 18 'SLU' entries, or solvent, and under that there are 6 'WAT' entries, which we can see makes up two water molecules. 
 
 With these three files, we are ready to proceed to the next step!
+
+.. image:: _images/tutorial4_1.jpg
+   :width: 400
 
 **Notes**
 
@@ -330,7 +336,7 @@ As Autosolvate is running, you will notice this line now includes the list of th
 
 The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, *the new coordinates will overwrite the old ones* (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
 
-Second System: Napthalene Radical in Chloroform
+Example 2: Napthalene Radical in Chloroform
 ----------------------------------------------------------
 
 Now that we have gone through the details of one example, the second example will be the compact version of a production run.
@@ -346,7 +352,7 @@ Now that we have gone through the details of one example, the second example wil
   * make sure to make note of which trajectory the clusters come from
 
 
-Third System: Napthalene in custom solvent: Acetonitrile
+Example 3: Napthalene in custom solvent: Acetonitrile
 ----------------------------------------------------------
 
 ``autosolvate boxgen -m napthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN``
