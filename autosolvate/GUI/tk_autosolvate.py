@@ -404,7 +404,7 @@ class boxgenGUI(baseGUI):
         self.irow += 1
 
         ### Sanity check to make sure that all required buttons are set
-        def GUI_input_sanity_check():
+        def GUI_input_fact_check():
             boxgen_error =0 
             if self.xyzfile.get() =="":
                   print("Solute molecule xyz file must be provided!")
@@ -464,7 +464,7 @@ class boxgenGUI(baseGUI):
         
         # Execute  python command to run autosolvate
         def execute():
-            boxgen_error = GUI_input_sanity_check()
+            boxgen_error = GUI_input_fact_check()
             if boxgen_error == 0:
                 cmd = write_boxgen_input()
                 res = "Congratulations! AutoSolvate command generated: \n" + cmd
@@ -1133,7 +1133,7 @@ class mdGUI(baseGUI):
         
         self.irow += 1
 
-        def GUI_input_sanity_check():
+        def GUI_input_fact_check():
             mdrun_error =0 
             print("### Start MDrun input option fact check ###")
             if self.prefix.get() =="":
@@ -1178,7 +1178,7 @@ class mdGUI(baseGUI):
 
         ### Execute  python command to generate MD input files and jobscripts
         def execute():
-            mdrun_error = GUI_input_sanity_check()
+            mdrun_error = GUI_input_fact_check()
             if mdrun_error == 0:
                 cmd = write_mdrun_input()
                 res = "Congratulations! MDrun command line generated: \n" + cmd
@@ -1407,7 +1407,7 @@ class clusterGUI(baseGUI):
         
         self.irow += 1
 
-        def GUI_input_sanity_check():
+        def GUI_input_fact_check():
             clustergen_error =0 
             print("### Start ClusterGen input option fact check ###")
             if self.prmtop.get() =="":
@@ -1438,7 +1438,7 @@ class clusterGUI(baseGUI):
             return cmd
 
         def execute():
-            clustergen_error = GUI_input_sanity_check()
+            clustergen_error = GUI_input_fact_check()
             if clustergen_error == 0:
                 cmd = write_clustergen_input()
                 res = "Congratulations! ClusterGen command line generated: \n" + cmd
