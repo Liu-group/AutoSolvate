@@ -236,7 +236,9 @@ Once everything has finished, the main output is the QM/MM trajectory ``water_so
 
 .. warning::
 
-   Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. The default mdrun will have the following settings:
+   Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. 
+
+The default mdrun will have the following settings:
 
 +-----------+-----------------------+------------+
 | MD step   | default settings      |flag        |
