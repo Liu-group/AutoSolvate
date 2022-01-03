@@ -28,7 +28,7 @@ Conda install
 
 Install autosolvate as following from the commandline::
 
-   >>> conda install -c conda-forge autosolvate
+   >>> conda install -c liugroupemory autosolvate
 
 .. _sourceinstall:
 
