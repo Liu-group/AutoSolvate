@@ -30,6 +30,8 @@ Install autosolvate as following from the commandline::
 
    >>> conda install -c liugroupemory autosolvate
 
+To check out more about the AutoSolvate conda package, please visit `this page on Anaconda.org<https://anaconda.org/LiuGroupEmory/autosolvate>`_.
+
 .. _sourceinstall:
 
 From source
