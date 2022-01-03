@@ -301,14 +301,16 @@ The last step is extracting a cluster from the previous results that can be used
 
 To extract the cluster from the final QMMM results, use the following command:
 
-``autosolvate clustergen -f water_solvated -t water_solvated-qmmmnvt.netcdf -a 0 -i 10 -s 4``
+``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmnvt.netcdf``
+
+The .prmtop and .netcdf filenames are required, but Autosolvate will use the default values of 0 for the starting frame, 10 for the extraction interval, and a cutout size of 4 Å.
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
     AutoSolvate is starting in command line mode!
     Running the module to extract solvated cluster (sphere) from MD trajectories of solvent box.
-    ['-f', 'water_solvated', '-t', 'water_solvated-qmmmnvt.netcdf', '-a', '0', '-i', '10', '-s', '4']
-    Filename: water_solvated
+    ['-f', 'water_solvated.prmtop', '-t', 'water_solvated-qmmmnvt.netcdf', '-a', '0', '-i', '10', '-s', '4']
+    Filename: water_solvated.prmtop
     Trajectory name: water_solvated-mmnpt.netcdf
     startframe to extract: 0
     interval to extract: 10
@@ -328,7 +330,7 @@ The only output of this command will be the cartesian coordinates of the cluster
 
 This is because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files. When you open one of cut out files, the microsolvated cluster should look like this:
 
-``autosolvate clustergen -f water_solvated -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
+``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
 
 As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from::
 
@@ -350,7 +352,7 @@ Now that we have gone through the details of one example, the second example wil
   * must designate charge and multiplicty for the radical system
   * make sure to track the output filename from boxgen as the input filename
   * copy the contents of runMM.sh and runQMMM.sh into a submit script that calls Terachem and submits the (very long) job into a queue with sufficient time
-``autosolvate clustergen -f nap_radical_chcl3 -t nap_radical_chcl3-qmmmnvt.netcdf -a 0 -i 10 -s 4``
+``autosolvate clustergen -f nap_radical_chcl3.prmtop -t nap_radical_chcl3-qmmmnvt.netcdf -a 0 -i 10 -s 4``
   * make sure to make note of which trajectory the clusters come from
 
 .. image:: _images/tutorial4_4.jpg
@@ -364,7 +366,7 @@ Example 3: Napthalene in Acetonitrile (custom solvent)
   * bcc charge method is sufficient for closed-shell system
 ``autosolvate mdrun -f nap_neutral_MeCN -q 0 -u 1 -l 0 -o 0 -s 0 -d``
   * example with only MM steps in the MDrun
-``autosolvate clustergen -f nap_neutral_MeCN -t nap_neutral_MeCN-mmnpt.netcdf -a 0 -i 300 -s 4``
+``autosolvate clustergen -f nap_neutral_MeCN.prmtop -t nap_neutral_MeCN-mmnpt.netcdf -a 0 -i 300 -s 4``
   * make sure the trajectory name is for the MM NPT step
   * MM NPT has 30,000 steps, so you want to significantly increase the interval
   
