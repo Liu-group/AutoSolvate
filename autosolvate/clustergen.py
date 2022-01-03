@@ -3,6 +3,18 @@ import subprocess
 import mdtraj as md
 import numpy as np
 
+def formatXyz(mdtrajxyz,outfile):
+    out = open(outfile,'w')
+    oldxyz = open(mdtrajxyz).readlines()
+    out.write(oldxyz[0])
+    out.write(oldxyz[1])
+    for i in range(2,len(oldxyz)):
+        e,x,y,z = oldxyz[i].split()
+        e = e.strip("0123456789")
+        out.write("{0:>2s} {1:>16s} {2:>16s} {3:>16s}\n".format(e,x,y,z))
+    out.close()
+
+
 
 def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', startframe=0, interval=100, size=4, srun_use=False):
     r"""
@@ -82,7 +94,10 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
       select_xyz=traj3[select_list,:]
       c=b.atom_slice(select_list)
       c.xyz[0,:,:]=select_xyz
-      c.save_xyz(filename.replace(".prmtop","")+'-cutoutn-'+str(iframe)+'.xyz')
+      c.save_xyz('tmp.xyz', force_overwrite=True)
+      xyzname = filename.replace(".prmtop","")+'-cutoutn-'+str(iframe)+'.xyz'
+      formatXyz('tmp.xyz', xyzname)
+      os.remove('tmp.xyz')
 
 def startclustergen(argumentList):
     r"""
