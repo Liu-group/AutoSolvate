@@ -10,9 +10,9 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
 
     Parameters
     ----------
-    filename : str, Optional, default: 'water_solvated.prmtop'
+    filename : str, default: 'water_solvated.prmtop'
         Filename name of .prmtop files
-    trajname :  str, Optional, default: 'water_solvated.netcdf'
+    trajname :  str, default: 'water_solvated.netcdf'
         Name of trajectory
     startframe : int, Optional, default: 0
         First frame to extract the microsolvated clusters from trajectory
@@ -96,7 +96,7 @@ def startclustergen(argumentList):
        related to microsolvated cluster extraction.
 
        Command line option definitions:
-         -m, --filename  prefix of the .prmtop file and output .xyz files
+         -m, --filename  name of the .prmtop file 
          -t, --trajname  name of .netcdf trajectory to extract the microsolvate clusters from
          -a, --startframe  first frame at which to start extracting from the trajectory the microsolvated clusters
          -i, --interval  interval in frames at which to extract microsolvated clusters from the trajectory
