@@ -353,6 +353,8 @@ Now that we have gone through the details of one example, the second example wil
 ``autosolvate clustergen -f nap_radical_chcl3 -t nap_radical_chcl3-qmmmnvt.netcdf -a 0 -i 10 -s 4``
   * make sure to make note of which trajectory the clusters come from
 
+.. image:: _images/tutorial4_4.jpg
+   :width: 400
 
 Example 3: Napthalene in Acetonitrile (custom solvent)
 ----------------------------------------------------------
@@ -365,3 +367,6 @@ Example 3: Napthalene in Acetonitrile (custom solvent)
 ``autosolvate clustergen -f nap_neutral_MeCN -t nap_neutral_MeCN-mmnpt.netcdf -a 0 -i 300 -s 4``
   * make sure the trajectory name is for the MM NPT step
   * MM NPT has 30,000 steps, so you want to significantly increase the interval
+  
+.. image:: _images/tutorial4_5.jpg
+   :width: 400
