@@ -3,14 +3,14 @@ GUI Tutorial
 
 Following code illustrates the usage of Autosolvate in the graphical user interface (GUI).
 
-We will focus on an example system: napthalene in water.
+We will focus on an example system: naphthalene in water.
 
 Prerequisites
 -------------------------------------------
 Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! 
-Make a working directory and create the ``napthalene_neutral.xyz`` file, so that you can follow along on your own computer: 
+Make a working directory and create the ``naphthalene_neutral.xyz`` file, so that you can follow along on your own computer: 
 
-:download:`napthalene_neutral.xyz <_data/napthalene_neutral.xyz>`
+:download:`naphthalene_neutral.xyz <_data/naphthalene_neutral.xyz>`
 
 .. _guistep1:
 
@@ -74,7 +74,7 @@ You can also select the other molecule visualizer ``nglview``, which will automa
 .. image:: _images/tutorial1_6_2.png
    :width: 800
 
-For this example, because it is a neutral napthalene molecule, the default settings will work OK, so you can skip setting the rest of the options, and directly click the last button to generate structure and force field files:
+For this example, because it is a neutral naphthalene molecule, the default settings will work OK, so you can skip setting the rest of the options, and directly click the last button to generate structure and force field files:
 
 .. image:: _images/tutorial1_7.png
    :width: 800
