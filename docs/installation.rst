@@ -13,13 +13,13 @@ Dependencies
 
 However, if you are curious about the dependencies of AutoSolvate, please take a look at ``devtools/conda-envs/test_env.yaml`` in the AutoSolvate source code directory. This `YAML <https://yaml.org/>`_ file summarizes all dependencies of AutoSolvate. These packages will allow you to use most functionalities of AutoSolvate.
 
-However, to use all funcitonalities of AutoSolvate, one needs to install a few other packages not included in AutoSolvate installation:
+However, to use all functionalities of AutoSolvate, one needs to install a few other packages not included in AutoSolvate installation:
 
-#. If you want to solvate open-shell molecules (spin-multiplicity > 1), RESP charge fitting is needed, which uses `Gaussian <https://gaussian.com/>`_. `Gaussian <https://gaussian.com/>`_ is a comercial quantum chemistry package, so you need to purchase and install separately. 
+#. If you want to solvate open-shell molecules (spin-multiplicity > 1), RESP charge fitting is needed, which uses `Gaussian <https://gaussian.com/>`_. `Gaussian <https://gaussian.com/>`_ is a commercial quantum chemistry package, so you need to purchase and install separately. 
 
-#. If you'd like to use AutoSolvate to directly drive QM/MM calculations, you need to install TeraChem. `TeraChem <http://www.petachem.com/>`_ is a comercial quantum chemistry package, so you need to purchase and install separately. 
+#. If you'd like to use AutoSolvate to directly drive QM/MM calculations, you need to install TeraChem. `TeraChem <http://www.petachem.com/>`_ is a commercial quantum chemistry package, so you need to purchase and install separately. 
 
-#. AutoSolvate use the AmberTools to run classical MD simulations without GPU acceleration. If you'd like to use the GPU accelerated version of Amber, please refer to `Amber website <https://ambermd.org/AmberTools.php>`_.
+#. AutoSolvate uses the AmberTools to run classical MD simulations without GPU acceleration. If you'd like to use the GPU accelerated version of Amber, please refer to `Amber website <https://ambermd.org/AmberTools.php>`_.
 
 .. _condainstall:
 

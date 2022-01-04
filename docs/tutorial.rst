@@ -78,7 +78,7 @@ If AutoSolvate is running successfully, the following messages will be printed t
   ['-m', 'nap_neutral.xyz']
   Main/solutexyz nap_neutral.xyz
   WARNING: Amber home directory is not specified in input options
-  WARNING: Checking AMBERHOME environment virable...
+  WARNING: Checking AMBERHOME environment variable...
   ['echo', '$AMBERHOME']
   WARNING: AMBERHOME detected:  $AMBERHOME
   
@@ -127,7 +127,7 @@ Additionally, you should now have the following files in your directory::
   ANTECHAMBER_BOND_TYPE.AC    leap.log                  solute.pdb        water_solvated.pdb
   ANTECHAMBER_BOND_TYPE.AC0   leap_savelib.log          solute.xyz.pdb    water_solvated.prmtop
 
-The three files that we care about for moving forward to the next step are the ones with the output prefix water_solvated (the last three listed above). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber paramter topology. The ``.pdb`` file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
+The three files that we care about for moving forward to the next step are the ones with the output prefix water_solvated (the last three listed above). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber parameter topology. The ``.pdb`` file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
 
         CRYST1   66.461   66.696   66.822  90.00  90.00  90.00 P 1           1
         ATOM      1  C   SLU     1       2.302  -0.634   0.016  1.00  0.00
@@ -166,11 +166,11 @@ With these three files, we are ready to proceed to the next step!
 
 .. note::
 
-   This example uses default settings for boxgen, but these can be changed or simply made explict by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
+   This example uses default settings for boxgen, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
    ``autosolvate boxgen -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_netural``
 
-   The semi-emperical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
+   The semi-empirical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
 
 Step 2: MD Simulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -290,14 +290,14 @@ Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each 
 
    Especially in this step, it is important to know where your job is running!
 
-   * If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administator will likely cancel your job if you are using HPC resource.
+   * If you run the autosolvate commands in the command line without any flags for job submission, they will run *on the head node without entering a queue*. The administrator will likely cancel your job if you are using HPC resource.
    * If you use the -r flag, they will run *on the head node* as a sander job *in the queue.*
    * If you do not use the -r flag, but call the autosolvate command in your own submit script, they will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
 
 Step 3: Microsolvated cluster extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The last step is extracting a cluster from the previous results that can be used for microsolvation. In the QMMM above, the solute is treated with QM and the explicit solvent molecules are treated with MM. In this step, a cluster will be extracted from the QMMM box so that the cluster can be treated with QM. The explicitly solvated cluster will be surrounded by implicit solvent, and we refer to the implicit + explict combination as microsolvation.
+The last step is extracting a cluster from the previous results that can be used for microsolvation. In the QMMM above, the solute is treated with QM and the explicit solvent molecules are treated with MM. In this step, a cluster will be extracted from the QMMM box so that the cluster can be treated with QM. The explicitly solvated cluster will be surrounded by implicit solvent, and we refer to the implicit + explicit combination as microsolvation.
 
 To extract the cluster from the final QMMM results, use the following command:
 
@@ -346,10 +346,10 @@ Example 2: Napthalene Radical in Chloroform
 Now that we have gone through the details of one example, the second example will be the compact version of a production run.
 
 ``autosolvate boxgen -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3``
-  * must designate charge and multiplicty for the radical system
+  * must designate charge and multiplicity for the radical system
   * must use resp for open-shell system
 ``autosolvate mdrun -f nap_radical_chcl3 -q 1 -u 2 -d``
-  * must designate charge and multiplicty for the radical system
+  * must designate charge and multiplicity for the radical system
   * make sure to track the output filename from boxgen as the input filename
   * copy the contents of runMM.sh and runQMMM.sh into a submit script that calls Terachem and submits the (very long) job into a queue with sufficient time
 ``autosolvate clustergen -f nap_radical_chcl3.prmtop -t nap_radical_chcl3-qmmmnvt.netcdf -s 4``

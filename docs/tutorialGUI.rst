@@ -18,7 +18,7 @@ Step 1: Solvate system
 -------------------------------------------
 
 The first step is putting the solute in the solvent box.
-First make sure you have the autosolvate conda environment activated. Then in the terminal under your current working diretory, type
+First, make sure you have the autosolvate conda environment activated. Then in the terminal under your current working directory, type
 
 >>> autosolvate
 
@@ -64,17 +64,17 @@ You can also visualize the structure of the ``xyz`` file to confirm that it is t
 .. image:: _images/tutorial1_6_0.png
    :width: 800
 
-By default, we use the ``imolecule`` package to view the molecule, and you will see a new window in your default web browswer, as shown below.
+By default, we use the ``imolecule`` package to view the molecule, and you will see a new window in your default web browser, as shown below.
 
 .. image:: _images/tutorial1_6.png
    :width: 800
 
-You can also select the other molecule visualizer ``nglview``, which will automatically launch a Jupyter notebook in your browswer. You can then run the notebook and view the molecule with atom indices label, as shown below:
+You can also select the other molecule visualizer ``nglview``, which will automatically launch a Jupyter notebook in your browser. You can then run the notebook and view the molecule with atom indices label, as shown below:
 
 .. image:: _images/tutorial1_6_2.png
    :width: 800
 
-For this example, because it is neutral napthalene molecule, the default settings will work OK, so you can skip setting the rest of the options, and directly click the last button to generate structure and force field files:
+For this example, because it is a neutral napthalene molecule, the default settings will work OK, so you can skip setting the rest of the options, and directly click the last button to generate structure and force field files:
 
 .. image:: _images/tutorial1_7.png
    :width: 800
@@ -89,12 +89,12 @@ Another dialog window will pop up and ask you whether you want to continue to ex
 .. image:: _images/tutorial1_9.png
    :width: 800
 
-After a few seconds, you will see a diaglog window pop up with the message to show the generation has finished.
+After a few seconds, you will see a dialog window pop up with the message to show the generation has finished.
 
 .. image:: _images/tutorial1_10.png
    :width: 400
 
-At the same time, in the original terminal where you launched AutoSolvate, and you will see information about each step of the structure and force field genearation
+At the same time, in the original terminal where you launched AutoSolvate, and you will see information about each step of the structure and force field generation
 
 .. image:: _images/tutorial1_11.png
    :width: 800
@@ -121,13 +121,13 @@ Let's focus back on the main GUI. This time select the second task: ``MD automat
 
 Then click ``Go!``: A new window will pop up, which is the *mdrun* GUI for MD automation.
 The *mdrun* GUI has many options categorized into 4 groups, about essential setting of the MD simulation, classical MM, QM/MM, and job control. 
-Don't be scared by the many options. The only required options are filename, charge, and multiplicity (needed for QMMM), as shown in the green circles blow.
+Don't be scared by the many options. The only required options are filename, charge, and multiplicity (needed for QMMM), as shown in the green circles below.
 
 .. image:: _images/tutorial2_2.png
    :width: 800
 
 
-You will then go through each item listed on the GUI. Some options/entries are pre-populated with default setting. If you want to change from the default setting, enter your input in the corresponding entry and click ``Set``.
+You will then go through each item listed on the GUI. Some options/entries are pre-populated with default setting. If you want to change from the default settings, enter your input in the corresponding entry and click ``Set``.
 
 .. warning::
    When you change an entry, make sure to click the ``Set`` button to make the change take effect.
@@ -142,7 +142,7 @@ For example, you can leave the entry about file prefix for ``.inpcrd`` and ``.pr
 .. warning:: The program will automatically check whether the file prefix you provided is valid, i.e., whether ``prefix.inpcrd`` and ``prefix.prmtop`` both exist. If not, the window will pop up again until you enter a valid file prefix there.
 
 
-Once you enterg a valid file prefix, the dialog will automatically close, and you can make other neccessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default, because the TeraChem package is not automatically installed with AutoSolvate, so the user may not neccessary have acceess to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
+Once you enter a valid file prefix, the dialog will automatically close, and you can make other necessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default, because the TeraChem package is not automatically installed with AutoSolvate, so the user may not necessary have access to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
 
 .. image:: _images/tutorial2_4.png
    :width: 800
@@ -175,7 +175,7 @@ Another dialog window will pop up and ask you whether you want to continue to ex
 .. image:: _images/tutorial2_8.png
    :width: 800
 
-If you selected ``dryrun`` mode, after a few seconds, you will see a diaglog window pop up with the message to show the MD simulation generation has finished. If you selected to turn off ``dryrun`` mode, then AutoSolvate will call Amber/sander in the background and run the MD simulations, which may take minutes or hours to finish. But at the end you will also see a dialog window saying that the simulation has finished.
+If you selected ``dryrun`` mode, after a few seconds, you will see a dialog window pop up with the message to show the MD simulation generation has finished. If you selected to turn off ``dryrun`` mode, then AutoSolvate will call Amber/sander in the background and run the MD simulations, which may take minutes or hours to finish. But at the end you will also see a dialog window saying that the simulation has finished.
 
 .. image:: _images/tutorial2_9.png
    :width: 800
@@ -223,7 +223,7 @@ After selection, the file names will automatically update in the entries. Set th
 .. warning::
    When you change an entry, make sure to click the ``Set`` button to make the change take effect.
 
-Then click the last button to start cluster extraction. You will first see the following diaglog window:
+Then click the last button to start cluster extraction. You will first see the following dialog window:
 
 .. image:: _images/tutorial3_5.png
    :width: 300
@@ -233,7 +233,7 @@ After clicking ``OK``, another dialog window will pop up and ask you whether you
 .. image:: _images/tutorial3_6.png
    :width: 300
 
-After a few seconds, you will see a diaglog window pop up with the message to show the microsolvated cluster extraction has finished.
+After a few seconds, you will see a dialog window pop up with the message to show the microsolvated cluster extraction has finished.
 
 .. image:: _images/tutorial3_7.png
    :width: 300

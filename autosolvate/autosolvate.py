@@ -89,7 +89,7 @@ class solventBoxBuilder():
                     exit()
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
-            print("WARNING: Checking AMBERHOME environment virable...")
+            print("WARNING: Checking AMBERHOME environment variable...")
             cmd = ["echo", "$AMBERHOME"]
             print(cmd)
             proc=subprocess.Popen(cmd,
