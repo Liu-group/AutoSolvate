@@ -3,7 +3,7 @@ GUI Tutorial
 
 Following code illustrates the usage of Autosolvate in the graphical user interface (GUI).
 
-We will focus on an example systems: napthalene in water.
+We will focus on an example system: napthalene in water.
 
 Prerequisites
 -------------------------------------------
@@ -42,12 +42,12 @@ A new window will pop up, which is the GUI for creating the solvated box and MD 
 .. image:: _images/tutorial1_4.png
    :width: 800
 
-You will then go through each item listed on the GUI. Some options/entries are pre-populated with default setting. If you want to change from the default setting, enter your input in the corresponding entry and click ``Set``.
+You will then go through each item listed on the GUI. Some options/entries are pre-populated with the default setting. If you want to change from the default setting, enter your input in the corresponding entry and click ``Set``.
 
 .. warning::
    When you change an entry, make sure to click the ``Set`` button to make the change take effect.
 
-For some required entries, if you don't entry anything and directly click ``Set``, a dialog window will pop up and remind you to enter eligible inputs.
+For some required entries, if you don't enter anything and directly click ``Set``, a dialog window will pop up and remind you to enter eligible inputs.
 
 For example, you can leave the solute xyz file path blank and directly click on ``Set solute xyz``. Then a new window will popup and ask you to select a file from your computer, as shown below.
 
@@ -74,7 +74,7 @@ You can also select the other molecule visualizer ``nglview``, which will automa
 .. image:: _images/tutorial1_6_2.png
    :width: 800
 
-For this example, because it is neutral napthalene molecule, the default settings will work OK, so you can skip setting the rest options, and directly click the last button to generate structure and force field files:
+For this example, because it is neutral napthalene molecule, the default settings will work OK, so you can skip setting the rest of the options, and directly click the last button to generate structure and force field files:
 
 .. image:: _images/tutorial1_7.png
    :width: 800
@@ -120,7 +120,7 @@ Let's focus back on the main GUI. This time select the second task: ``MD automat
    :width: 300
 
 Then click ``Go!``: A new window will pop up, which is the *mdrun* GUI for MD automation.
-The *mdrun* GUI has many options categorized into 4 groups, about essnetial setting of the MD simulation, classical MM, QM/MM, and job control. 
+The *mdrun* GUI has many options categorized into 4 groups, about essential setting of the MD simulation, classical MM, QM/MM, and job control. 
 Don't be scared by the many options. The only required options are filename, charge, and multiplicity (needed for QMMM), as shown in the green circles blow.
 
 .. image:: _images/tutorial2_2.png
@@ -132,7 +132,7 @@ You will then go through each item listed on the GUI. Some options/entries are p
 .. warning::
    When you change an entry, make sure to click the ``Set`` button to make the change take effect.
 
-For some required entries, if you don't entry anything and directly click ``Set``, a dialog window will pop up and remind you to enter eligible inputs.
+For some required entries, if you don't enter anything and directly click ``Set``, a dialog window will pop up and remind you to enter eligible inputs.
 
 For example, you can leave the entry about file prefix for ``.inpcrd`` and ``.prmtop`` file blank, and directly click ``Set file prefix``. Then a new window will popup and ask you to enter the valid system prefix, as shown below.
 
@@ -142,7 +142,7 @@ For example, you can leave the entry about file prefix for ``.inpcrd`` and ``.pr
 .. warning:: The program will automatically check whether the file prefix you provided is valid, i.e., whether ``prefix.inpcrd`` and ``prefix.prmtop`` both exist. If not, the window will pop up again until you enter a valid file prefix there.
 
 
-Once you entered a valid file prefix, the dialog will automatically close, and you can make other neccessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default, because the TeraChem package is not automatically installed with AutoSolvate, so the user may not neccessary have acceess to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
+Once you enterg a valid file prefix, the dialog will automatically close, and you can make other neccessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default, because the TeraChem package is not automatically installed with AutoSolvate, so the user may not neccessary have acceess to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
 
 .. image:: _images/tutorial2_4.png
    :width: 800
@@ -193,7 +193,7 @@ Step 3: Microsolvated cluster extraction
 
 The last step is extracting a cluster from the previous results that can be used for microsolvation. 
 
-Let's focus back on the main GUI. This time select the second task: ``Microsolvated cluster extraction``
+Let's focus back on the main GUI. This time select the third task: ``Microsolvated cluster extraction``
 
 .. image:: _images/tutorial3_1.png
    :width: 400
@@ -209,13 +209,13 @@ The *clustergen* GUI has very simple interface, only requesting 4 entries. First
    :width: 800
 
 Here let's select the ``water_solvated.prmtop`` file generated in Step 1, and a trajectory file ``nap_neutral_water-heat.netcdf`` generated in :ref:`Step 2<guistep2>`. 
-In case you did run the MD simulation in :ref:`Step 2<guistep2>`, you can directly download the files here:
+In case if you did not run the MD simulation in :ref:`Step 2<guistep2>`, you can directly download the files here:
 
 :download:`nap_neutral_water-heat.netcdf <_data/nap_neutral_water-heat.netcdf>`
 
 :download:`water_solvated.prmtop <_data/water_solvated.prmtop>`
 
-After selection, the file names will automatically update in the entries. Set the rest options to control how the solvent shell is cut out.
+After selection, the file names will automatically update in the entries. Set the rest of the options to control how the solvent shell is cut out.
 
 .. image:: _images/tutorial3_4.png
    :width: 800
@@ -223,7 +223,7 @@ After selection, the file names will automatically update in the entries. Set th
 .. warning::
    When you change an entry, make sure to click the ``Set`` button to make the change take effect.
 
-Then click the last button start cluster extraction. You will first see the following diaglog window:
+Then click the last button to start cluster extraction. You will first see the following diaglog window:
 
 .. image:: _images/tutorial3_5.png
    :width: 300
@@ -233,7 +233,7 @@ After clicking ``OK``, another dialog window will pop up and ask you whether you
 .. image:: _images/tutorial3_6.png
    :width: 300
 
-After a few seconds, you will see a diaglog window pop up with the message to show themicrosolvated cluster extraction has finished.
+After a few seconds, you will see a diaglog window pop up with the message to show the microsolvated cluster extraction has finished.
 
 .. image:: _images/tutorial3_7.png
    :width: 300
