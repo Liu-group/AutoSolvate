@@ -2,11 +2,11 @@ Tutorial
 =============================
 The following code walkthrough illustrates the usage of Autosolvate in the commnand line interface (CLI).
 
-There will be three example systems: napthalene in water, napthalene radical in chloroform, napthalene in acetonitrile
+There will be three example systems: naphthalene in water, naphthalene radical in chloroform, naphthalene in acetonitrile
 
 Prerequisites
 -------------------------------------------
-Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The napthalene neutral and radical coordinates are provided below so that you can follow along on your own computer:
+Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The naphthalene neutral and radical coordinates are provided below so that you can follow along on your own computer:
 
 .. image:: _images/tutorial4_1.jpg
    :width: 400
@@ -14,7 +14,7 @@ Once you have AutoSolvate and all dependencies installed you will need the solut
 ::
 
     18
-    napthalene neutral
+    naphthalene neutral
      C     2.4397703245   -0.7099883961    0.0000206200
      C     2.4397218526    0.7099981201    0.0000271508
      C     1.2475921776    1.4061556571    0.0000203110
@@ -37,7 +37,7 @@ Once you have AutoSolvate and all dependencies installed you will need the solut
 ::
 
        18
-       napthalene radical
+       naphthalene radical
        C     2.4584929186   -0.6980401434    0.0000208854
        C     2.4584830542    0.6980208281    0.0000273558
        C     1.2392834454    1.4064616303    0.0000201346
@@ -59,7 +59,7 @@ Once you have AutoSolvate and all dependencies installed you will need the solut
 
 Now that you have the structures, make a directory for each example. We will start with the neutral molecule. 
 
-Example 1: Napthalene in Water
+Example 1: Naphthalene in Water
 -------------------------------------------
 
 Step 1: Solvate system
@@ -67,7 +67,7 @@ Step 1: Solvate system
 
 The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the default settings, use the following command:
 
-``autosolvate boxgen -m napthalene_neutral.xyz``
+``autosolvate boxgen -m naphthalene_neutral.xyz``
 
 Autosolvate will use the default values of water as the solvent, solute charge of 0, solute multiplicity of 1, charge fitting method of resp, box size of 54, and output file name of water_solvated. 
 
@@ -168,7 +168,7 @@ With these three files, we are ready to proceed to the next step!
 
    This example uses default settings for boxgen, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
-   ``autosolvate boxgen -m napthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_netural``
+   ``autosolvate boxgen -m naphthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_netural``
 
    The semi-empirical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
 
@@ -340,12 +340,12 @@ As Autosolvate is running, you will notice this line now includes the list of th
 
    The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, *the new coordinates will overwrite the old ones* (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
 
-Example 2: Napthalene Radical in Chloroform
+Example 2: Naphthalene Radical in Chloroform
 ----------------------------------------------------------
 
 Now that we have gone through the details of one example, the second example will be the compact version of a production run.
 
-``autosolvate boxgen -m napthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3``
+``autosolvate boxgen -m naphthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3``
   * must designate charge and multiplicity for the radical system
   * must use resp for open-shell system
 ``autosolvate mdrun -f nap_radical_chcl3 -q 1 -u 2 -d``
@@ -358,10 +358,10 @@ Now that we have gone through the details of one example, the second example wil
 .. image:: _images/tutorial4_4.jpg
    :width: 400
 
-Example 3: Napthalene in Acetonitrile (custom solvent)
+Example 3: Naphthalene in Acetonitrile (custom solvent)
 ----------------------------------------------------------
 
-``autosolvate boxgen -m napthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN``
+``autosolvate boxgen -m naphthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN``
   * custom solvent called the same as Amber pre-equilibrated solvent boxes
   * bcc charge method is sufficient for closed-shell system
 ``autosolvate mdrun -f nap_neutral_MeCN -q 0 -u 1 -l 0 -o 0 -s 0 -d``
