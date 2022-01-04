@@ -5,8 +5,6 @@ API Documentation
    :toctree: autosummary
 
    autosolvate.startboxgen
-   autosolvate.clustergen.startclustergen
-   autosolvate.generatetrajs.startmd
    autosolvate.solventBoxBuilder
    autosolvate.solventBoxBuilder.build
    autosolvate.solventBoxBuilder.getSolutePDB
