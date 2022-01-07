@@ -607,8 +607,8 @@ def startboxgen(argumentList):
          -e, --gaussianexe  name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
          -d, --gaussiandir  path to the Gaussian package
          -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
-         -l, --solventoff path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chlorofrom, MeCN)
-         -p, --solventfrcmod path to the custom solvent .frcmod file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate.
+         -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chlorofrom, MeCN)
+         -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate.
 
 
     Returns
