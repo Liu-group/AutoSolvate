@@ -42,8 +42,9 @@ class solventBoxBuilder():
 
 
     def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, 
-            charge_method="resp", slu_spinmult=1, outputFile='water_solvated', 
-            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None, tolerance=2):
+            charge_method="resp", slu_spinmult=1, outputFile="", 
+            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None, tolerance=2,
+            solvent_off="", solvent_frcmod=""):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
@@ -58,11 +59,16 @@ class solventBoxBuilder():
         self.slv_count = 210*8 # 210
         self.pbcbox_size = self.cube_size+2
         self.outputFile=outputFile
+        if self.outputFile == "":
+            self.outputFile = self.solvent + "_solvated"
         self.srun_use=srun_use
         self.charge_method=charge_method
         self.gaussian_dir = gaussianexe
         self.gaussian_exe = gaussiandir
         self.amberhome = amberhome
+        self.solvent_off=solvent_off
+        self.solvent_frcmod=solvent_frcmod
+        self.is_custom_solvent = False
         self.inputCheck()
 
     def inputCheck(self):
@@ -114,7 +120,26 @@ class solventBoxBuilder():
             print(cmd)
             subprocess.call(cmd, shell=True)
             print("AMBERHOME environment variable export finished.")
-
+        # check whether requested custom solvent is available
+        if self.solvent not in amber_solv_dict.keys() and self.solvent not in custom_solv_dict.keys():
+            print("Requested solvent name not contained in AutoSolvate.")
+            print("Checking available of custom solvent .frcmod and .off files")
+            if len(self.solvent_frcmod) == 0:
+                print("ERROR! Custom solvent .frcmod file is not provided!")
+                exit()
+            elif len(self.solvent_off) == 0:
+                print("ERROR! Custom solvent .off library file is not provided!")
+                exit()
+            elif not os.path.exists(self.solvent_frcmod):
+                print("ERROR! Custom solvent .frcmod file ", self.solvent_frcmod,
+                      "ERROR! does not exist!")
+                exit()
+            elif not os.path.exists(self.solvent_off):
+                print("ERROR! Custom solvent .off library file ", self.solvent_frcmod,
+                      "ERROR! does not exist!")
+                exit()
+            else:
+                self.is_custom_solvent = True
 
     def getSolutePDB(self):
         r"""
@@ -312,7 +337,7 @@ class solventBoxBuilder():
             f.write("loadamberparams solute.frcmod\n")
             f.write("mol=loadmol2 solute.mol2\n")
             f.write("check mol\n")
-            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic water box\n") 
+            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic solvent box\n") 
             # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
             if self.slu_netcharge != 0:
                 if self.slu_netcharge > 0:
@@ -326,6 +351,45 @@ class solventBoxBuilder():
             f.write("saveamberparm mol " + str(self.outputFile) + ".prmtop " + str(self.outputFile) + ".inpcrd\n")
             f.write("quit\n")
             f.close()
+
+    def writeTleapcmd_add_solvent_custom(self):
+        r"""
+        Write tleap input file to add solvent from user provided .off and .frcmod files
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        print("Now add custom pre-equlibrated solvent box to the solute")
+        self.getHeadTail()
+        f = open("leap_add_solventbox.cmd","w")
+        f.write("source leaprc.protein.ff14SB\n")
+        f.write("source leaprc.gaff\n")
+        f.write("source leaprc.water.tip3p\n")
+        f.write("loadoff " + self.solvent_off + "\n")
+        f.write("loadamberparams " + self.solvent_frcmod + "\n")
+        f.write("loadamberparams solute.frcmod\n")
+        f.write("mol=loadmol2 solute.mol2\n")
+        f.write("check mol\n")
+        f.write("solvatebox mol " + self.solvent + " " 
+                + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic solvent box\n") 
+        # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
+        if self.slu_netcharge != 0:
+            if self.slu_netcharge > 0:
+                ion = 'Cl-'
+            else:
+                ion = 'Na+'
+            f.write("addIons2 mol " + ion + " 0\n")
+            f.write("check mol\n")
+        f.write("check mol\n")
+        f.write("savepdb mol " + str(self.outputFile) + ".pdb\n")
+        f.write("saveamberparm mol " + str(self.outputFile) + ".prmtop " + str(self.outputFile) + ".inpcrd\n")
+        f.write("quit\n")
+        f.close()
 
 
     def processPackmolPDB(self):
@@ -490,6 +554,12 @@ class solventBoxBuilder():
             if self.srun_use:
                             cmd='srun -n 1 '+cmd
             subprocess.call(cmd, shell=True)
+        elif self.is_custom_solvent:
+            self.writeTleapcmd_add_solvent_custom()  
+            cmd ="tleap -s -f leap_add_solventbox.cmd > leap_add_solventbox.log"
+            if self.srun_use:
+                            cmd='srun -n 1 '+cmd
+            subprocess.call(cmd, shell=True)
         else:
             print('solvent not supported')
 
@@ -545,8 +615,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     print(argumentList)
-    options = "m:s:o:c:k:b:g:u:r:e:d:a:t"
-    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "tolerance"]
+    options = "m:s:o:c:b:g:u:re:d:a:t:l:p:"
+    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "tolerance", "solventoff","solventfrcmod"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutexyz=""
     solvent='water'
@@ -554,49 +624,59 @@ def startboxgen(argumentList):
     cube_size=54
     charge_method="bcc"
     slu_spinmult=1
-    outputFile='water_solvated'
+    outputFile=""
     srun_use=False
     amberhome=None
     gaussianexe=None
     gaussiandir=None
     tolerance=2
+    solvent_off=""
+    solvent_frcmod=""
+    print(arguments)
+    print(values)
     for currentArgument, currentValue in arguments:
-        if currentArgument in ("-m", "-main"):
+        if currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
             solutexyz=str(currentValue)     
-        elif currentArgument in ("-s", "-solvent"):
+        elif currentArgument in ("-s", "--solvent"):
             print ("Solvent:", currentValue)
             solvent=str(currentValue)
-        elif currentArgument in ("-o", "-output"):
+        elif currentArgument in ("-o", "--output"):
             print ("Output:", currentValue)
             outputFile=str(currentValue)
-        elif currentArgument in ("-c", "-charge"):
+        elif currentArgument in ("-c", "--charge"):
             print ("Charge:", currentValue)
             slu_netcharge=int(currentValue)
-        elif currentArgument in ("-b", "-cubesize"):
+        elif currentArgument in ("-b", "--cubesize"):
             print ("Cubesize:", currentValue)
             cube_size=float(currentValue)
-        elif currentArgument in ("-g", "-chargemethod"):
+        elif currentArgument in ("-g", "--chargemethod"):
             print ("Chargemethod:", currentValue)
             charge_method=str(currentValue)
-        elif currentArgument in ("-u", "-spinmultiplicity"):
+        elif currentArgument in ("-u", "--spinmultiplicity"):
             print ("Spinmultiplicity:", currentValue)
             slu_spinmult=int(currentValue)
-        elif currentArgument in ("-r", "-srunuse"):
+        elif currentArgument in ("-r", "--srunuse"):
             print("usign srun")
             srun_use=True
-        elif currentArgument in ("-e","gaussianexe"):
+        elif currentArgument in ("-e","--gaussianexe"):
             print("Gaussian executable name:", currentValue)
             gaussianexe = currentValue
-        elif currentArgument in ("-d","gaussiandir"):
+        elif currentArgument in ("-d","--gaussiandir"):
             print("Gaussian package directory:", currentValue)
             gaussiandir = currentValue
-        elif currentArgument in ("-a","amberhome"):
+        elif currentArgument in ("-a","--amberhome"):
             print("Amber home directory:", currentValue)
             amberhome = currentValue
-        elif currentArgument in ("-t", "tolerance"):
+        elif currentArgument in ("-t", "--tolerance"):
             print("Tolerance for Packmol", currentValue)
             tolerance = currentValue
+        elif currentArgument in ("-l", "--solventoff"):
+            print("Custom solvent .off library path:", currentValue)
+            solvent_off = currentValue
+        elif currentArgument in ("-p", "--solventfrcmod"):
+            print("Custom solvent .frcmmod file path:", currentValue)
+            solvent_frcmod = currentValue
 
     if solutexyz == "":
         print("Error! Solute xyzfile must be provided!\nExiting...")
@@ -614,7 +694,8 @@ def startboxgen(argumentList):
      
     builder = solventBoxBuilder(solutexyz, solvent, slu_netcharge, cube_size, charge_method, 
                                 slu_spinmult, outputFile, srun_use=srun_use, 
-                                gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, tolerance=tolerance)
+                                gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, 
+                                tolerance=tolerance, solvent_off=solvent_off, solvent_frcmod=solvent_frcmod)
     builder.build()
 
 if __name__ == '__main__':
