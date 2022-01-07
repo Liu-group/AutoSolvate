@@ -1,15 +1,15 @@
 Installation
 =============================
-AutoSolvate can be installed with :ref:`conda <condainstall>` or :ref:`from source code <sourceinstall>`. 
+AutoSolvate can be installed with :ref:`from source code <sourceinstall>` or :ref:`conda <condainstall>`
 
-For either approach, you want to make sure to have `conda <https://docs.conda.io/en/latest/>`_ and `git <https://git-scm.com/>`_ installed on your computer.
+For either approach, you want to make sure to have `git <https://git-scm.com/>`_ and `conda <https://docs.conda.io/en/latest/>`_ installed on your computer.
 
 Dependencies
 -----------------
 
-* If you install AutoSolvate :ref:`from conda <condainstall>`, you don't need to worry about the dependencies of AutoSolvate because they are automatically installed.
+* If you install AutoSolvate :ref:`from source code <sourceinstall>`, you can install all dependencies automatically, which we will explain :ref:`later in this document <sourceinstall>`.
 
-* If you choose to install AutoSolvated :ref:`from source code <sourceinstall>`, you can still install all dependencies automatically, which we will explain :ref:`later in this document <sourceinstall>`.
+* If you choose to install AutoSolvate :ref:`from conda <condainstall>`, you don't need to worry about the dependencies of AutoSolvate because they are automatically installed.
 
 However, if you are curious about the dependencies of AutoSolvate, please take a look at ``devtools/conda-envs/test_env.yaml`` in the AutoSolvate source code directory. This `YAML <https://yaml.org/>`_ file summarizes all dependencies of AutoSolvate. These packages will allow you to use most functionalities of AutoSolvate.
 
@@ -21,16 +21,6 @@ However, to use all functionalities of AutoSolvate, one needs to install a few o
 
 #. AutoSolvate uses the AmberTools to run classical MD simulations without GPU acceleration. If you'd like to use the GPU accelerated version of Amber, please refer to `Amber website <https://ambermd.org/AmberTools.php>`_.
 
-.. _condainstall:
-
-Conda install
-----------------
-
-Install autosolvate as following from the commandline::
-
-   >>> conda install -c liugroupemory autosolvate
-
-To check out more about the AutoSolvate conda package, please visit `this page on Anaconda.org <https://anaconda.org/LiuGroupEmory/autosolvate>`_.
 
 .. _sourceinstall:
 
