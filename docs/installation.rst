@@ -26,7 +26,7 @@ However, to use all functionalities of AutoSolvate, one needs to install a few o
 
 From source
 ---------------
-Alternative to conda install is installing from source. Download the source code from github.::
+We recommend installing AutoSolvate from source code. Download the source code from github.::
 
    >>> git clone git@github.com:Liu-group/AutoSolvate.git
 
@@ -41,6 +41,18 @@ This will automatically create a conda environment called ``autosolvate``. Now a
 Go inside the AutoSolvate directory and install it:: 
 
    >>> python setup.py install
+   
+   
+.. _condainstall:   
+
+Conda install
+----------------
+
+Alternative to installing from source is conda install. Install autosolvate as following from the commandline::
+
+   >>> conda install -c liugroupemory autosolvate
+
+To check out more about the AutoSolvate conda package, please visit `this page on Anaconda.org <https://anaconda.org/LiuGroupEmory/autosolvate>`_.
 
 
 Check
