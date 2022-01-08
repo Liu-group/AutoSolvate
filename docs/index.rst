@@ -36,6 +36,7 @@ Quickstart
    installation
    tutorial
    tutorialGUI
+   advancedTutorial
    api
    citation
 

@@ -1,6 +1,6 @@
 Tutorial
 =============================
-The following code walkthrough illustrates the usage of Autosolvate in the commnand line interface (CLI).
+The following tutorial illustrates the basic usage of Autosolvate in the commnand line interface (CLI).
 
 There will be three example systems: naphthalene in water, naphthalene radical in chloroform, naphthalene in acetonitrile
 
