@@ -460,7 +460,7 @@ class solventBoxBuilder():
             output_pdb = solvPrefix + "_solvated.packmol.pdb"
 
             packmol_inp = open('packmol.inp','w')
-            packmol_inp.write("# All atoms from diferent molecules will be at least 2.0 Angstroms apart\n")
+            packmol_inp.write("# All atoms from diferent molecules will be at least %s Angstroms apart\n" % self.closeness)
             packmol_inp.write("tolerance %s\n" % self.closeness)
             packmol_inp.write("\n")
             packmol_inp.write("filetype pdb\n")
