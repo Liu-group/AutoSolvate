@@ -43,7 +43,7 @@ class solventBoxBuilder():
 
     def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, 
             charge_method="resp", slu_spinmult=1, outputFile="", 
-            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None, tolerance=2, scaling=0.8,
+            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None, closeness=0.8,
             solvent_off="", solvent_frcmod=""):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
@@ -51,22 +51,21 @@ class solventBoxBuilder():
         self.slu_spinmult = slu_spinmult
         # currently hard coded. Can be changed later to be determined automatically based on the density of the solute
         self.solvent = solvent
-        if tolerance=='automated' or scaling=='automated':
+        if closeness=='automated':
           if self.solvent=='acetonitrile':
-            self.tolerance=1.88
+            self.closeness=1.88
           elif self.solvent=='water':
-            self.scaling=0.50
+            self.closeness=0.50
           elif self.solvent=='methanol':
-            self.scaling=0.60
+            self.closeness=0.60
           elif self.solvent=='nma':
-            self.scaling=0.58
+            self.closeness=0.58
           elif self.solvent=='chloroform':
-            self.scaling=0.58
+            self.closeness=0.58
           else: 
             print("Warning: solvent not supported for automated closeness determination")           
         else:
-          self.tolerance = tolerance
-          self.scaling=scaling
+          self.closeness = closeness
         self.waterbox_size = 8.0
         # following are for custom organic solvent
         self.cube_size = cube_size # in angstrom
@@ -352,7 +351,7 @@ class solventBoxBuilder():
             f.write("loadamberparams solute.frcmod\n")
             f.write("mol=loadmol2 solute.mol2\n")
             f.write("check mol\n")
-            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso "+str(self.scaling)+"  #Solvate the complex with a cubic solvent box\n") 
+            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso "+str(self.closeness)+"  #Solvate the complex with a cubic solvent box\n") 
             # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
             if self.slu_netcharge != 0:
                 if self.slu_netcharge > 0:
@@ -462,7 +461,7 @@ class solventBoxBuilder():
 
             packmol_inp = open('packmol.inp','w')
             packmol_inp.write("# All atoms from diferent molecules will be at least 2.0 Angstroms apart\n")
-            packmol_inp.write("tolerance %s\n" % self.tolerance)
+            packmol_inp.write("tolerance %s\n" % self.closeness)
             packmol_inp.write("\n")
             packmol_inp.write("filetype pdb\n")
             packmol_inp.write("\n")
@@ -622,8 +621,7 @@ def startboxgen(argumentList):
          -e, --gaussianexe  name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
          -d, --gaussiandir  path to the Gaussian package
          -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
-         -t, --tolerance  tolerance for packmol in Å, setting to 'automated' will automatically set this parameter based on solvent
-         -n, --scaling  scaling for tleap, setting to 'automated' will automatically set this parameter based on solvent
+         -t, --closeness  Solute-solvent closeness setting, for acetonitile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
          -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chlorofrom, MeCN)
          -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate.
 
@@ -634,8 +632,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     print(argumentList)
-    options = "m:s:o:c:b:g:u:re:d:a:t:n:l:p:"
-    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "tolerance","scaling","solventoff","solventfrcmod"]
+    options = "m:s:o:c:b:g:u:re:d:a:t:l:p:"
+    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutexyz=""
     solvent='water'
@@ -648,8 +646,7 @@ def startboxgen(argumentList):
     amberhome=None
     gaussianexe=None
     gaussiandir=None
-    tolerance=2
-    scaling=0.8
+    closeness=0.8
     solvent_off=""
     solvent_frcmod=""
     print(arguments)
@@ -688,12 +685,9 @@ def startboxgen(argumentList):
         elif currentArgument in ("-a","--amberhome"):
             print("Amber home directory:", currentValue)
             amberhome = currentValue
-        elif currentArgument in ("-t", "--tolerance"):
-            print("Tolerance for Packmol", currentValue)
-            tolerance = currentValue
-        elif currentArgument in ("-n", "--scaling"):
-            print("Scaling for tleap", currentValue)
-            scaling = currentValue
+        elif currentArgument in ("-t", "--closeness"):
+            print("Solute-Solvente closeness parameter", currentValue)
+            closeness = currentValue
         elif currentArgument in ("-l", "--solventoff"):
             print("Custom solvent .off library path:", currentValue)
             solvent_off = currentValue
@@ -718,7 +712,7 @@ def startboxgen(argumentList):
     builder = solventBoxBuilder(solutexyz, solvent, slu_netcharge, cube_size, charge_method, 
                                 slu_spinmult, outputFile, srun_use=srun_use, 
                                 gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, 
-                                tolerance=tolerance, scaling=scaling, solvent_off=solvent_off, solvent_frcmod=solvent_frcmod)
+                                closeness=closeness, solvent_off=solvent_off, solvent_frcmod=solvent_frcmod)
     builder.build()
 
 if __name__ == '__main__':
