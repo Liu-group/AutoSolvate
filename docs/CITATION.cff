@@ -1,15 +1,15 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Hruska"
-  given-names: "Eugen"
-  orcid: "https://orcid.org/0000-0001-5679-8419"
-- family-names: "Gale"
-  given-names: "Ariel"
-  orcid: "https://orcid.org/0000-0002-5710-3380"
-- family-names: "Liu"
-  given-names: "Fang"
-  orcid: "https://orcid.org/0000-0003-1322-4997"
+  - family-names: "Hruska"
+    given-names: "Eugen"
+    orcid: "https://orcid.org/0000-0001-5679-8419"
+  - family-names: "Gale"
+    given-names: "Ariel"
+    orcid: "https://orcid.org/0000-0002-5710-3380"
+  - family-names: "Liu"
+    given-names: "Fang"
+    orcid: "https://orcid.org/0000-0003-1322-4997"
 title: "AutoSolvate"
 version: 0.1.1
 date-released: 2021-01-02
