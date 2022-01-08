@@ -65,6 +65,6 @@ Assuming that you have `napthalene_neutral.xyz`, `dmso.off`, `dmso.frcmod` files
 working directory, and the environment with AutoSolvate installed has been actived.
 To add the DMSO solvent box to the neutral napthalene molecule, you can simply run the following command::
 
->>> autosolvate boxgen -m napthalene_neutral.xyz -s d  -l dmsobox.off -p dmso.frcmod
+>>> autosolvate boxgen -m napthalene_neutral.xyz -s d  -l dmso.off -p dmso.frcmod
 
 This command should generate the solvated files: `d_solvated.inpcrd`, `d_solvated.prmtop`, and `d_solvated.pdb`
