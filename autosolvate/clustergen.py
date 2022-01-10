@@ -101,7 +101,7 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
 
 def startclustergen(argumentList):
     r"""
-    Wrap function that parses commandline options for autosolvate clustergen,
+    Wrap function that parses command line options for autosolvate clustergen,
     extracts microsolvated clusters from trajectory,
 
     Parameters

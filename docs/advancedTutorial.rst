@@ -6,7 +6,7 @@ Advanced Example 1: Custom Solvent
 ------------------------------------
 Apart from the 5 common solvents contained in AutoSolvate, the user can use custom solvents found in databases or literature to build the solvated structure, as long as the `.frcmod` and `.off` files are available.
 
-Here we show a simple use case. We are still going to work on the neutral napthalene molecule used in the basic :doc:`tutorial`. However, this time we will put it in a custom solvent, dimethylsulfoxide (DMSO), which is not contained in AutoSolvate.
+Here we show a simple use case. We are still going to work on the neutral naphthalene molecule used in the basic :doc:`tutorial`. However, this time we will put it in a custom solvent, dimethylsulfoxide (DMSO), which is not contained in AutoSolvate.
 
 
 Step 1: Find custom solvent force field files
@@ -54,17 +54,26 @@ So `d` is the solvent name that we should pass to AutoSolvate.
 Step 2: Run AutoSolvate with the custom solvent
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To generate the solvent box structure and MD prmtop files with custom solvent, the basic procedure is the same as the simple exmaple about adding water (see :doc:`tutorial`).
+To generate the solvent box structure and MD prmtop files with custom solvent, the basic procedure is the same as the simple example about adding water (see :doc:`tutorial`).
 
 The only difference is to provide 3 extra options:
 #. solvent name (not the real name, but the name given in `OFF` file) with option `-s`
 #. solvent `OFF` file path with option `-l`
 #. solvent `FRCMOD` file path with option `-p`
 
-Assuming that you have `napthalene_neutral.xyz`, `dmso.off`, `dmso.frcmod` files all in the current
-working directory, and the environment with AutoSolvate installed has been actived.
-To add the DMSO solvent box to the neutral napthalene molecule, you can simply run the following command::
+Assuming that you have `naphthalene_neutral.xyz`, `dmso.off`, `dmso.frcmod` files all in the current
+working directory, and the environment with AutoSolvate installed has been activated.
+To add the DMSO solvent box to the neutral naphthalene molecule, you can simply run the following command::
 
->>> autosolvate boxgen -m napthalene_neutral.xyz -s d  -l dmso.off -p dmso.frcmod
+>>> autosolvate boxgen -m naphthalene_neutral.xyz -s d  -l dmso.off -p dmso.frcmod
 
-This command should generate the solvated files: `d_solvated.inpcrd`, `d_solvated.prmtop`, and `d_solvated.pdb`
+This command should generate the solvated files: `d_solvated.inpcrd`, `d_solvated.prmtop`, and `d_solvated.pdb`.
+
+Advanced Example 2: Automated recommendation of solvent-solute closeness 
+------------------------------------
+
+The automated recommendation of solvent-solute closeness allows to generate initial structures where the closeness is closer to the equilibrated closeness. To demonstrate the automated recommendation of solvent-solute closeness run the following command::
+
+>>> autosolvate boxgen -m naphthalene_neutral.xyz -s water -c 0 -u 1 -t automated
+
+with the option `-t automated` the closeness will be automatically determined from the solvent identity. 

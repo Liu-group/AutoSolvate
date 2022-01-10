@@ -599,7 +599,7 @@ class solventBoxBuilder():
 
 def startboxgen(argumentList):
     r"""
-    Wrap function that parses commandline options for autosolvate boxgen,
+    Wrap function that parses command line options for autosolvate boxgen,
     adds solvent box to a given solute,
     and generates related force field parameters.
     
@@ -621,9 +621,9 @@ def startboxgen(argumentList):
          -e, --gaussianexe  name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
          -d, --gaussiandir  path to the Gaussian package
          -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
-         -t, --closeness  Solute-solvent closeness setting, for acetonitile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
-         -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chlorofrom, MeCN)
-         -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate.
+         -t, --closeness  Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
+         -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
+         -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate.
 
 
     Returns

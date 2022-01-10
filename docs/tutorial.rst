@@ -1,6 +1,6 @@
 Tutorial
 =============================
-The following tutorial illustrates the basic usage of Autosolvate in the commnand line interface (CLI).
+The following tutorial illustrates the basic usage of Autosolvate in the command line interface (CLI).
 
 There will be three example systems: naphthalene in water, naphthalene radical in chloroform, naphthalene in acetonitrile
 
@@ -168,7 +168,7 @@ With these three files, we are ready to proceed to the next step!
 
    This example uses default settings for boxgen, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
-   ``autosolvate boxgen -m naphthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_netural``
+   ``autosolvate boxgen -m naphthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral``
 
    The semi-empirical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
 

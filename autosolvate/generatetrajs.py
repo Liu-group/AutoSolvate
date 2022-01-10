@@ -408,7 +408,7 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
 
 def startmd(argumentList):
     r"""
-    Wrap function that parses commandline options for autosolvate clustergen,
+    Wrap function that parses command line options for autosolvate clustergen,
     generates inputfiles for Amber and TeraChem,
     runs MM and QMMM stages.
 

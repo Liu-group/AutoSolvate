@@ -1,7 +1,7 @@
 GUI Tutorial
 =============================
 
-Following code illustrates the usage of Autosolvate in the graphical user interface (GUI).
+The following code illustrates the usage of Autosolvate in the graphical user interface (GUI).
 
 We will focus on an example system: naphthalene in water.
 
@@ -203,7 +203,7 @@ Then click ``Go!``: A new window will pop up, which is the *clustergen* GUI for 
 .. image:: _images/tutorial3_2.png
    :width: 800
 
-The *clustergen* GUI has very simple interface, only requesting 4 entries. First select the ``.prmtop`` file and trajectory ``.netcdf`` file by directly enter the files names in the entries and clicking ``Set``, or leave the entries blank and directly clicking the ``Set`` buttons . You will be prompted with a dialog to select the files from your computer.
+The *clustergen* GUI has very simple interface, only requesting 4 entries. First select the ``.prmtop`` file and trajectory ``.netcdf`` file by directly enter the files names in the entries and clicking ``Set``, or leave the entries blank and directly clicking the ``Set`` buttons. You will be prompted with a dialog to select the files from your computer.
 
 .. image:: _images/tutorial3_3.png
    :width: 800
