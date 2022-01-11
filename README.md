@@ -5,6 +5,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/liugroupemory/autosolvate/badges/version.svg)](https://anaconda.org/liugroupemory/autosolvate)
 [![Anaconda-Server Badge](https://anaconda.org/liugroupemory/autosolvate/badges/license.svg)](https://anaconda.org/liugroupemory/autosolvate)
 [![Anaconda-Server Badge](https://anaconda.org/liugroupemory/autosolvate/badges/installer/conda.svg)](https://conda.anaconda.org/liugroupemory)
+[![Anaconda-Server Badge](https://anaconda.org/liugroupemory/autosolvate/badges/platforms.svg)](https://anaconda.org/liugroupemory/autosolvate)
 
 
 Automated workflow for setting up explicit solvent quantum chemistry calculations for molecules.
