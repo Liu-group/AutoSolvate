@@ -20,6 +20,7 @@ API Documentation
    autosolvate.generatetrajs.startmd
    autosolvate.generatetrajs.writeMMminInput
    autosolvate.generatetrajs.writeMMheatInput
+   autosolvate.generatetrajs.writeMMNVEInput
    autosolvate.generatetrajs.writeMMNPTInput
    autosolvate.generatetrajs.runMM
    autosolvate.generatetrajs.writeQMMMTemplate

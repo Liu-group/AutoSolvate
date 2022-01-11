@@ -63,12 +63,46 @@ def writeMMheatInput(temperature=300, stepsmmheat=10000):
         f.write("ntp=0,\n")
         f.write("ntt=3,\n")
         f.write("gamma_ln=2.0,\n")
-        f.write("nmropt=1,\n")
         f.write("ig=-1,\n")
         f.write("/\n")
         f.write("&wt type='TEMP0', istep1=0, istep2="+str(stepsmmheat)+", value1=0.0, value2="+str(temperature)+" /\n")
         f.write("&wt type='END' /\n")
         f.close()
+
+
+def writeMMNVEInput(stepsmmnve=10000):
+        r"""
+        Write Amber MM NVE input file
+
+        Parameters
+        ----------
+        stepsmmnve : int, Optional, default: 10000
+            Number of MM steps for NVE.
+
+        Returns
+        -------
+        None
+            Result stored as mmnve.in
+        """
+        f = open("mmnve.in","w")
+        f.write("NVE\n")
+        f.write("&cntrl\n")
+        f.write("imin=0, irest=1,\n")
+        f.write("ntx=5,\n")
+        f.write("nstlim="+str(stepsmmnve)+",\n")
+        f.write("dt=0.002,\n")
+        f.write("ntf=2,\n")
+        f.write("ntc=2,\n")
+        f.write("ntpr=100,\n")
+        f.write("ntwx=100,\n")
+        f.write("cut=8.0,\n")
+        f.write("ntb=1,\n")
+        f.write("ntp=0,\n")
+        f.write("ntt=0,\n")
+        f.write("ig=-1,\n")
+        f.write("/\n")
+        f.close()
+
 
 def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
         r"""
@@ -91,7 +125,7 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
         f = open("mmnpt.in","w")
         f.write("MM NPT\n")
         f.write("&cntrl\n")
-        f.write("imin=0,\n")
+        f.write("imin=0, irest=1,\n")
         f.write("ntx=5,\n")
         f.write("nstlim="+str(stepsmmnpt)+",\n")
         f.write("dt=0.002,\n")
@@ -104,7 +138,7 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
         f.write("ntb=2,\n")
         f.write("ntp=1,\n")
         f.write("taup=1,\n") 
-        f.write("pres0 = "+str(pressure)+"\n,")
+        f.write("pres0 = "+str(pressure)+",\n")
         f.write("ntt=3,\n")
         f.write("gamma_ln=2.0,\n")
         f.write("ig=-1,\n")
@@ -113,7 +147,7 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
 
 
 
-def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, srun_use=False, pmemduse=False, dryrun=False):
+def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt=300000, srun_use=False, pmemduse=False, dryrun=False):
     r"""
     Equilibrate with MM
    
@@ -123,6 +157,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, srun_
         Filename prefix for .prmtop and .inpcrd files
     stepsmmheat : int, Optional, default: 10000
         MM heating steps
+    stepsmmnve : int, Optional, default: 0
+        MM NVE steps
     stepsmmnpt : int, Optional, default: 300000
         MM NPT steps
     srun_use : bool, Optional, default: False
@@ -142,7 +178,7 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, srun_
        frun = open('runMM.sh','w')
         
     print('MM Energy minimization')
-    cmd='sander -O -i mmmin.in -o mmmin.out -p '+filename+'.prmtop -c '+filename+'.inpcrd -r mmmin.ncrst -inf mmmin.info'
+    cmd='sander -O -i mmmin.in -o mmmin.out -p '+filename+'.prmtop -c '+filename+'.inpcrd -r mm.ncrst -inf mmmin.info'
     if srun_use:
       cmd='srun -n 1 '+cmd
 
@@ -152,7 +188,24 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, srun_
         subprocess.call(cmd, shell=True)
     if stepsmmheat>0:
       print('MM Heating')
-      cmd='sander -O -i mmheat.in -o mmheat.out -p '+filename+'.prmtop -c mmmin.ncrst -r mmheat.ncrst -x '+filename+'-heat.netcdf -inf mmheat.info'
+      cmd=' -O -i mmheat.in -o mmheat.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-heat.netcdf -inf mmheat.info'
+      if pmemduse:
+        cmd= 'pmemd.cuda' +cmd
+      else:
+        cmd= 'sander'+ cmd
+      if srun_use:
+        cmd='srun -n 1 '+cmd
+      if dryrun:
+        frun.write(cmd+'\n')
+      else:
+        subprocess.call(cmd, shell=True)
+    if stepsmmnve>0:
+      print('MM NVE equilibration')
+      cmd=' -O -i mmnve.in -o mmnve.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-mmnve.netcdf -inf mmnve.info'
+      if pmemduse:
+        cmd= 'pmemd.cuda' +cmd
+      else:
+        cmd= 'sander'+ cmd
       if srun_use:
         cmd='srun -n 1 '+cmd
       if dryrun:
@@ -161,7 +214,7 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnpt=300000, srun_
         subprocess.call(cmd, shell=True)
     if stepsmmnpt>0:
       print('MM NPT equilibration')
-      cmd=' -O -i mmnpt.in -o mmnpt.out -p '+filename+'.prmtop -c mmheat.ncrst -r mm.ncrst -x '+filename+'-mmnpt.netcdf -inf mmnpt.info'
+      cmd=' -O -i mmnpt.in -o mmnpt.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-mmnpt.netcdf -inf mmnpt.info'
       if pmemduse:
         cmd= 'pmemd.cuda' +cmd
       else:
@@ -267,7 +320,7 @@ def writeQMMMMinInput(stepsqmmmmin=250):
         f.write(" /\n")
         f.close()
 
-def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmheat.in'):
+def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmheat.in', nve=False):
         r"""
         Write QMMM heating or NPT trajectory input file
 
@@ -281,6 +334,8 @@ def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmhea
             QMMM steps 
         infilename : str, Optional, default: 'qmmmheat.in'
             Filename to save Amber input file
+        nve : bool, Optional, default: False
+            Set True if running nve
 
         Returns
         -------
@@ -299,10 +354,14 @@ def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmhea
         f.write("  ntb    = 1,\n")
         f.write("  tempi  = "+str(temperature)+",\n")
         f.write("  temp0  = "+str(temperature)+",\n")
-        f.write("  ntt    = 3, ! 1=rescale 3=Langevin dynamics 7-bussi\n")
+        if nve==True:
+          f.write("  ntt    = 0, ! 0=const. E, 1=rescale 3=Langevin dynamics 7-bussi\n")
+        else:
+          f.write("  ntt    = 3, ! 0=const. E, 1=rescale 3=Langevin dynamics 7-bussi\n")
         f.write("  vrand  = 1,\n")
         f.write("  tautp  = 0.01,\n")
-        f.write("  gamma_ln = 5.0, !Langevin dynamics collision frequency\n")
+        if nve!=True:
+          f.write("  gamma_ln = 5.0, !Langevin dynamics collision frequency\n")
         f.write("  nstlim = "+str(stepsqmmm)+",  !num steps\n")
         f.write("  dt     = 0.0005,  !in ps\n")
         f.write("  ntpr   = 1, !print details to log every step\n")
@@ -328,7 +387,7 @@ def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmhea
         f.close()
 
 
-def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=250, stepsqmmmheat=1000, stepsqmmmnvt=10000, dryrun=False):
+def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=250, stepsqmmmheat=1000, stepsqmmmnve=0, stepsqmmmnvt=10000, dryrun=False):
     r"""
     Run QMMM minimization, heating and NVT trajectory run
 
@@ -344,6 +403,8 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
         Number of QMMM minimization steps
     stepsqmmmheat : int, Optional, default: 1000
         Number of QMMM heating steps
+    stepsqmmmnve : int, Optional, default: 0
+        Number of QMMM NVE steps
     stepsqmmmnvt : int, Optional, default: 10000
         Number of QMMM NVT trajectory steps
     dryrun : bool, Optional, default: False
@@ -360,7 +421,7 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
 
     if stepsqmmmmin>0:
       print('QMMM Energy minimization')
-      cmd='sander -O -i qmmmmin.in -o qmmmmin.out -p '+filename+'.prmtop -c mm.ncrst -r qmmmmin.ncrst  -inf qmmmmin.info -x '+filename+'-qmmmmin.netcdf'
+      cmd='sander -O -i qmmmmin.in -o qmmmmin.out -p '+filename+'.prmtop -c mm.ncrst -r qmmm.ncrst  -inf qmmmmin.info -x '+filename+'-qmmmmin.netcdf'
       if srun_use:
         cmd='srun -n 1 '+cmd
       if dryrun:
@@ -376,7 +437,7 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
           frun.write(cmd+'\n')
         else:
           subprocess.call(cmd, shell=True)
-        cmd='sander -O -i qmmmmin.in -o qmmmmin.out -p '+filename+'.prmtop -c qmmmmin.ncrst -r qmmmmin.ncrst  -inf qmmmmin.info -x '+filename+'-qmmmmin.netcdf'
+        cmd='sander -O -i qmmmmin.in -o qmmmmin.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmmin.info -x '+filename+'-qmmmmin.netcdf'
         if srun_use:
           cmd='srun -n 1 '+cmd
         if dryrun:
@@ -385,7 +446,16 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
           subprocess.call(cmd, shell=True)
     if stepsqmmmheat>0:
       print('QMMM Heating')
-      cmd='sander -O -i qmmmheat.in -o qmmmheat.out -p '+filename+'.prmtop -c qmmmmin.ncrst -r qmmmheat.ncrst  -inf qmmmheat.info -x '+filename+'-qmmmheat.netcdf'
+      cmd='sander -O -i qmmmheat.in -o qmmmheat.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmheat.info -x '+filename+'-qmmmheat.netcdf'
+      if srun_use:
+        cmd='srun -n 1 '+cmd
+      if dryrun:
+        frun.write(cmd+'\n')
+      else:
+        subprocess.call(cmd, shell=True)
+    if stepsqmmmnve>0:
+      print('QMMM NVE Run')
+      cmd='sander -O -i qmmmnve.in -o qmmmnve.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmnve.info -x '+filename+'-qmmmnve.netcdf'
       if srun_use:
         cmd='srun -n 1 '+cmd
       if dryrun:
@@ -394,7 +464,7 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
         subprocess.call(cmd, shell=True)
     if stepsqmmmnvt>0:
       print('QMMM NVT Run')
-      cmd='sander -O -i qmmmnvt.in -o qmmmnvt.out -p '+filename+'.prmtop -c qmmmheat.ncrst -r qmmmnvt.ncrst  -inf qmmmnvt.info -x '+filename+'-qmmmnvt.netcdf'
+      cmd='sander -O -i qmmmnvt.in -o qmmmnvt.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmnvt.info -x '+filename+'-qmmmnvt.netcdf'
       if srun_use:
         cmd='srun -n 1 '+cmd
       if dryrun:
@@ -422,9 +492,11 @@ def startmd(argumentList):
           -t, --temp  temperature in Kelvin to equilibrate
           -p, --pressure  pressure in bar to equilibrate during MM NPT step
           -m, --stepsmmheat  Number of MM heating steps, setting to 0 skips the MM heating step
+          -b, --stepsmmnve  Number of MM NVE steps, setting to 0 skips the MM NVE step
           -n, --stepsmmnpt  Number of MM NPT steps, setting to 0 skips the MM NPT step
           -l, --stepsqmmmmin  Number of QMMM minimization steps, setting to 0 skips the QMMM minimization step
           -o, --stepsqmmmheat  Number of QMMM heating steps, setting to 0 skips the QMMM heating step
+          -v, --stepsqmmmnve  Number of QMMM NVE steps, setting to 0 skips the QMMM NVE step
           -s, --stepsqmmmnvt  Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step
           -q, --charge  Total charge of system
           -u, --spinmultiplicity  Spin multiplicity of whole system
@@ -438,16 +510,18 @@ def startmd(argumentList):
         Generate MD simulation input files and execute MD programs, or same the MD program execution commands in runMM.sh and runQMMM.sh
     """
     print(argumentList)
-    options = "f:t:p:m:n:l:o:s:q:u:k:r:x:d"
-    long_options = ["filename", "temp", "pressure", "stepsmmheat", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
+    options = "f:t:p:m:b:n:l:o:v:s:q:u:k:r:x:d"
+    long_options = ["filename", "temp", "pressure", "stepsmmheat", "stepsmmnve", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnve", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     temperature=300
     pressure=1
     stepsmmheat=10000
+    stepsmmnve=0
     stepsmmnpt=300000
     stepsqmmmmin=250
     stepsqmmmheat=1000
+    stepsqmmmnve=0
     stepsqmmmnvt=10000
     charge=0
     spinmult=1
@@ -468,6 +542,9 @@ def startmd(argumentList):
         elif currentArgument in ("-m","-stepsmmheat"):
             print ("Steps MM heat:", currentValue)
             stepsmmheat=int(currentValue)
+        elif currentArgument in ("-b","-stepsmmnve"):
+            print ("Steps MM NVE:", currentValue)
+            stepsmmnve=int(currentValue)
         elif currentArgument in ("-n", "-stepsmmnpt"):
             print ("Steps MM NPT:", currentValue)
             stepsmmnpt=int(currentValue)
@@ -477,6 +554,9 @@ def startmd(argumentList):
         elif currentArgument in ("-o","-stepsqmmmheat"):
             print ("Steps QMMM heat:", currentValue)
             stepsqmmmheat=int(currentValue)
+        elif currentArgument in ("-v","-stepsqmmmnve"):
+            print ("Steps QMMM NVE:", currentValue)
+            stepsqmmmnve=int(currentValue)
         elif currentArgument in ("-s", "-stepsqmmmnvt"):
             print ("Steps QMMM NPT:", currentValue)
             stepsqmmmnvt=int(currentValue)
@@ -502,16 +582,18 @@ def startmd(argumentList):
 
     writeMMminInput()
     writeMMheatInput(temperature=temperature, stepsmmheat=stepsmmheat)
+    writeMMNVEInput(stepsmmnve=stepsmmnve)
     writeMMNPTInput(temperature=temperature, pressure=pressure, stepsmmnpt=stepsmmnpt)
     
     writeQMMMMinInput(stepsqmmmmin=stepsqmmmmin)
     writeQMMMTemplate(spinmult=spinmult, charge=charge, functional=functional)
     writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmheat, charge=charge, infilename='qmmmheat.in')
+    writeQMMMInput(stepsqmmm=stepsqmmmnve, charge=charge, infilename='qmmmnve.in', nve=True)
     writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmnvt, charge=charge, infilename='qmmmnvt.in' )
     
-    runMM(filename=filename, stepsmmheat=stepsmmheat, stepsmmnpt=stepsmmnpt, srun_use=srun_use, pmemduse=pmemduse, dryrun=dryrun)
+    runMM(filename=filename, stepsmmheat=stepsmmheat, stepsmmnpt=stepsmmnpt, stepsmmnve=stepsmmnve, srun_use=srun_use, pmemduse=pmemduse, dryrun=dryrun)
     
-    runQMMM(filename=filename, spinmult=spinmult, srun_use=srun_use, stepsqmmmmin=stepsqmmmmin, stepsqmmmheat=stepsqmmmheat, stepsqmmmnvt=stepsqmmmnvt, dryrun=dryrun)
+    runQMMM(filename=filename, spinmult=spinmult, srun_use=srun_use, stepsqmmmmin=stepsqmmmmin, stepsqmmmheat=stepsqmmmheat, stepsqmmmnve=stepsqmmmnve, stepsqmmmnvt=stepsqmmmnvt, dryrun=dryrun)
 
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
