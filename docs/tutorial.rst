@@ -303,24 +303,27 @@ To extract the cluster from the final QMMM results, use the following command:
 
 ``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmnvt.netcdf``
 
+.. note::
+
+  If you were not able to run the QMMM simulation above, you can download the QM/MM trajectory here:
+
+  :download:`water_solvated-qmmmnvt <_data/water_solvated-qmmmnvt.netcdf>`
+
 The .prmtop and .netcdf filenames are required, but Autosolvate will use the default values of 0 for the starting frame, 100 for the extraction interval, and a cutout size of 4 Å.
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
     AutoSolvate is starting in command line mode!
     Running the module to extract solvated cluster (sphere) from MD trajectories of solvent box.
-    ['-f', 'water_solvated.prmtop', '-t', 'water_solvated-qmmmnvt.netcdf', '-a', '0', '-i', '10', '-s', '4']
+    ['-f', 'water_solvated.prmtop', '-t', 'water_solvated-qmmmnvt.netcdf']
     Filename: water_solvated.prmtop
-    Trajectory name: water_solvated-mmnpt.netcdf
-    startframe to extract: 0
-    interval to extract: 10
-    Cutout size in Angstrom: 4
+    Trajectory name: water_solvated-qmmmnvt.netcdf
     Loading trajectory
     selecting center solute
     extracting from frames: [0]
     calculating distance to all solvent molecules
     select solvent molecules
-    for first frame selected 35 solvent molecules
+    for first frame selected 26 solvent molecules
     saving xyz
 
 The output of this command will be the cartesian coordinates of the microsolvated clusters in ``water_solvated-cutoutn-*.xyz``, with * showing the frame number. When you open one of cut out files, the microsolvated cluster should look like this:
@@ -328,9 +331,9 @@ The output of this command will be the cartesian coordinates of the microsolvate
 .. image:: _images/tutorial4_3.jpg
    :width: 400
 
-Running the above command only generates one xyz file because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract clusters from the QMMM heating step (which had 100 steps in our short example), then we will get 10 coordinate files. 
+Running the above command only generates one xyz file because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract every step (with option `-i 1`), then we will get 10 coordinate files. 
 
-``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmheat.netcdf -a 0 -i 10 -s 4``
+``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmnvt.netcdf -a 0 -i 1 -s 4``
 
 As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from::
 
