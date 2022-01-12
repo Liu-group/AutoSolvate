@@ -70,7 +70,7 @@ To add the DMSO solvent box to the neutral naphthalene molecule, you can simply 
 This command should generate the solvated files: `d_solvated.inpcrd`, `d_solvated.prmtop`, and `d_solvated.pdb`.
 
 Advanced Example 2: Automated recommendation of solvent-solute closeness 
-------------------------------------
+------------------------------------------------------------------------
 
 The automated recommendation of solvent-solute closeness allows to generate initial structures where the closeness is closer to the equilibrated closeness. To demonstrate the automated recommendation of solvent-solute closeness run the following command::
 
