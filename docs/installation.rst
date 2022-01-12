@@ -35,9 +35,9 @@ From source
 ---------------
 We recommend installing AutoSolvate from source code because of its good compatability cross operating systems, except for some Windows, which needs some extra care (more info :ref:`below <windowsinstallwarning>`).
 
-Download the source code from github.::
+Clone the source code from github.::
 
-   >>> git clone git@github.com:Liu-group/AutoSolvate.git
+   >>> git clone https://github.com/Liu-group/AutoSolvate
 
 First set up a conda environment for AutoSolvate with the needed dependencies. Go inside the AutoSolvate source code directory.
 
