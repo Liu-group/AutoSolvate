@@ -17,9 +17,6 @@ dependencies:
     # Molecule visualization
   - nglview
 
-    # AmberTools
-  - ambertools
-
     # MDtraj
   - mdtraj
 

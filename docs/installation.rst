@@ -39,9 +39,15 @@ Download the source code from github.::
 
    >>> git clone git@github.com:Liu-group/AutoSolvate.git
 
-First set up a conda environment for AutoSolvate with the needed dependencies. Go inside the AutoSolvate source code directory, then run::
+First set up a conda environment for AutoSolvate with the needed dependencies. Go inside the AutoSolvate source code directory.
+
+**Mac/Linux uers** should run::
 
    >>> conda env create -f devtools/conda-envs/test_env.yaml
+
+**Windows uers** should run::
+
+   >>> conda env create -f devtools/conda-envs/test_env_WIN.yaml
 
 This will automatically create a conda environment called ``autosolvate``. Now activate this environment::
 
