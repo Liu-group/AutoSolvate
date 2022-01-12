@@ -127,7 +127,7 @@ Additionally, you should now have the following files in your directory::
   ANTECHAMBER_BOND_TYPE.AC    leap.log                  solute.pdb        water_solvated.pdb
   ANTECHAMBER_BOND_TYPE.AC0   leap_savelib.log          solute.xyz.pdb    water_solvated.prmtop
 
-The three files that we care about for moving forward to the next step are the ones with the output prefix water_solvated (the last three listed above). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber parameter topology. The ``.pdb`` file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there::
+The three files that we care about for moving forward to the next step are the ones with the output prefix water_solvated (the last three listed above). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber parameter topology. The ``.pdb`` file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there. The block below shows the first few lines of the ``.pdb`` file::
 
         CRYST1   66.461   66.696   66.822  90.00  90.00  90.00 P 1           1
         ATOM      1  C   SLU     1       2.302  -0.634   0.016  1.00  0.00
