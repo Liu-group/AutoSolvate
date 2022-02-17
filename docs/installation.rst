@@ -83,7 +83,7 @@ Conda install
 
 Alternative to installing from source is conda install. This works for **Linux** or **old Mac without M1 chips**. Install autosolvate as following from the commandline::
 
-   >>> conda install -c liugroupemory autosolvate
+   >>> conda install -c liugroupemory -c conda-forge autosolvate
 
 To check out more about the AutoSolvate conda package, please visit `this page on Anaconda.org <https://anaconda.org/LiuGroupEmory/autosolvate>`_.
 
@@ -111,10 +111,9 @@ Check
 
 Check your python installation. These commands in python shouldn't give any errors::
 
+   import autosolvate
    from openbabel import pybel
    from openbabel import openbabel as ob
-   import autosolvate
-
 
 Check your ambertools and packmol installation as well::
 
