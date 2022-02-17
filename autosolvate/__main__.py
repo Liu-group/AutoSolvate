@@ -21,6 +21,17 @@ def main(args=None):
         my_gui = autosolvateGUI(window)
         window.mainloop()
         cleanUp()
+    elif args[0] == '-h' or args[0] == '--help':
+        print('Usage: autosolvate [OPTIONS]')
+        print('  [NO OPTION]                launches GUI')
+        print('  boxgen [OPTIONS]           generate initial structure')
+        print('  mdrun [OPTIONS]            automated QM/MM trajectory generatio')
+        print('  clustergen [OPTIONS]       extract microsolvated clusters ')
+        print('  -h, --help                 short usage description')
+        print()
+        print('All options described at autosolvate.readthedocs.io')
+        exit()
+ 
     elif args[0] == 'boxgen':
         print('AutoSolvate is starting in command line mode!')
         print('Running the module to generate solvent box and force field parameters.')
