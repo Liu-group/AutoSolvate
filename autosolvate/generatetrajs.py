@@ -504,14 +504,19 @@ def startmd(argumentList):
           -r, --srunuse  option to run inside a slurm job
           -x, --pmemduse  Speed up MM with pmemd.CUDA instead of sander
           -d, --dryrun  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the command
+          -h, --help  short usage description    
+
     Returns
     -------
     None
         Generate MD simulation input files and execute MD programs, or same the MD program execution commands in runMM.sh and runQMMM.sh
+    
+    Currently some simulation parameters like simulation time step, integrator type, nonbonded cutoff, thermostat type, Langevin collision frequency, barostat type, pressure relaxation time and frequency of trajectory writing can not be changed from default values by the user.
+
     """
-    print(argumentList)
-    options = "f:t:p:m:b:n:l:o:v:s:q:u:k:r:x:d"
-    long_options = ["filename", "temp", "pressure", "stepsmmheat", "stepsmmnve", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnve", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
+    #print(argumentList)
+    options = "hf:t:p:m:b:n:l:o:v:s:q:u:k:r:x:d"
+    long_options = ["help", "filename", "temp", "pressure", "stepsmmheat", "stepsmmnve", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnve", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     temperature=300
@@ -530,7 +535,27 @@ def startmd(argumentList):
     pmemduse=False
     dryrun=False
     for currentArgument, currentValue in arguments:
-        if currentArgument in ("-f", "-filename"):
+        if currentArgument in ("-h", "-help"):
+            print('Usage: autosolvate mdrun [OPTIONS]')
+            print('  -f, --filename             prefix of .prmtop and .inpcrd files')
+            print('  -t, --temp                 temperature in Kelvin to equilibrate')
+            print('  -p, --pressure             pressure in bar to equilibrate during MM NPT ste')
+            print('  -m, --stepsmmheat          Number of MM heating steps, setting to 0 skips the MM heating step')
+            print('  -b, --stepsmmnve           Number of MM NVE steps, setting to 0 skips the MM NVE step')
+            print('  -n, --stepsmmnpt           Number of MM NPT steps, setting to 0 skips the MM NPT step')
+            print('  -l, --stepsqmmmmin         Number of QMMM minimization steps, setting to 0 skips the QMMM minimization step')
+            print('  -o, --stepsqmmmheat        Number of QMMM heating steps, setting to 0 skips the QMMM heating step')
+            print('  -v, --stepsqmmmnve         Number of QMMM NVE steps, setting to 0 skips the QMMM NVE step')
+            print('  -s, --stepsqmmmnvt         Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step')
+            print('  -q, --charge               Total charge of system')
+            print('  -u, --spinmultiplicity     Spin multiplicity of whole system')
+            print('  -k, --functional           DFT functional to use for the QM part in QM/MM')
+            print('  -r, --srunuse              option to run inside a slurm job')
+            print('  -x, --pmemduse             Speed up MM with pmemd.CUDA instead of sander')
+            print('  -d, --dryrun               Dry run mode')
+            print('  -h, --help                 short usage description')
+            exit()
+        elif currentArgument in ("-f", "-filename"):
             print ("Filename:", currentValue)
             filename=str(currentValue)
         elif currentArgument in ("-t", "-temp"):

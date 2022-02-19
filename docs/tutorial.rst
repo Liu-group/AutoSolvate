@@ -181,7 +181,7 @@ To do a short example run of QM/MM use the following command:
 
 ``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
   
-The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( , -m, -n, -l, -o, -s).
+The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( -m, -n, -l, -o, -s).
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
@@ -257,6 +257,8 @@ The default mdrun will have the following settings:
 +-----------+-----------------------+------------+  
 | QMMM NVT  |10000 steps            |   -s       |
 +-----------+-----------------------+------------+  
+
+Some simulation parameters cannot be currently set by the user, for example: simulation time step, integrator type, nonbonded cutoff, thermostat type, Langevin collision frequency, barostat type, pressure relaxation time, frequency of trajectory writing.
 
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
 

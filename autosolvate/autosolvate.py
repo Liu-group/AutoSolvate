@@ -624,16 +624,16 @@ def startboxgen(argumentList):
          -t, --closeness  Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
          -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
          -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate.
-
+         -h, --help  short usage description
 
     Returns
     -------
     None
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
-    print(argumentList)
-    options = "m:s:o:c:b:g:u:re:d:a:t:l:p:"
-    long_options = ["main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod"]
+    #print(argumentList)
+    options = "hm:s:o:c:b:g:u:re:d:a:t:l:p:"
+    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutexyz=""
     solvent='water'
@@ -649,10 +649,28 @@ def startboxgen(argumentList):
     closeness=0.8
     solvent_off=""
     solvent_frcmod=""
-    print(arguments)
-    print(values)
+    #print(arguments)
+    #print(values)
     for currentArgument, currentValue in arguments:
-        if currentArgument in ("-m", "--main"):
+        if  currentArgument in ("-h", "--help"):
+            print('Usage: autosolvate boxgen [OPTIONS]')
+            print('  -m, --main                 solute xyz file')
+            print('  -s, --solvent              name of solvent')
+            print('  -o, --output               prefix of the output file names')
+            print('  -c, --charge               formal charge of solute')
+            print('  -u, --spinmultiplicity     spin multiplicity of solute')
+            print('  -g, --chargemethod         name of charge fitting method (bcc, resp)')
+            print('  -b, --cubesize             size of solvent cube in angstroms')
+            print('  -r, --srunuse            option to run inside a slurm job')
+            print('  -e, --gaussianexe          name of the Gaussian quantum chemistry package executable')
+            print('  -d, --gaussiandir          path to the Gaussian package')
+            print('  -a, --amberhome            path to the AMBER molecular dynamics package root directory')
+            print('  -t, --closeness            Solute-solvent closeness setting')
+            print('  -l, --solventoff           path to the custom solvent .off library file')
+            print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
+            print('  -h, --help                 short usage description')
+            exit()
+        elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
             solutexyz=str(currentValue)     
         elif currentArgument in ("-s", "--solvent"):

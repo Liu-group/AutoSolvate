@@ -810,7 +810,7 @@ class mdGUI(baseGUI):
         ### Do QM/MM or not
         self.doQMMM = BooleanVar(value=False)
         
-        self.lbldoQMMM = Label(self.master, text="Do QMM/MM ?", width=colwidth[0])
+        self.lbldoQMMM = Label(self.master, text="Do QM/MM ?", width=colwidth[0])
         self.lbldoQMMM.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
         self.radQMMMyes = Radiobutton(self.master, text='Yes', value=True, variable=self.doQMMM, width=colwidth[3])
@@ -1187,7 +1187,7 @@ class mdGUI(baseGUI):
                          + "MD input and job scripts?"
                 answer = messagebox.askyesno(title="Confirmation", message=question, icon='question')
                 if answer == True:
-                    subprocess.call(cmd, shell=True)
+                    subprocess.call(cmd +' &', shell=True)
                     if self.dryrun.get() == True:
                        res = "MD input and job script generation finished! \n"
                        res += "Please check the job scripts in runMM.sh and runQMMM.sh\n"

@@ -41,11 +41,11 @@ Clone the source code from github.::
 
 First set up a conda environment for AutoSolvate with the needed dependencies. Go inside the AutoSolvate source code directory.
 
-**Mac/Linux uers** should run::
+**Mac/Linux users** should run::
 
    >>> conda env create -f devtools/conda-envs/test_env.yaml
 
-**Windows uers** should run::
+**Windows users** should run::
 
    >>> conda env create -f devtools/conda-envs/test_env_WIN.yaml
 
@@ -93,16 +93,16 @@ Following are workarounds for **Mac with M1 chips** and **Windows**.
 
 To make the conda installation of AutoSolvate work on Mac with the M1 chip, one needs to take care of two things:
 
-#. Download **mini-forge**. Then do ``conda install -c liugroupemory autosolvate``. See more info `<https://stackoverflow.com/questions/65534042/anaconda-and-upgrading-to-new-m1-mac>`_ or `<https://towardsdatascience.com/using-conda-on-an-m1-mac-b2df5608a141>`_.
+#. Download **mini-forge**. Then do ``conda install -c liugroupemory -c conda-forge autosolvate``. See more info `<https://stackoverflow.com/questions/65534042/anaconda-and-upgrading-to-new-m1-mac>`_ or `<https://towardsdatascience.com/using-conda-on-an-m1-mac-b2df5608a141>`_.
 #. You need to do conda installation of **AmberTools** again by typing ``conda install -c conda-forge ambertools``. 
 
 **Windows**: 
 
 You can still do conda installation of AutoSolvate on Windows, but AmberTools does not get automatically installed after you run::
 
->>> conda install -c liugroupemory autosolvate
+>>> conda install -c liugroupemory -c conda-forge autosolvate
 
-So you need to install AmberTools separately. You can follow the intrucitons :ref:`here<windowsinstallwarning>`.
+So you need to install AmberTools separately. You can follow the instructions :ref:`here<windowsinstallwarning>`.
 
 
 

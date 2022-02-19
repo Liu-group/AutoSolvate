@@ -117,23 +117,33 @@ def startclustergen(argumentList):
          -i, --interval  interval in frames at which to extract microsolvated clusters from the trajectory
          -s, --size  solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance
          -r, --srunuse  option to run inside a slurm job
-
+         -h, --help  short usage description
 
     Returns
     -------
     None
         Generates the ```.xyz`` file containing the microsolvated cluster
     """
-    print(argumentList)
-    options = "f:t:a:i:s:r"
-    long_options = ["filename", "trajname", "startframe", "interval", "size", "srunuse"]
+    #print(argumentList)
+    options = "hf:t:a:i:s:r"
+    long_options = ["help", "filename", "trajname", "startframe", "interval", "size", "srunuse"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     size=4
     startframe=0
     interval=100
     for currentArgument, currentValue in arguments:
-        if currentArgument in ("-f", "-filename"):
+        if currentArgument in ("-h", "-help"):
+            print('Usage: autosolvate clustergen [OPTIONS]')
+            print('  -m, --filename             name of the .prmtop file')
+            print('  -t, --trajname             name of .netcdf trajectory to extract the microsolvate clusters from')
+            print('  -a, --startframe           first frame at which to start extracting from the trajectory the microsolvated clusters')
+            print('  -i, --interval             interval in frames at which to extract microsolvated clusters from the trajectory')
+            print('  -s, --size                 solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance')
+            print('  -r, --srunuse              option to run inside a slurm job')
+            print('  -h, --help                 short usage description')
+            exit()
+        elif currentArgument in ("-f", "-filename"):
             print ("Filename:", currentValue)
             filename=str(currentValue)
         elif currentArgument in ("-t", "-trajname"):
