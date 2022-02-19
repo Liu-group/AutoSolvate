@@ -767,7 +767,7 @@ class mdGUI(baseGUI):
         self.irow += 1
         
         ### set number of steps for MM NVE production run steps 
-        self.lblMMNVESteps = Label(self.master, text="MM NVE production run steps", width=colwidth[0],foreground='blue')
+        self.lblMMNVESteps = Label(self.master, text="MM NVE production run steps", width=colwidth[0])#,foreground='blue')
         self.lblMMNVESteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
         self.txtMMNVESteps = Entry(self.master)
@@ -920,7 +920,7 @@ class mdGUI(baseGUI):
         self.irow += 1
 
         ### Set number of QM/MM minimization steps
-        self.lblQMMMminSteps = Label(self.master, text="QM/MM minimization steps", width=colwidth[0],foreground='blue')
+        self.lblQMMMminSteps = Label(self.master, text="QM/MM minimization steps", width=colwidth[0])#,foreground='blue')
         self.lblQMMMminSteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
         self.txtQMMMminSteps = Entry(self.master)
@@ -1044,7 +1044,7 @@ class mdGUI(baseGUI):
         ### set number of steps for QMMM NVE production run steps 
 
 
-        self.lblQMMMNVESteps = Label(self.master, text="QMMM NVE steps", width=colwidth[0],foreground='blue')
+        self.lblQMMMNVESteps = Label(self.master, text="QMMM NVE steps", width=colwidth[0])#,foreground='blue')
         self.lblQMMMNVESteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
         self.txtQMMMNVESteps = Entry(self.master)
@@ -1156,24 +1156,26 @@ class mdGUI(baseGUI):
             cmd += " -f " + self.prefix.get()
             cmd += " -t {:.2f}".format(self.Temp.get())
             cmd += " -p {:.4f}".format(self.Pressure.get())
-            #cmd += " -m {:d} ".format(self.MMMinSteps.get())
+            cmd += " -i {:d} ".format(self.MMMinSteps.get())
             cmd += " -m {:d} ".format(self.MMHeatSteps.get())
             cmd += " -n {:d} ".format(self.MMNPTSteps.get())
-            #cmd += " -e {:d} ".format(self.MMNVESteps.get())
+            cmd += " -b {:d} ".format(self.MMNVESteps.get())
             if self.doQMMM.get() == True:
                  cmd += " -l {:d} ".format(self.QMMMminSteps.get())
                  cmd += " -o {:d} ".format(self.QMMMheatSteps.get())
                  cmd += " -s {:d} ".format(self.QMMMeqNVTSteps.get())
-                 #cmd += " -s {:d} ".format(self.QMMMNVESteps.get())
+                 cmd += " -v {:d} ".format(self.QMMMNVESteps.get())
                  cmd += " -q {:d} ".format(self.charge.get())
                  cmd += " -u {:d} ".format(self.spin_multiplicity.get())
                  cmd += " -k {:s} ".format(self.func_chosen.get())
+            else:
+                 cmd += " -l 0 -o 0 -s 0 "
             if self.srunuse.get() == True:
-                cmd += "-r"
+                cmd += " -r "
             if self.pmemduse.get() == True:
-                cmd += "-x"
+                cmd += " -x "
             if self.dryrun.get() == True:
-                cmd += "-d"
+                cmd += " -d "
             return cmd
 
         ### Execute  python command to generate MD input files and jobscripts
@@ -1192,7 +1194,7 @@ class mdGUI(baseGUI):
                        res = "MD input and job script generation finished! \n"
                        res += "Please check the job scripts in runMM.sh and runQMMM.sh\n"
                     else:
-                       res = "MD input generation and simulation finished! \n"
+                       res = "MD input generation and simulation launched! \n"
                     res += "Thanks for using AutoSolvate. Have a nice day!\n"
                     messagebox.showinfo(title="Success", message=res, icon='info')
 

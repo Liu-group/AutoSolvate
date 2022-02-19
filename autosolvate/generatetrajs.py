@@ -2,7 +2,7 @@ import getopt, sys, os
 import subprocess
 
 
-def writeMMminInput():
+def writeMMminInput(stepsmmmin=2000):
     r"""
     Write Amber MM minimization input file 
     
@@ -20,7 +20,7 @@ def writeMMminInput():
     f.write("&cntrl\n")
     f.write("imin=1,\n")
     f.write("ntx=1,\n")
-    f.write("maxcyc=2000,\n")
+    f.write("maxcyc="+str(stepsmmmin)+",\n")
     f.write("ncyc=1000,\n")
     f.write("ntpr=100,\n")
     f.write("ntwx=0,\n")
@@ -178,7 +178,11 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
        frun = open('runMM.sh','w')
         
     print('MM Energy minimization')
-    cmd='sander -O -i mmmin.in -o mmmin.out -p '+filename+'.prmtop -c '+filename+'.inpcrd -r mm.ncrst -inf mmmin.info'
+    cmd=' -O -i mmmin.in -o mmmin.out -p '+filename+'.prmtop -c '+filename+'.inpcrd -r mm.ncrst -inf mmmin.info'
+    if pmemduse:
+        cmd= 'pmemd.cuda' +cmd
+      else:
+        cmd= 'sander'+ cmd
     if srun_use:
       cmd='srun -n 1 '+cmd
 
@@ -491,6 +495,7 @@ def startmd(argumentList):
           -f, --filename  prefix of .prmtop and .inpcrd files
           -t, --temp  temperature in Kelvin to equilibrate
           -p, --pressure  pressure in bar to equilibrate during MM NPT step
+          -i, --stepsmmmin Number of MM minimization steps
           -m, --stepsmmheat  Number of MM heating steps, setting to 0 skips the MM heating step
           -b, --stepsmmnve  Number of MM NVE steps, setting to 0 skips the MM NVE step
           -n, --stepsmmnpt  Number of MM NPT steps, setting to 0 skips the MM NPT step
@@ -515,8 +520,8 @@ def startmd(argumentList):
 
     """
     #print(argumentList)
-    options = "hf:t:p:m:b:n:l:o:v:s:q:u:k:r:x:d"
-    long_options = ["help", "filename", "temp", "pressure", "stepsmmheat", "stepsmmnve", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnve", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
+    options = "hf:t:p:i:m:b:n:l:o:v:s:q:u:k:rxd"
+    long_options = ["help", "filename", "temp", "pressure", "stepsmmmin", "stepsmmheat", "stepsmmnve", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnve", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     temperature=300
@@ -539,7 +544,8 @@ def startmd(argumentList):
             print('Usage: autosolvate mdrun [OPTIONS]')
             print('  -f, --filename             prefix of .prmtop and .inpcrd files')
             print('  -t, --temp                 temperature in Kelvin to equilibrate')
-            print('  -p, --pressure             pressure in bar to equilibrate during MM NPT ste')
+            print('  -p, --pressure             pressure in bar to equilibrate during MM NPT step')
+            print('  -i, --stepsmmmin           Number of MM minimization steps')
             print('  -m, --stepsmmheat          Number of MM heating steps, setting to 0 skips the MM heating step')
             print('  -b, --stepsmmnve           Number of MM NVE steps, setting to 0 skips the MM NVE step')
             print('  -n, --stepsmmnpt           Number of MM NPT steps, setting to 0 skips the MM NPT step')
@@ -564,6 +570,9 @@ def startmd(argumentList):
         elif currentArgument in ("-p", "-pressure"):
             print ("Pressure in bar:", currentValue)
             pressure=float(currentValue)
+        elif currentArgument in ("-i","-stepsmmmin"):
+            print ("Steps MM min:", currentValue)
+            stepsmmmin=int(currentValue)
         elif currentArgument in ("-m","-stepsmmheat"):
             print ("Steps MM heat:", currentValue)
             stepsmmheat=int(currentValue)
@@ -605,7 +614,7 @@ def startmd(argumentList):
             dryrun=True
 
 
-    writeMMminInput()
+    writeMMminInput(stepsmmmin=stepsmmmin)
     writeMMheatInput(temperature=temperature, stepsmmheat=stepsmmheat)
     writeMMNVEInput(stepsmmnve=stepsmmnve)
     writeMMNPTInput(temperature=temperature, pressure=pressure, stepsmmnpt=stepsmmnpt)
