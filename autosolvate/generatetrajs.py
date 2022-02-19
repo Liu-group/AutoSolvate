@@ -181,7 +181,7 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
     cmd=' -O -i mmmin.in -o mmmin.out -p '+filename+'.prmtop -c '+filename+'.inpcrd -r mm.ncrst -inf mmmin.info'
     if pmemduse:
         cmd= 'pmemd.cuda' +cmd
-      else:
+    else:
         cmd= 'sander'+ cmd
     if srun_use:
       cmd='srun -n 1 '+cmd
