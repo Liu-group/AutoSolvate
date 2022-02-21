@@ -1044,7 +1044,7 @@ class mdGUI(baseGUI):
         ### set number of steps for QMMM NVE production run steps 
 
 
-        self.lblQMMMNVESteps = Label(self.master, text="QMMM NVE steps", width=colwidth[0])#,foreground='blue')
+        self.lblQMMMNVESteps = Label(self.master, text="QM/MM NVE steps", width=colwidth[0])#,foreground='blue')
         self.lblQMMMNVESteps.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
         
         self.txtQMMMNVESteps = Entry(self.master)

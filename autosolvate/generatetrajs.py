@@ -285,7 +285,7 @@ def writeQMMMMinInput(stepsqmmmmin=250):
             Result stored qmmmmin.in
         """
         f = open("qmmmmin.in","w")
-        f.write("gpr QMMM heat\n")
+        f.write("gpr QMMM Min\n")
         f.write(" &cntrl\n")
         f.write("  imin   = 0,\n")
         f.write("  irest  = 0, ! 0- new simulation 1- restart\n")
@@ -526,6 +526,7 @@ def startmd(argumentList):
     srun_use=False
     temperature=300
     pressure=1
+    stepsmmmin=2000
     stepsmmheat=10000
     stepsmmnve=0
     stepsmmnpt=300000

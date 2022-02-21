@@ -179,7 +179,7 @@ The second step is running molecular dynamics, which includes equilibration and 
 
 To do a short example run of QM/MM use the following command:
 
-``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 10 -r "True"``
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 250 -r "True"``
   
 The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( -m, -n, -l, -o, -s).
 
@@ -187,7 +187,7 @@ If AutoSolvate is running successfully, the following messages will be printed t
 
   AutoSolvate is starting in command line mode!
   Running the module to automatically run MD simulations of solvated structure.
-  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-t', '300', '-p', '1', '-m', '10000', '-n', '10000', '-o', '100', '-s', '100', '-l', '10', '-r', 'True']
+  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-t', '300', '-p', '1', '-m', '10000', '-n', '10000', '-o', '100', '-s', '100', '-l', '250', '-r', 'True']
   Filename: water_solvated
   Charge: 0
   Spinmultiplicity: 1
@@ -253,7 +253,7 @@ The default mdrun will have the following settings:
 +-----------+-----------------------+------------+  
 | QMMM min  |250 steps              |   -l       |
 +-----------+-----------------------+------------+  
-| QMMM heat |1000 steps             |  -o        |
+| QMMM heat |1000 steps             |   -o       |
 +-----------+-----------------------+------------+  
 | QMMM NVT  |10000 steps            |   -s       |
 +-----------+-----------------------+------------+  
