@@ -1,11 +1,11 @@
-%VERSION  VERSION_STAMP = V0001.000  DATE = 01/01/22  15:59:46                  
+%VERSION  VERSION_STAMP = V0001.000  DATE = 02/19/22  11:39:06                  
 %FLAG TITLE                                                                     
 %FORMAT(20a4)                                                                   
 SLU                                                                             
 %FLAG POINTERS                                                                  
 %FORMAT(10I8)                                                                   
    24003       4   23993      11      16      14      34      20       0       0
-   32069    7996      11      14      20       4       2       2       4       1
+   32069    7996      11      14      20       4       2       2       4       0
        0       0       0       0       0       0       0       1      18       0
        0
 %FLAG ATOM_NAME                                                                 
@@ -18029,7 +18029,7 @@ O   H1  H2
 %FLAG NONBONDED_PARM_INDEX                                                      
 %FORMAT(10I8)                                                                   
        1       2       4       7       2       3       5       8       4       5
-       6      -1       7       8      -1      10
+       6       9       7       8       9      10
 %FLAG RESIDUE_LABEL                                                             
 %FORMAT(20a4)                                                                   
 SLU WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT 
@@ -29737,13 +29737,13 @@ WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT WAT
        0   23999   24000   24000       0   24002   24003   24003       0
 %FLAG HBOND_ACOEF                                                               
 %FORMAT(5E16.8)                                                                 
-  0.00000000E+00
+
 %FLAG HBOND_BCOEF                                                               
 %FORMAT(5E16.8)                                                                 
-  0.00000000E+00
+
 %FLAG HBCUT                                                                     
 %FORMAT(5E16.8)                                                                 
-  0.00000000E+00
+
 %FLAG AMBER_ATOM_TYPE                                                           
 %FORMAT(20a4)                                                                   
 ca  ca  ca  ca  ca  ca  ca  ca  ca  ca  ha  ha  ha  ha  ha  ha  ha  ha  OW  HW  

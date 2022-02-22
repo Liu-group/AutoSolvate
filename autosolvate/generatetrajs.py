@@ -287,8 +287,7 @@ def writeQMMMMinInput(stepsqmmmmin=250):
         f.write("gpr QMMM Min\n")
         f.write(" &cntrl\n")
         f.write("  imin   = 1,\n")
-        f.write("  maxcyc = 2000,\n")
-        f.write("  ncyc   = 1000,\n")
+        f.write("  maxcyc = "+str(stepsqmmmmin)+",\n")
         f.write("  irest  = 0, ! 0- new simulation 1- restart\n")
         f.write("  ntx    = 1, ! 1-read in coordinates, but not velocity, 5-both\n")
         f.write("  cut    = 8.0,\n")
@@ -342,8 +341,11 @@ def writeQMMMInput(temperature=300, charge=0, stepsqmmm=250, infilename='qmmmhea
         f.write("gpr QMMM "+infilename+"\n")
         f.write(" &cntrl\n")
         f.write("  imin   = 0,\n")
-        f.write("  irest  = 1, ! 0- new simulation 1- restart\n")
-        f.write("  ntx    = 5, ! 1-read in coordinates, but not velocity, 5-both\n")
+        if infilename=='qmmmheat.in':
+          f.write("  ntx    = 1, ! 1-read in coordinates, but not velocity, 5-both\n")
+        else:
+          f.write("  ntx    = 5, ! 1-read in coordinates, but not velocity, 5-both\n")
+          f.write("  irest  = 1, ! 0- new simulation 1- restart\n")
         f.write("  cut    = 8.0,\n")
         f.write("  ig     = -1, !random seed\n")
         f.write("  ntc    = 2, ntf    = 2, !Shake is used for solvent\n")

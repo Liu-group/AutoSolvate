@@ -42,7 +42,7 @@ def main(args=None):
         startmd(args[1:])
     elif args[0] == 'clustergen':
         print('AutoSolvate is starting in command line mode!')
-        print('Running the module to extract solvated cluster (sphere) from MD trajectories of solvent box.')
+        print('Running the module to extract microsolvated clusters from MD trajectories with solvent box.')
         startclustergen(args[1:])
     else:
         print('Invalid syntax for AutoSolvate command line interface.')

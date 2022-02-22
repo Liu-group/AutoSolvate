@@ -57,6 +57,16 @@ Once you have AutoSolvate and all dependencies installed you will need the solut
        H     3.3951743890    1.2429028846    0.0000376679
        H     3.3951863936   -1.2429173191    0.0000261673
 
+
+.. note::
+
+  You can download both xyz files here:
+
+  :download:`naphthalene_neutral.xyz <_data/naphthalene_neutral.xyz>`
+
+  :download:`naphthalene_radical.xyz <_data/naphthalene_radical.xyz>`
+
+
 Now that you have the structures, make a directory for each example. We will start with the neutral molecule. 
 
 Example 1: Naphthalene in Water
@@ -309,7 +319,7 @@ To extract the cluster from the final QMMM results, use the following command:
 
   If you were not able to run the QMMM simulation above, you can download the QM/MM trajectory here:
 
-  :download:`water_solvated-qmmmnvt <_data/water_solvated-qmmmnvt.netcdf>`
+  :download:`water_solvated-qmmmnvt.netcdf <_data/water_solvated-qmmmnvt.netcdf>`
 
 The .prmtop and .netcdf filenames are required, but Autosolvate will use the default values of 0 for the starting frame, 100 for the extraction interval, and a cutout size of 4 Å.
 
@@ -333,13 +343,20 @@ The output of this command will be the cartesian coordinates of the microsolvate
 .. image:: _images/tutorial4_3.jpg
    :width: 400
 
-Running the above command only generates one xyz file because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every ten frames. However, if we extract every step (with option `-i 1`), then we will get 10 coordinate files. 
+Running the above command only generates one xyz file because we only did 100 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every hundred frames. However, if we extract every 10 steps (with option `-i 10`), then we will get 10 coordinate files. We can increase the solvent shell size to 6 Å with `-s 6`. 
 
-``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmnvt.netcdf -a 0 -i 1 -s 4``
+``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmnvt.netcdf -a 0 -i 10 -s 6``
 
 As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from::
 
   extracting from frames: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+
+.. note::
+
+  If you were not able to run the clustergen command above, you can download one of the microsolvated clusters with 6 Å solvent shell size here:
+
+  :download:`water_solvated-cutoutn-0.xyz <_data/water_solvated-cutoutn-0.xyz>`
+
 
 .. warning::
 
