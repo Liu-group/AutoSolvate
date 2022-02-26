@@ -478,7 +478,7 @@ def startmd(argumentList):
     r"""
     Wrap function that parses command line options for autosolvate clustergen,
     generates inputfiles for Amber and TeraChem,
-    runs MM and QMMM stages.
+    runs MM and QMMM stages. Currently some simulation parameters like simulation time step, integrator type, nonbonded cutoff, thermostat type, Langevin collision frequency, barostat type, pressure relaxation time and frequency of trajectory writing can not be changed from default values by the user.
 
     Parameters
     ----------
@@ -489,7 +489,7 @@ def startmd(argumentList):
           -f, --filename  prefix of .prmtop and .inpcrd files
           -t, --temp  temperature in Kelvin to equilibrate
           -p, --pressure  pressure in bar to equilibrate during MM NPT step
-          -i, --stepsmmmin Number of MM minimization steps
+          -i, --stepsmmmin  Number of MM minimization steps
           -m, --stepsmmheat  Number of MM heating steps, setting to 0 skips the MM heating step
           -b, --stepsmmnve  Number of MM NVE steps, setting to 0 skips the MM NVE step
           -n, --stepsmmnpt  Number of MM NPT steps, setting to 0 skips the MM NPT step
@@ -510,8 +510,6 @@ def startmd(argumentList):
     None
         Generate MD simulation input files and execute MD programs, or same the MD program execution commands in runMM.sh and runQMMM.sh
     
-    Currently some simulation parameters like simulation time step, integrator type, nonbonded cutoff, thermostat type, Langevin collision frequency, barostat type, pressure relaxation time and frequency of trajectory writing can not be changed from default values by the user.
-
     """
     #print(argumentList)
     options = "hf:t:p:i:m:b:n:l:o:v:s:q:u:k:rxd"
