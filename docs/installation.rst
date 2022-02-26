@@ -120,3 +120,19 @@ Check your ambertools and packmol installation as well::
    >>> which packmol
    >>> which tleap
 
+
+Trouble shooting
+-------------------
+Here we summarize some common errors reported by users and potential solutions. Please don't hesitate to directly contact us if you find any unexpected behavior of AutoSolvate in installation or production runs.
+
+#. imolecule visualization problem
+
+   We have tested the imolecule visualization functionality of AutoSolvate installed from source code and from conda, on Linux, Mac OS, and Windows 10, and expect it to work on all these platforms. However, some users have reported errors of imolecule during runtime.
+   One potential reason for the reported imolecule problem is that `imolecule` is not a conda package. For installation from source, `imolcule` is included in the environment YAML file `AutoSolvate/devtools/conda-envs/test_envs.yaml`, and will be automatically downloaded without problem. However, to build it into a conda package, `imolecule` cannot be directly included in the conda recipe. To solve the problem, we included `imolecule` in setup.py as a required package, which made it automatically installed in our test cases. However, this may not work well on some operating systems.
+
+   Possible solution:
+   In the same conda environment where AutoSolvate is installed, please manually install imolecule by running::
+   
+     pip install imolecule
+
+
