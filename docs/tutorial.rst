@@ -268,7 +268,18 @@ The default mdrun will have the following settings:
 | QMMM NVT  |10000 steps            |   -s       |
 +-----------+-----------------------+------------+  
 
-Some simulation parameters cannot be currently set by the user, for example: simulation time step, integrator type, nonbonded cutoff, thermostat type, Langevin collision frequency, barostat type, pressure relaxation time, frequency of trajectory writing.
+.. warning::
+
+    Some simulation parameters cannot be currently set by the user, for example: 
+
+        * simulation time step
+        * integrator type
+        * nonbonded cutoff
+        * thermostat type
+        * Langevin collision frequency
+        * barostat type
+        * pressure relaxation time
+        * frequency of trajectory writing
 
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
 

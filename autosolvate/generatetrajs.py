@@ -478,7 +478,20 @@ def startmd(argumentList):
     r"""
     Wrap function that parses command line options for autosolvate clustergen,
     generates inputfiles for Amber and TeraChem,
-    runs MM and QMMM stages. Currently some simulation parameters like simulation time step, integrator type, nonbonded cutoff, thermostat type, Langevin collision frequency, barostat type, pressure relaxation time and frequency of trajectory writing can not be changed from default values by the user.
+    runs MM and QMMM stages. 
+
+     .. warning::
+
+        Currently, some simulation parameters cannot be set by the user, for example: 
+
+            * simulation time step
+            * integrator type
+            * nonbonded cutoff
+            * thermostat type
+            * Langevin collision frequency
+            * barostat type
+            * pressure relaxation time
+            * frequency of trajectory writing
 
     Parameters
     ----------
