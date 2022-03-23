@@ -2,24 +2,29 @@ Citation
 =======================
 If you use AutoSolvate for your work, please cite us using one of the following styles:
 
-ACS format::
+ACS format:
 
-  Hruska, E.; Gale, A.; Huang, X.; Liu, F. AutoSolvate: A Toolkit for Automating Quantum Chemistry Design and Discovery of Solvated Molecules. ChemRxiv 2022. DOI: 10.26434/chemrxiv-2022-px3r8 
+Hruska, E.; Gale, A.; Huang, X.; Liu, F. AutoSolvate: A Toolkit for Automating Quantum Chemistry Design and Discovery of Solvated Molecules. J. Chem. Phys. **2022**, *156*, 124801
 
 Bibtex::
 
- @article{hruska_gale_huang_liu_2022, 
-          place={Cambridge}
-          title={AutoSolvate: A Toolkit for Automating Quantum Chemistry Design and Discovery of Solvated Molecules}
-          DOI={10.26434/chemrxiv-2022-px3r8}
-          journal={ChemRxiv}
-          publisher={Cambridge Open Engage}
-          author={Hruska
-          Eugen and Gale
-          Ariel and Huang
-          Xiao and Liu
-          Fang}
-          year={2022}
- } 
-          
-This content is a preprint and has not been peer-reviewed.
+    @article{doi:10.1063/5.0084833,
+    author = {Hruska,Eugen  and Gale,Ariel  and Huang,Xiao  and Liu,Fang },
+    title = {AutoSolvate: A toolkit for automating quantum chemistry design and discovery of solvated molecules},
+    journal = {The Journal of Chemical Physics},
+    volume = {156},
+    number = {12},
+    pages = {124801},
+    year = {2022},
+    doi = {10.1063/5.0084833},
+
+    URL = { 
+            https://doi.org/10.1063/5.0084833
+
+    },
+    eprint = { 
+            https://doi.org/10.1063/5.0084833
+
+    }
+
+    }
