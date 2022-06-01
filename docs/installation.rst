@@ -135,4 +135,6 @@ Here we summarize some common errors reported by users and potential solutions. 
    
      pip install imolecule
 
+#. Error in MD simulation step related to ``srun``
 
+   If you encounter an error ``srun: not found``, it's likely your computer does not use srun. You should remove ``-r`` from the ``autosolvate mdrun`` command or in GUI set ``Use srun to execute commands ?`` to No. 
