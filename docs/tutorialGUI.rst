@@ -142,7 +142,7 @@ For example, you can leave the entry about file prefix for ``.inpcrd`` and ``.pr
 .. warning:: The program will automatically check whether the file prefix you provided is valid, i.e., whether ``prefix.inpcrd`` and ``prefix.prmtop`` both exist. If not, the window will pop up again until you enter a valid file prefix there.
 
 
-Once you enter a valid file prefix, the dialog will automatically close, and you can make other necessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default, because the TeraChem package is not automatically installed with AutoSolvate, so the user may not necessary have access to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
+Once you enter a valid file prefix, the dialog will automatically close, and you can make other necessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default because the required TeraChem package is not automatically installed with AutoSolvate, so the user may not necessarily have access to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.
 
 .. image:: _images/tutorial2_4.png
    :width: 800
