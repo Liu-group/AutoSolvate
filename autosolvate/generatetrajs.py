@@ -204,7 +204,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
 
     if dryrun:
         frun.write(cmd+'\n')
-    subprocess.call(cmd, shell=True)
+    else:
+        subprocess.call(cmd, shell=True)
     if stepsmmheat>0:
       print('MM Heating')
       cmd=' -O -i mmheat.in -o mmheat.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-heat.netcdf -inf mmheat.info'
@@ -216,7 +217,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
         cmd='srun -n 1 '+cmd
       if dryrun:
         frun.write(cmd+'\n')
-      subprocess.call(cmd, shell=True)
+      else:
+        subprocess.call(cmd, shell=True)
     if stepsmmnve>0:
       print('MM NVE equilibration')
       cmd=' -O -i mmnve.in -o mmnve.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-mmnve.netcdf -inf mmnve.info'
@@ -228,7 +230,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
         cmd='srun -n 1 '+cmd
       if dryrun:
         frun.write(cmd+'\n')
-      subprocess.call(cmd, shell=True)
+      else:
+        subprocess.call(cmd, shell=True)
     if stepsmmnpt>0:
       print('MM NPT equilibration')
       cmd=' -O -i mmnpt.in -o mmnpt.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-mmnpt.netcdf -inf mmnpt.info'
@@ -240,7 +243,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
         cmd='srun -n 1 '+cmd
       if dryrun:
         frun.write(cmd+'\n')
-      subprocess.call(cmd, shell=True)
+      else:
+        subprocess.call(cmd, shell=True)
 
     if dryrun:
        frun.close()
@@ -436,7 +440,8 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
         cmd='srun -n 1 '+cmd
       if dryrun:
         frun.write(cmd+'\n')
-      subprocess.call(cmd, shell=True)
+      else:
+        subprocess.call(cmd, shell=True)
       if spinmult>1:
         print('Adjusting terachem input file for higher Spin multiplicity')
         cmd="sed -i '3 a guess        ./scr/ca0 ./scr/cb0' tc_job.tpl"
@@ -444,13 +449,15 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
           cmd='srun -n 1 '+cmd
         if dryrun:
           frun.write(cmd+'\n')
-        subprocess.call(cmd, shell=True)
+        else:
+          subprocess.call(cmd, shell=True)
         cmd='sander -O -i qmmmmin.in -o qmmmmin.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmmin.info -x '+filename+'-qmmmmin.netcdf'
         if srun_use:
           cmd='srun -n 1 '+cmd
         if dryrun:
           frun.write(cmd+'\n')
-        subprocess.call(cmd, shell=True)
+        else:
+          subprocess.call(cmd, shell=True)
     if stepsqmmmheat>0:
       print('QMMM Heating')
       cmd='sander -O -i qmmmheat.in -o qmmmheat.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmheat.info -x '+filename+'-qmmmheat.netcdf'
@@ -458,7 +465,8 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
         cmd='srun -n 1 '+cmd
       if dryrun:
         frun.write(cmd+'\n')
-      subprocess.call(cmd, shell=True)
+      else:
+        subprocess.call(cmd, shell=True)
     if stepsqmmmnve>0:
       print('QMMM NVE Run')
       cmd='sander -O -i qmmmnve.in -o qmmmnve.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmnve.info -x '+filename+'-qmmmnve.netcdf'
@@ -466,7 +474,8 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
         cmd='srun -n 1 '+cmd
       if dryrun:
         frun.write(cmd+'\n')
-      subprocess.call(cmd, shell=True)
+      else:
+        subprocess.call(cmd, shell=True)
     if stepsqmmmnvt>0:
       print('QMMM NVT Run')
       cmd='sander -O -i qmmmnvt.in -o qmmmnvt.out -p '+filename+'.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmnvt.info -x '+filename+'-qmmmnvt.netcdf'
@@ -474,7 +483,8 @@ def runQMMM(filename='water_solvated', spinmult=1, srun_use=False, stepsqmmmmin=
         cmd='srun -n 1 '+cmd
       if dryrun:
         frun.write(cmd+'\n')
-      subprocess.call(cmd, shell=True)
+      else:
+        subprocess.call(cmd, shell=True)
 
     if dryrun:
         frun.close()
