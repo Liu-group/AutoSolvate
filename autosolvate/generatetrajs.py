@@ -8,7 +8,7 @@ def writeSoluteConstrain(wt=100):
     """
     f.write("ntr=1,\n")
     f.write("restraintmask=:1\n")
-    f.write("restraint_wt={:f}".format(wt))
+    f.write("restraint_wt={:f}\n".format(wt))
 
 def writeMMminInput(stepsmmmin=2000,freeze_solute=False):
     r"""
@@ -39,7 +39,7 @@ def writeMMminInput(stepsmmmin=2000,freeze_solute=False):
     f.close()
 
 
-def writeMMheatInput(temperature=300, stepsmmheat=10000, ,freeze_solute=False):
+def writeMMheatInput(temperature=300, stepsmmheat=10000, freeze_solute=False):
         r"""
         Write Amber MM heating input file 
 
