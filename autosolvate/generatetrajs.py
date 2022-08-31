@@ -531,8 +531,8 @@ def startmd(argumentList):
     
     """
     #print(argumentList)
-    options = "hf:t:p:i:m:b:n:l:o:v:s:q:u:k:rxd"
-    long_options = ["help", "filename", "temp", "pressure", "stepsmmmin", "stepsmmheat", "stepsmmnve", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnve", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun"]
+    options = "hf:t:p:i:m:b:n:l:o:v:s:q:u:k:rxdz"
+    long_options = ["help", "filename", "temp", "pressure", "stepsmmmin", "stepsmmheat", "stepsmmnve", "stepsmmnpt", "stepsqmmmmin", "stepsqmmmheat", "stepsqmmmnve", "stepsqmmmnvt", "charge", "spinmultiplicity","functional", "srunuse", "pmemduse","dryrun","freezesolute"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
     temperature=300
