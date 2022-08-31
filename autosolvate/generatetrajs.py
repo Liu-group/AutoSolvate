@@ -118,7 +118,7 @@ def writeMMNVEInput(stepsmmnve=10000, freeze_solute=False):
         f.close()
 
 
-def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000, ,freeze_solute=False):
+def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000, freeze_solute=False):
         r"""
         Write Amber MM NPT input file
 
