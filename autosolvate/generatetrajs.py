@@ -627,6 +627,7 @@ def startmd(argumentList):
             print("Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands")
             dryrun=True
         elif currentArgument in ("-z", "-freezesolute"):
+            print("Freeze the solute while running MD")
             freeze_solute=True
 
 
