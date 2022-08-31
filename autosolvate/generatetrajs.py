@@ -2,13 +2,17 @@ import getopt, sys, os
 import subprocess
 
 
-def writeSoluteConstrain(f, wt=100):
+def writeSoluteConstrain(f, wt=500,ntr=False):
     r"""
     Write the lines to apply constraints to solute
     """
-    f.write("ntr=1,\n")
-    f.write("restraintmask=:1,\n")
-    f.write("restraint_wt={:f},\n".format(wt))
+    if ntr:
+       f.write("ntr=1,\n")
+       f.write("restraintmask=\':1\',\n")
+       f.write("restraint_wt={:f},\n".format(wt))
+    else:
+       f.write("ibelly=1,\n")
+       f.write("bellymask = \':2-\',\n")
 
 def writeMMminInput(stepsmmmin=2000,freeze_solute=False):
     r"""
@@ -163,7 +167,7 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000, freeze_solut
 
 
 
-def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt=300000, srun_use=False, pmemduse=False, dryrun=False):
+def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt=300000, srun_use=False, pmemduse=False, dryrun=False, freeze_solute=False):
     r"""
     Equilibrate with MM
    
@@ -195,6 +199,9 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
         
     print('MM Energy minimization')
     cmd=' -O -i mmmin.in -o mmmin.out -p '+filename+'.prmtop -c '+filename+'.inpcrd -r mm.ncrst -inf mmmin.info'
+    if freeze_solute:
+       cmd = cmd + ' -ref '+filename+'.inpcrd '
+
     if pmemduse:
         cmd= 'pmemd.cuda' +cmd
     else:
@@ -209,6 +216,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
     if stepsmmheat>0:
       print('MM Heating')
       cmd=' -O -i mmheat.in -o mmheat.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-heat.netcdf -inf mmheat.info'
+      if freeze_solute:
+         cmd = cmd + ' -ref '+filename+'.inpcrd '
       if pmemduse:
         cmd= 'pmemd.cuda' +cmd
       else:
@@ -222,6 +231,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
     if stepsmmnve>0:
       print('MM NVE equilibration')
       cmd=' -O -i mmnve.in -o mmnve.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-mmnve.netcdf -inf mmnve.info'
+      if freeze_solute:
+         cmd = cmd + ' -ref '+filename+'.inpcrd '
       if pmemduse:
         cmd= 'pmemd.cuda' +cmd
       else:
@@ -235,6 +246,8 @@ def runMM(filename='water_solvated', stepsmmheat=10000, stepsmmnve=0, stepsmmnpt
     if stepsmmnpt>0:
       print('MM NPT equilibration')
       cmd=' -O -i mmnpt.in -o mmnpt.out -p '+filename+'.prmtop -c mm.ncrst -r mm.ncrst -x '+filename+'-mmnpt.netcdf -inf mmnpt.info'
+      if freeze_solute:
+         cmd = cmd + ' -ref '+filename+'.inpcrd '
       if pmemduse:
         cmd= 'pmemd.cuda' +cmd
       else:
@@ -652,7 +665,7 @@ def startmd(argumentList):
     writeQMMMInput(stepsqmmm=stepsqmmmnve, charge=charge, infilename='qmmmnve.in', nve=True)
     writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmnvt, charge=charge, infilename='qmmmnvt.in')
     
-    runMM(filename=filename, stepsmmheat=stepsmmheat, stepsmmnpt=stepsmmnpt, stepsmmnve=stepsmmnve, srun_use=srun_use, pmemduse=pmemduse, dryrun=dryrun)
+    runMM(filename=filename, stepsmmheat=stepsmmheat, stepsmmnpt=stepsmmnpt, stepsmmnve=stepsmmnve, srun_use=srun_use, pmemduse=pmemduse, dryrun=dryrun, freeze_solute=freeze_solute)
     
     runQMMM(filename=filename, spinmult=spinmult, srun_use=srun_use, stepsqmmmmin=stepsqmmmmin, stepsqmmmheat=stepsqmmmheat, stepsqmmmnve=stepsqmmmnve, stepsqmmmnvt=stepsqmmmnvt, dryrun=dryrun)
 
