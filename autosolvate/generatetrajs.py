@@ -2,13 +2,13 @@ import getopt, sys, os
 import subprocess
 
 
-def writeSoluteConstrain(wt=100):
+def writeSoluteConstrain(f, wt=100):
     r"""
     Write the lines to apply constraints to solute
     """
     f.write("ntr=1,\n")
-    f.write("restraintmask=:1\n")
-    f.write("restraint_wt={:f}\n".format(wt))
+    f.write("restraintmask=:1,\n")
+    f.write("restraint_wt={:f},\n".format(wt))
 
 def writeMMminInput(stepsmmmin=2000,freeze_solute=False):
     r"""
@@ -26,8 +26,8 @@ def writeMMminInput(stepsmmmin=2000,freeze_solute=False):
     f = open("mmmin.in","w")
     f.write("Minimize\n")
     f.write("&cntrl\n")
-    if(free_solute):
-         writeSoluteConstrain()
+    if(freeze_solute):
+         writeSoluteConstrain(f)
     f.write("imin=1,\n")
     f.write("ntx=1,\n")
     f.write("maxcyc="+str(stepsmmmin)+",\n")
@@ -58,8 +58,8 @@ def writeMMheatInput(temperature=300, stepsmmheat=10000, freeze_solute=False):
         f = open("mmheat.in","w")
         f.write("Heat\n")
         f.write("&cntrl\n")
-        if(free_solute):
-             writeSoluteConstrain()
+        if(freeze_solute):
+             writeSoluteConstrain(f)
         f.write("imin=0,\n")
         f.write("ntx=1,\n")
         f.write("nstlim="+str(stepsmmheat)+",\n")
@@ -99,8 +99,8 @@ def writeMMNVEInput(stepsmmnve=10000, freeze_solute=False):
         f = open("mmnve.in","w")
         f.write("NVE\n")
         f.write("&cntrl\n")
-        if(free_solute):
-             writeSoluteConstrain()
+        if(freeze_solute):
+             writeSoluteConstrain(f)
         f.write("imin=0, irest=1,\n")
         f.write("ntx=5,\n")
         f.write("nstlim="+str(stepsmmnve)+",\n")
@@ -139,8 +139,8 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000, freeze_solut
         f = open("mmnpt.in","w")
         f.write("MM NPT\n")
         f.write("&cntrl\n")
-        if(free_solute):
-             writeSoluteConstrain()
+        if(freeze_solute):
+             writeSoluteConstrain(f)
         f.write("imin=0, irest=1,\n")
         f.write("ntx=5,\n")
         f.write("nstlim="+str(stepsmmnpt)+",\n")
