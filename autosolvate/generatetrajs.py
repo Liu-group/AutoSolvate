@@ -2,7 +2,15 @@ import getopt, sys, os
 import subprocess
 
 
-def writeMMminInput(stepsmmmin=2000):
+def writeSoluteConstrain(wt=100):
+    r"""
+    Write the lines to apply constraints to solute
+    """
+    f.write("ntr=1,\n")
+    f.write("restraintmask=:1\n")
+    f.write("restraint_wt={:f}".format(wt))
+
+def writeMMminInput(stepsmmmin=2000,freeze_solute=False):
     r"""
     Write Amber MM minimization input file 
     
@@ -18,6 +26,8 @@ def writeMMminInput(stepsmmmin=2000):
     f = open("mmmin.in","w")
     f.write("Minimize\n")
     f.write("&cntrl\n")
+    if(free_solute):
+         writeSoluteConstrain()
     f.write("imin=1,\n")
     f.write("ntx=1,\n")
     f.write("maxcyc="+str(stepsmmmin)+",\n")
@@ -29,7 +39,7 @@ def writeMMminInput(stepsmmmin=2000):
     f.close()
 
 
-def writeMMheatInput(temperature=300, stepsmmheat=10000):
+def writeMMheatInput(temperature=300, stepsmmheat=10000, ,freeze_solute=False):
         r"""
         Write Amber MM heating input file 
 
@@ -48,6 +58,8 @@ def writeMMheatInput(temperature=300, stepsmmheat=10000):
         f = open("mmheat.in","w")
         f.write("Heat\n")
         f.write("&cntrl\n")
+        if(free_solute):
+             writeSoluteConstrain()
         f.write("imin=0,\n")
         f.write("ntx=1,\n")
         f.write("nstlim="+str(stepsmmheat)+",\n")
@@ -70,7 +82,7 @@ def writeMMheatInput(temperature=300, stepsmmheat=10000):
         f.close()
 
 
-def writeMMNVEInput(stepsmmnve=10000):
+def writeMMNVEInput(stepsmmnve=10000, freeze_solute=False):
         r"""
         Write Amber MM NVE input file
 
@@ -87,6 +99,8 @@ def writeMMNVEInput(stepsmmnve=10000):
         f = open("mmnve.in","w")
         f.write("NVE\n")
         f.write("&cntrl\n")
+        if(free_solute):
+             writeSoluteConstrain()
         f.write("imin=0, irest=1,\n")
         f.write("ntx=5,\n")
         f.write("nstlim="+str(stepsmmnve)+",\n")
@@ -104,7 +118,7 @@ def writeMMNVEInput(stepsmmnve=10000):
         f.close()
 
 
-def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
+def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000, ,freeze_solute=False):
         r"""
         Write Amber MM NPT input file
 
@@ -125,6 +139,8 @@ def writeMMNPTInput(temperature=300, pressure=1, stepsmmnpt=300000):
         f = open("mmnpt.in","w")
         f.write("MM NPT\n")
         f.write("&cntrl\n")
+        if(free_solute):
+             writeSoluteConstrain()
         f.write("imin=0, irest=1,\n")
         f.write("ntx=5,\n")
         f.write("nstlim="+str(stepsmmnpt)+",\n")
@@ -535,6 +551,7 @@ def startmd(argumentList):
     srun_use=False
     pmemduse=False
     dryrun=False
+    freeze_solute=False
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-h", "-help"):
             print('Usage: autosolvate mdrun [OPTIONS]')
@@ -555,6 +572,7 @@ def startmd(argumentList):
             print('  -r, --srunuse              option to run inside a slurm job')
             print('  -x, --pmemduse             Speed up MM with pmemd.CUDA instead of sander')
             print('  -d, --dryrun               Dry run mode')
+            print('  -z, --freezesolute         Freeze the solute')
             print('  -h, --help                 short usage description')
             exit()
         elif currentArgument in ("-f", "-filename"):
@@ -608,18 +626,20 @@ def startmd(argumentList):
         elif currentArgument in ("-d", "-dryrun"):
             print("Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands")
             dryrun=True
+        elif currentArgument in ("-z", "-freezesolute"):
+            freeze_solute=True
 
 
-    writeMMminInput(stepsmmmin=stepsmmmin)
-    writeMMheatInput(temperature=temperature, stepsmmheat=stepsmmheat)
-    writeMMNVEInput(stepsmmnve=stepsmmnve)
-    writeMMNPTInput(temperature=temperature, pressure=pressure, stepsmmnpt=stepsmmnpt)
+    writeMMminInput(stepsmmmin=stepsmmmin,freeze_solute=freeze_solute)
+    writeMMheatInput(temperature=temperature, stepsmmheat=stepsmmheat, freeze_solute=freeze_solute)
+    writeMMNVEInput(stepsmmnve=stepsmmnve, freeze_solute=freeze_solute)
+    writeMMNPTInput(temperature=temperature, pressure=pressure, stepsmmnpt=stepsmmnpt, freeze_solute=freeze_solute)
     
     writeQMMMMinInput(stepsqmmmmin=stepsqmmmmin)
     writeQMMMTemplate(spinmult=spinmult, charge=charge, functional=functional)
     writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmheat, charge=charge, infilename='qmmmheat.in')
     writeQMMMInput(stepsqmmm=stepsqmmmnve, charge=charge, infilename='qmmmnve.in', nve=True)
-    writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmnvt, charge=charge, infilename='qmmmnvt.in' )
+    writeQMMMInput(temperature=temperature, stepsqmmm=stepsqmmmnvt, charge=charge, infilename='qmmmnvt.in')
     
     runMM(filename=filename, stepsmmheat=stepsmmheat, stepsmmnpt=stepsmmnpt, stepsmmnve=stepsmmnve, srun_use=srun_use, pmemduse=pmemduse, dryrun=dryrun)
     
