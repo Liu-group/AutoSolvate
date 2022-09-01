@@ -196,6 +196,15 @@ To do a short example run of QM/MM use the following command:
   
 The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( -m, -n, -l, -o, -s). If you computer does not use srun, please remove the ``-r`` in the above command. Currently only TeraChem is supported for the QMMM step.
 
+.. note::
+   The ``-r`` option should be used only if you run AutoSolvate on a computer cluster with the `Slurm Workload Manager <https://slurm.schedmd.com/>`_. In that case, the command ``srun`` will be prepended to all commands to run MD simulation.
+
+   If you use a desktop or laptop, it is highly likely that you don't have Slurm Workload Manaer, and you don't need the ``-r`` option.
+
+   If you use AutoSolvate on a computer cluster with other type of Workload managers like `SGE, Torque <https://en.wikipedia.org/wiki/TORQUE>`_, or `PBS <https://en.wikipedia.org/wiki/Portable_Batch_System>`_, the ``-r`` option won't work either.
+
+   For more explanations about the ``-r`` option, please see :ref:`this warning message <roption>`.
+
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
   AutoSolvate is starting in command line mode!
@@ -311,6 +320,8 @@ The following files will be added to your directory::
   mmnpt.in   qmmmnvt.in   tc_job.tpl
 
 Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
+
+.. _roption:
 
 .. warning::
 
