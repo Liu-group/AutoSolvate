@@ -5,6 +5,21 @@ import subprocess
 def writeSoluteConstrain(f, wt=500,ntr=False):
     r"""
     Write the lines to apply constraints to solute
+   
+    Parameters
+    ----------
+    f: file, Required, default: None
+        File of Amber input
+    ntr: bool, Optional, default: False
+        Use the ntr restraint or ibelly constrain
+    wt: float, Optional, default: 500
+        Weight of restraint if using the Amber ntr restraint
+
+    Returns
+    -------
+    None
+
+
     """
     if ntr:
        f.write("ntr=1,\n")
@@ -652,6 +667,11 @@ def startmd(argumentList):
         elif currentArgument in ("-z", "-freezesolute"):
             print("Freeze the solute while running MD")
             freeze_solute=True
+            print("Ignoring all QM/MM options. QM/MM will not run")
+            stepsqmmmmin = 0
+            stepsqmmmheat = 0
+            stepsqmmmnve = 0 
+            stepsqmmmnvt = 0
 
 
     writeMMminInput(stepsmmmin=stepsmmmin,freeze_solute=freeze_solute)
