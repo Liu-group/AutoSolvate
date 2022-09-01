@@ -560,7 +560,8 @@ def startmd(argumentList):
           -r, --srunuse  option to run inside a slurm job
           -x, --pmemduse  Speed up MM with pmemd.CUDA instead of sander
           -d, --dryrun  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the command
-          -h, --help  short usage description    
+          -z, --freezesolute  Freeze the solute structure throughout all MD steps
+          -h, --help  short usage description  
 
     Returns
     -------
