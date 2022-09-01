@@ -499,7 +499,7 @@ class mdGUI(baseGUI):
     def __init__(self, master):
         super().__init__(master)
         self.master.title("MD simulation automation")
-        self.master.geometry('820x730')
+        self.master.geometry('820x780')
         self.display_logo()
         self.padx = 10
         self.pady = 5
@@ -637,6 +637,20 @@ class mdGUI(baseGUI):
         
         self.btnPressure = Button(self.master, text="Set", command=set_Pressure, width=colwidth[3])
         self.btnPressure.grid(column=4, row=self.irow,columnspan=3,sticky=W+E)
+        
+        self.irow += 1
+
+        ### Freeze solute structure or not
+        self.freezeSolute = BooleanVar(value=False)
+        
+        self.lblfreezeSolute = Label(self.master, text="Freeze solute structure?", width=colwidth[0])
+        self.lblfreezeSolute.grid(column=0, row=self.irow, sticky=W, padx=self.padx)
+        
+        self.radfreezeSoluteyes = Radiobutton(self.master, text='Yes', value=True, variable=self.freezeSolute, width=colwidth[3])
+        self.radfreezeSoluteyes.grid(column=1, row=self.irow)
+        
+        self.radfreezeSoluteno = Radiobutton(self.master, text='No', value=False, variable=self.freezeSolute)
+        self.radfreezeSoluteno.grid(column=2, row=self.irow)
         
         self.irow += 1
 
@@ -1160,6 +1174,10 @@ class mdGUI(baseGUI):
             cmd += " -m {:d} ".format(self.MMHeatSteps.get())
             cmd += " -n {:d} ".format(self.MMNPTSteps.get())
             cmd += " -b {:d} ".format(self.MMNVESteps.get())
+            if self.freezeSolute.get() == True:
+                self.doQMMM.set(False)
+                print("Freeze solute structure is turned on. Ignore all QM/MM options")
+                print("QM/MM will not run")
             if self.doQMMM.get() == True:
                  cmd += " -l {:d} ".format(self.QMMMminSteps.get())
                  cmd += " -o {:d} ".format(self.QMMMheatSteps.get())
@@ -1176,6 +1194,8 @@ class mdGUI(baseGUI):
                 cmd += " -x "
             if self.dryrun.get() == True:
                 cmd += " -d "
+            if self.freezeSolute.get() == True:
+                cmd += " -z"
             return cmd
 
         ### Execute  python command to generate MD input files and jobscripts
