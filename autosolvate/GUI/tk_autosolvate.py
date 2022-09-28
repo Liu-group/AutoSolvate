@@ -1469,9 +1469,9 @@ class clusterGUI(baseGUI):
             cmd += " -i {:d}".format(self.Interval.get())
             cmd += " -s {:.4f}".format(self.ShellSize.get())
             if self.srunuse.get() == True:
-                cmd += "-r"
+                cmd += " -r"
             if self.spherical.get() == True:
-                cmd += "-p"
+                cmd += " -p"
             return cmd
 
         def execute():
