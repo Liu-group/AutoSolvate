@@ -1415,6 +1415,19 @@ class clusterGUI(baseGUI):
         
         self.irow += 1
 
+        self.spherical = BooleanVar()
+        self.lblSpherical = Label(self.master, text="Spherical microsolvated cluster\ndefault aspherical", width=colwidth[0])
+        self.lblSpherical.grid(column=0, row=self.irow)
+        
+        self.radSpherical1 = Radiobutton(self.master, text='Yes', value=True, variable=self.spherical, width=colwidth[3])
+        self.radSpherical1.grid(column=1, row=self.irow)
+        
+        self.radSpherical2 = Radiobutton(self.master, text='No', value=False, variable=self.spherical)
+        self.radSpherical2.grid(column=2, row=self.irow)
+        
+        self.spherical.set(False)
+        self.irow += 1
+
         ### Use srun or not
         self.srunuse = BooleanVar(value=False)
         
@@ -1457,6 +1470,8 @@ class clusterGUI(baseGUI):
             cmd += " -s {:.4f}".format(self.ShellSize.get())
             if self.srunuse.get() == True:
                 cmd += "-r"
+            if self.spherical.get() == True:
+                cmd += "-p"
             return cmd
 
         def execute():
