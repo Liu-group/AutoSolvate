@@ -378,6 +378,8 @@ As Autosolvate is running, you will notice this line now includes the list of th
 
   extracting from frames: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
+If you want spherical solvent shells instead of the default aspherical solvent shells add ``-p`` to the end of the previous command. Then the solvent shell size is measured from the center of mass of the solute.
+
 .. note::
 
   If you were not able to run the clustergen command above, you can download one of the microsolvated clusters with 6 Å solvent shell size here:
