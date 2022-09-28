@@ -1418,13 +1418,13 @@ class clusterGUI(baseGUI):
         ### spherical option
         self.spherical = BooleanVar(value=False)
         self.lblSpherical = Label(self.master, text="Cluster shape", width=colwidth[4])
-        self.lblSpherical.grid(column=0, row=self.irow)
+        self.lblSpherical.grid(column=0, row=self.irow,  columnspan=2, sticky=W, padx=self.padx)
         
-        self.radSpherical1 = Radiobutton(self.master, text='Aspherical', value=False, variable=self.spherical, width=colwidth[3])
-        self.radSpherical1.grid(column=1, row=self.irow)
+        self.radSpherical1 = Radiobutton(self.master, text='Aspher.', value=False, variable=self.spherical, width=colwidth[3])
+        self.radSpherical1.grid(column=2, row=self.irow)
         
         self.radSpherical2 = Radiobutton(self.master, text='Spherical', value=True, variable=self.spherical)
-        self.radSpherical2.grid(column=2, row=self.irow)
+        self.radSpherical2.grid(column=3, row=self.irow)
         
         self.irow += 1
 
