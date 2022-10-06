@@ -1415,6 +1415,19 @@ class clusterGUI(baseGUI):
         
         self.irow += 1
 
+        ### spherical option
+        self.spherical = BooleanVar(value=False)
+        self.lblSpherical = Label(self.master, text="Cluster shape", width=colwidth[4])
+        self.lblSpherical.grid(column=0, row=self.irow,  columnspan=2, sticky=W, padx=self.padx)
+        
+        self.radSpherical1 = Radiobutton(self.master, text='Aspher.', value=False, variable=self.spherical, width=colwidth[3])
+        self.radSpherical1.grid(column=2, row=self.irow)
+        
+        self.radSpherical2 = Radiobutton(self.master, text='Spherical', value=True, variable=self.spherical)
+        self.radSpherical2.grid(column=3, row=self.irow)
+        
+        self.irow += 1
+
         ### Use srun or not
         self.srunuse = BooleanVar(value=False)
         
@@ -1456,7 +1469,9 @@ class clusterGUI(baseGUI):
             cmd += " -i {:d}".format(self.Interval.get())
             cmd += " -s {:.4f}".format(self.ShellSize.get())
             if self.srunuse.get() == True:
-                cmd += "-r"
+                cmd += " -r"
+            if self.spherical.get() == True:
+                cmd += " -p"
             return cmd
 
         def execute():

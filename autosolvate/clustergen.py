@@ -16,7 +16,7 @@ def formatXyz(mdtrajxyz,outfile):
 
 
 
-def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', startframe=0, interval=100, size=4, srun_use=False):
+def clustergen(filename='water_solvated.prmtop', trajname='water_solvated-qmmmnvt.netcdf', startframe=0, interval=100, size=4, srun_use=False, spherical=False):
     r"""
     Extract microsolvated cluster around center solute
 
@@ -24,7 +24,7 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
     ----------
     filename : str, default: 'water_solvated.prmtop'
         Filename name of .prmtop files
-    trajname :  str, default: 'water_solvated.netcdf'
+    trajname :  str, default: 'water_solvated-qmmmnvt.netcdf'
         Name of trajectory
     startframe : int, Optional, default: 0
         First frame to extract the microsolvated clusters from trajectory
@@ -32,6 +32,8 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
         Interval at which to extract microsolvated clusters from trajectory
     size : float, Optional, default: 4
         size of solvent shell around center solute in Angstrom
+    spherical : bool, Optional, default: False:
+        switches from default aspherical solvent shell to spherical solvent shell, solvent shell size is not measured from center of mass
     srun_use : bool, Optional, default: False
         Run all commands with a srun prefix.
 
@@ -51,6 +53,8 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
     center_list=[]
     for atom in molecules[0]:
       center_list.append(atom.index)
+    mass_arr=np.array([atom.element.mass for atom in molecules[0]])
+    mass_arr /= mass_arr.sum()
     print('extracting from frames:', list(range(startframe, traj2.shape[0], interval)))
     print('calculating distance to all solvent molecules')
     for iframe in range(startframe, traj2.shape[0], interval):
@@ -61,6 +65,8 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
       unit_cell_list3 = np.repeat(unit_cell_list[np.newaxis, :], tshape[1], axis=0)
       shift=-center_xyz+unit_cell_list3/2.
       traj3=np.remainder(traj2[iframe,:,:]+shift,unit_cell_list3)
+      #center of mass for this frame
+      com = traj3[center_list].T.dot(mass_arr)
       dist_molecules=np.empty(len(molecules))
       select_molecules=[]
       size_molecules=[]
@@ -69,9 +75,14 @@ def clustergen(filename='water_solvated', trajname='water_solvated.netcdf', star
         select_true=False
         dist_atom=10000
         for atom in molecules[i]:
-          for center_idx in center_list:
-            dist4=np.linalg.norm(traj3[atom.index,:]-traj3[center_idx,:])
+          if spherical:
+            dist4=np.linalg.norm(traj3[atom.index,:]-com)
             if dist4<dist_atom:
+              dist_atom=dist4 
+          else: #aspherical
+            for center_idx in center_list:
+              dist4=np.linalg.norm(traj3[atom.index,:]-traj3[center_idx,:])
+              if dist4<dist_atom:
                 dist_atom=dist4
         dist_molecules[i]=dist_atom
       if iframe==startframe:
@@ -111,13 +122,14 @@ def startclustergen(argumentList):
        related to microsolvated cluster extraction.
 
        Command line option definitions:
-         -m, --filename  name of the .prmtop file 
+         -f, --filename  name of the .prmtop file 
          -t, --trajname  name of .netcdf trajectory to extract the microsolvate clusters from
          -a, --startframe  first frame at which to start extracting from the trajectory the microsolvated clusters
          -i, --interval  interval in frames at which to extract microsolvated clusters from the trajectory
          -s, --size  solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance
-         -r, --srunuse  option to run inside a slurm job
-         -h, --help  short usage description
+         -p, --spherical  switches from default aspherical solvent shell to spherical solvent shell, solvent shell size is now measured from center of mass, no argument required
+         -r, --srunuse  option to run inside a slurm job, no argument required
+         -h, --help  short usage description, no argument required
 
     Returns
     -------
@@ -125,23 +137,25 @@ def startclustergen(argumentList):
         Generates the ```.xyz`` file containing the microsolvated cluster
     """
     #print(argumentList)
-    options = "hf:t:a:i:s:r"
+    options = "hpf:t:a:i:s:r"
     long_options = ["help", "filename", "trajname", "startframe", "interval", "size", "srunuse"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     srun_use=False
+    spherical=False
     size=4
     startframe=0
     interval=100
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-h", "-help"):
             print('Usage: autosolvate clustergen [OPTIONS]')
-            print('  -m, --filename             name of the .prmtop file')
+            print('  -f, --filename             name of the .prmtop file')
             print('  -t, --trajname             name of .netcdf trajectory to extract the microsolvate clusters from')
             print('  -a, --startframe           first frame at which to start extracting from the trajectory the microsolvated clusters')
             print('  -i, --interval             interval in frames at which to extract microsolvated clusters from the trajectory')
             print('  -s, --size                 solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance')
-            print('  -r, --srunuse              option to run inside a slurm job')
-            print('  -h, --help                 short usage description')
+            print('  -p, --spherical            switches from default aspherical solvent shell to spherical solvent shell, solvent shell size is now measured from center of mass, no argument required')
+            print('  -r, --srunuse              option to run inside a slurm job, no argument required')
+            print('  -h, --help                 short usage description, no argument required')
             exit()
         elif currentArgument in ("-f", "-filename"):
             print ("Filename:", currentValue)
@@ -159,10 +173,13 @@ def startclustergen(argumentList):
             print ("Cutout size in Angstrom:", currentValue)
             size=float(currentValue)
         elif currentArgument in ("-r", "-srunuse"):
-            print("usign srun")
+            print("using srun")
             srun_use=True
+        elif currentArgument in ("-p", "-spherical"):
+            print("switched to spherical solvent shell")
+            spherical=True
 
-    clustergen(filename=filename, trajname=trajname, startframe=startframe, interval=interval, size=size, srun_use=srun_use)
+    clustergen(filename=filename, trajname=trajname, startframe=startframe, interval=interval, size=size, spherical=spherical, srun_use=srun_use)
 
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
