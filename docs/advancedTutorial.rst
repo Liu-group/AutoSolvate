@@ -77,3 +77,35 @@ The automated recommendation of solvent-solute closeness allows to generate init
 >>> autosolvate boxgen -m naphthalene_neutral.xyz -s water -c 0 -u 1 -t automated
 
 with the option `-t automated` the closeness will be automatically determined from the solvent identity. 
+
+Advanced Example 3: Freeze the solute molecule structure
+--------------------------------------------------------
+
+In certain situations, the user may want to add the solvation shell without changing the solute structure. This can be easily done turning on the "freeze solute" option in the command line or in the GUI interface. This will enable the `ibelly` option in Amber, freezing the solute molecule throughout all MD steps. 
+
+.. warning::
+
+   The option "freeze solute" will overwrite all the QM/MM options. QM/MM steps will be set to 0. QM/MM simulation will not run. The reason is that if solute is requested to be frozen, then there is no reason to calculate the QM gradients to update the solute structure. Running QM/MM will be a waste of time, because the expensive QM gradients will never be used.
+
+
+To freeze the solute from command line, simply add the `-z` or `--freezesolute` option to your command. For example, for the naphthalene in water example shown in :ref:`Tutorial Step 2<tutstep2>`, the command to run MD with frozen solute is:
+
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 250 -z``
+
+Here, although the user specified the number of steps for QM/MM minimization (`-o`), QMMM heat (`-s`) and QMMM equilibration (`-l`), these options will be ignored and set to 0 because the `-z` option is turned on. The above command is equivalent to 
+
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 0 -s 0 -l 0 -z``
+
+and 
+
+``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -z``
+
+
+To freeze the solute from the GUI interface, select "Yes" for the radial button of the "Freeze solute structure?" option in the *mdrun* GUI, as shown in the picture below.
+
+.. image:: _images/advancedTutorial3_1.png
+   :width: 800
+
+
+
+
