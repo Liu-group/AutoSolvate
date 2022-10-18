@@ -3,6 +3,9 @@ import getopt, sys, os
 from openbabel import openbabel as ob
 import subprocess
 import pkg_resources
+from molSimplify.Classes.mol3D import mol3D
+from molSimplify.Classes.ligand import ligand_breakdown
+from molSimplify.job_manager.moltools import name_ligands
 
 
 amber_solv_dict = {'water': [' ','TIP3PBOX '],
@@ -174,13 +177,115 @@ class solventBoxBuilder():
         obConversion.SetInAndOutFormats("xyz", "pdb")
         obmol = self.solute.OBMol
         obConversion.WriteFile(obmol,'solute.xyz.pdb')
-        # Change the residue name from the default UNL to SLU
-        pdb1 = open('solute.xyz.pdb').readlines()
-        pdb2 = open('solute.xyz.pdb','w')
-        for line in pdb1:
-            newline = line.replace('UNL','SLU')
-            pdb2.write(newline)
-        pdb2.close()
+        complex_mol = mol3D()
+        complex_mol.readfromxyz(self.xyz)
+        metal_list = list((i+1) for i in (complex_mol.findMetal()))
+        if len(metal_list) == 0:
+            # Change the residue name from the default UNL to SLU
+            pdb1 = open('solute.xyz.pdb').readlines()
+            pdb2 = open('solute.xyz.pdb','w')
+            for line in pdb1:
+                newline = line.replace('UNL','SLU')
+                pdb2.write(newline)
+            pdb2.close()
+        else:
+            # Get metal bonded atoms
+            bonded_atom = []
+            for i in complex_mol.getBondedAtoms(metal_list[0]-1):
+                bonded_atom.append(str(metal_list[0]) + '-' + str(i + 1))
+            lig_list, lig_charge, lig_spinmult, ion_charge = prep_lig_breakdown(complex_mol, mol_charge, mol_spinmult, dissociated_ligand)
+            metalpdb_list = []
+            ligpdb_list = []
+            data = []
+            with open('solute.xyz.pdb','r') as f:
+                s = f.read().splitlines()
+            # Counting useless lines
+            ucount = 0
+            for line in s:
+                if (line.split()[0] != "ATOM" and line.split()[0] != "HETATM"):
+                    ucount += 1
+                else:
+                    break
+            # Extract metals
+            for metal_i, metal in enumerate(metal_list):
+                metal_data = []
+                line_split = s[metal + ucount -1].split()
+                line_split[3] =  line_split[2]
+                line_split[4] =  str(metal_i + 1)
+                line_split[-1] =  line_split[2]
+                data.append(line_split)
+                metal_data.append(line_split)
+                # write metal pdbs:
+                if len(metal_list) != 1:
+                    metal_pdb = line_split[-1] + str(metal_i + 1) + '.pdb'
+                    write_metpdb(metal_pdb, metal_data)
+                    print("Warning: there are multiple metals")
+                else:
+                    metal_pdb = line_split[-1] + '.pdb'
+                    write_metpdb(metal_pdb, metal_data)
+                metalpdb_list.append(metal_pdb)
+                # Get metalmol2
+                get_metalmol2(ion_charge, metal_pdb)
+       
+        # Only considering one metal center
+    def prep_lig_breakdown(complex_mol, self, dissociated_ligand, collect=False):
+        lig_idxs = ligand_breakdown(complex_mol)[0]
+        ligand_syms = []
+        # 0 for charge, 1 for spin
+        ligand = [[],[]]
+        for ii in lig_idxs:
+            ligand_syms.append([complex_mol.getAtom(i).symbol() for i in ii])
+        ligand_names = name_ligands(ligand_syms)
+        print("ligand_names:",ligand_names)
+        for idxs, name in enumerate(ligand_names):
+            mol_type = name.split('_')[0]
+            if collect == True:
+                with open('dict_om.json', 'r+') as f:
+                    my_dict = json.load(f)
+                    if mol_type not in my_dict:
+                        # dissociated_ligand={"name":[charge,spin]...}
+                        my_dict[mol_type] = [0,1]
+                    f.seek(0)
+                    f.truncate()
+                    json.dump(my_dict,f)
+                print(ligand_names)
+            if mol_type in list(dissociated_ligand.keys()):
+                ligand[0].append(dissociated_ligand[mol_type][0])
+                ligand[1].append(dissociated_ligand[mol_type][1])
+            else:
+                if mol_spinmult == 1:
+                    print("Lack of ligand charge info")
+                    ligand[1].append(1)
+                else:
+                    print("Lack of ligand charge & spinmult info")
+                    ligand[1].append(1)
+            # All other ligands are assigned charge 0 if charge's not provided
+                ligand[0].append(0)
+        ion_charge = mol_charge - sum(ligand[0])
+        return lig_idxs, ligand[0], ligand[1], ion_charge
+
+    def write_metpdb(filename, data):
+        f = open(filename, 'w')
+        for line in data:
+            for i,seg in enumerate(line):
+                if i <= 0:
+                    f.write("{: >6}".format(seg))
+                elif i >= 1 and i<= 2:
+                    f.write("{: >5}".format(seg))
+                elif i == 3:
+                    f.write("{: >4}".format(seg))
+                elif i == 4:
+                    f.write("{: >5}".format(seg))
+                elif i == 5 :
+                    f.write("{: >12}".format(seg))
+                elif i >= 6 and i<= 7:
+                    f.write("{: >8}".format(seg))
+                elif i >= 8 and i<= 9:
+                    f.write("{: >6}".format(seg))
+                elif i == 10:
+                    f.write("{: >12}".format(seg))
+            f.write("\n")
+        f.close()
 
     def removeConectFromPDB(self):
         print("cleaning up solute.xyz.pdb")

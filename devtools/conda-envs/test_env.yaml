@@ -28,6 +28,9 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
 
+    # Molsimplify
+  - molsimplify 
+
     # Pip-only installs
   - pip:
     - imolecule
