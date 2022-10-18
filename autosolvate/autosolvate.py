@@ -80,8 +80,8 @@ class solventBoxBuilder():
             self.outputFile = self.solvent + "_solvated"
         self.srun_use=srun_use
         self.charge_method=charge_method
-        self.gaussian_dir = gaussianexe
-        self.gaussian_exe = gaussiandir
+        self.gaussian_dir = gaussiandir
+        self.gaussian_exe = gaussianexe
         self.amberhome = amberhome
         self.solvent_off=solvent_off
         self.solvent_frcmod=solvent_frcmod
@@ -832,8 +832,8 @@ def startboxgen(argumentList):
         print(solutexyz," cannot be opened with openbabel.\n Exiting...")
         exit()
      
-    builder = solventBoxBuilder(solutexyz, solvent, slu_netcharge, cube_size, charge_method, 
-                                slu_spinmult, outputFile, srun_use=srun_use, 
+    builder = solventBoxBuilder(solutexyz, solvent=solvent, slu_netcharge=slu_netcharge, cube_size=cube_size, charge_method=charge_method, 
+                                slu_spinmult=slu_spinmult, outputFile=outputFile, srun_use=srun_use, 
                                 gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, 
                                 closeness=closeness, solvent_off=solvent_off, solvent_frcmod=solvent_frcmod)
     builder.build()
