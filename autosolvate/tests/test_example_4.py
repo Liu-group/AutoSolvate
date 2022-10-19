@@ -18,7 +18,7 @@ def test_example_4(tmpdir):
         "-m", hp.get_input_dir("naphthalene_radical.xyz"),
         "-s", "chloroform",
         "-c", "1", 
-        "-u", "2"
+        "-u", "2",
         "-g", "resp", 
         "-o", "nap_radical_chcl3",
         ])
