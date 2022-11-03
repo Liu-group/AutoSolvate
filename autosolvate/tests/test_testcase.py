@@ -22,12 +22,12 @@ def test_temp_dir(tmpdir):
     f.write("\nTEMPINPUTDIR:\t" + os.path.dirname(hp.get_input_dir("water_solvated.prmtop")))
     f.write("\nREFERENCEDIR:\t" + hp.get_reference_dir())
 
-    f.write("\nFILEININPUTS:\t" + str(os.listdir(hp.get_input_dir())))
-    f.write("\nTEMPINPUTS:\t" + str(os.listdir(os.path.join(os.path.dirname(__file__), "inputs"))))
+    f.write("\nFILEININPUTS:\t" + str(sorted(os.listdir(hp.get_input_dir()))))
+    f.write("\nTEMPINPUTS:\t" + str(sorted(os.listdir(os.path.join(os.path.dirname(__file__), "inputs")))))
     f.write("\nFILEINREFERENCE:\t" + str(os.listdir(hp.get_reference_dir())))
     assert os.path.exists(hp.get_input_dir("water_solvated.prmtop"))
     assert os.path.exists(hp.get_reference_dir("d_solvated.pdb"))
     assert os.path.exists(os.path.join(tmpdirstr, "inputs"))
-    assert os.listdir(hp.get_input_dir()) != []
-    assert os.listdir(hp.get_input_dir()) == os.listdir(os.path.join(os.path.dirname(__file__), "inputs"))
+    assert sorted(os.listdir(hp.get_input_dir())) != []
+    assert sorted(os.listdir(hp.get_input_dir())) == sorted(os.listdir(os.path.join(os.path.dirname(__file__), "inputs")))
     f.close()

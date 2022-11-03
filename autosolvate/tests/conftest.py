@@ -20,7 +20,8 @@ def _change2tmpdir(request):
 def _copy_inputs(request):
     """All input files are copied into a folder called "input" in temporary directory"""
     # It is also dangerous to put all temporary output and input files together at the temporary directory
-    inputpath = hp.get_input_dir()
+    # Therefore create an inputs directory to store the input files.
+    inputpath = os.path.join(os.path.dirname(__file__), "inputs")
     inputfiles = os.listdir(inputpath)
     tmpdir = request.getfixturevalue("tmpdir")
     tmpdirstr = str(tmpdir)

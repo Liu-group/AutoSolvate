@@ -28,7 +28,7 @@ def get_input_dir(name = ""):
     This function will first try to find inputfiles in the temporary directory. If it do not exist, find it at the input directory.
     """
     # use this directory if we move the folder "tests" to the Autosolvate-main directory with setup.py . 
-    if name and os.path.exists(os.path.join(os.getcwd(), "inputs", name)):
+    if os.path.exists(os.path.join(os.getcwd(), "inputs", name)):
         return os.path.join(os.getcwd(), "inputs", name)
     if os.path.exists(os.path.join(os.path.dirname(__file__), "inputs", name)):
         return os.path.join(os.path.dirname(__file__), "inputs", name)
