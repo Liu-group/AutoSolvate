@@ -26,29 +26,42 @@ def get_input_dir(name = ""):
     """
     will return the input directory if name is empty
     This function will first check the temporary directory. If it do not exist, find it at the input directory.
-    This function can accept filename without extension. It will just add the absolute path before the file name.
     """
     # use this directory if we move the folder "tests" to the Autosolvate-main directory with setup.py . 
-    if os.path.exists(os.path.join(os.getcwd(), "inputs")):
-        return os.path.join(os.getcwd(), "inputs", name)
-    if os.path.exists(os.path.join(os.path.dirname(__file__), "inputs")):
-        return os.path.join(os.path.dirname(__file__), "inputs", name)
+    path1 = os.path.join(os.getcwd(), "inputs")
+    path2 = os.path.join(os.path.dirname(__file__), "inputs")
     try:
-        return resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/inputs/" + name)
+        path3 = resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/inputs")
     except DistributionNotFound:
-        pass
-    raise FileNotFoundError(os.path.join(os.path.dirname(__file__), "inputs", name) + "\t" + os.path.join(os.getcwd(), "inputs", name) + "\t not exist.")
+        path3 = path2
+    for ppath in [path1, path2, path3]:
+        if not os.path.exists(ppath):
+            continue
+        if os.path.exists(os.path.join(ppath, name)):
+            return os.path.join(ppath, name)
+        flist = os.listdir(ppath)
+        flist = [fname for fname in flist if fname.find(name) != -1]
+        if len(flist) >= 1:
+            return os.path.join(ppath, name)
+    raise FileNotFoundError(os.path.join(path1, name) + "\t" + os.path.join(path2, name) + "\t not exist.")
 
 def get_reference_dir(name = ""):
     """will return the reference directory if name is empty"""
-    # use this directory if we move the folder "tests" to the Autosolvate-main directory with setup.py . 
-    if os.path.exists(os.path.join(os.path.dirname(__file__), "refs")):
-        return os.path.join(os.path.dirname(__file__), "refs", name)
+    path2 = os.path.join(os.path.dirname(__file__), "refs")
     try:
-        return resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/refs/" + name)
+        path3 = resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/refs")
     except DistributionNotFound:
-        pass
-    raise FileNotFoundError(os.path.join(os.path.dirname(__file__), "refs", name)+"\t not exist.")
+        path3 = path2
+    for ppath in [path2, path3]:
+        if not os.path.exists(ppath):
+            continue
+        if os.path.exists(os.path.join(ppath, name)):
+            return os.path.join(ppath, name)
+        flist = os.listdir(ppath)
+        flist = [fname for fname in flist if fname.find(name) != -1]
+        if len(flist) >= 1:
+            return os.path.join(ppath, name)
+    raise FileNotFoundError(os.path.join(path2, name) + "\t not exist.")
 
 def get_temporary_dir(tmpdir:Path, name = ""):
     """will return the temporary directory if name is empty. Can be replaced by tmpdir.dirname + '/' + name"""
