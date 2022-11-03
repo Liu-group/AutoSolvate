@@ -1,0 +1,116 @@
+============================= test session starts =============================
+platform win32 -- Python 3.8.13, pytest-7.2.0, pluggy-1.0.0
+rootdir: C:\Users\Fangning Ren\Desktop\research\Autosolvate-testcase\AutoSolvate
+plugins: cov-4.0.0
+collected 7 items / 6 deselected / 1 selected
+
+autosolvate\tests\test_advanced_example_1.py E                           [100%]
+
+=================================== ERRORS ====================================
+__________________ ERROR at setup of test_advanced_example_1 __________________
+
+request = <SubRequest '_copy_inputs' for <Function test_advanced_example_1>>
+
+    @pytest.fixture(autouse=True, scope = "function")
+    def _copy_inputs(request):
+        """All input files are copied into a folder called "input" in temporary directory"""
+        # It is also dangerous to have all temporary output and input together
+>       inputpath = hp.get_input_dir()
+
+C:\Users\Fangning Ren\Desktop\research\Autosolvate-testcase\AutoSolvate\autosolvate\tests\conftest.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Fangning Ren\Desktop\research\Autosolvate-testcase\AutoSolvate\autosolvate\tests\helper_functions.py:32: in get_input_dir
+    return resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/inputs/" + name)
+C:\ProgramData\Anaconda3\envs\autosolvate\lib\site-packages\pkg_resources\__init__.py:1154: in resource_filename
+    return get_provider(package_or_requirement).get_resource_filename(
+C:\ProgramData\Anaconda3\envs\autosolvate\lib\site-packages\pkg_resources\__init__.py:354: in get_provider
+    return working_set.find(moduleOrReq) or require(str(moduleOrReq))[0]
+C:\ProgramData\Anaconda3\envs\autosolvate\lib\site-packages\pkg_resources\__init__.py:909: in require
+    needed = self.resolve(parse_requirements(requirements))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <pkg_resources.WorkingSet object at 0x0000026CE3983E50>
+requirements = []
+env = <pkg_resources.Environment object at 0x0000026CE60DC9D0>, installer = None
+replace_conflicting = False, extras = None
+
+    def resolve(self, requirements, env=None, installer=None,  # noqa: C901
+                replace_conflicting=False, extras=None):
+        """List all distributions needed to (recursively) meet `requirements`
+    
+        `requirements` must be a sequence of ``Requirement`` objects.  `env`,
+        if supplied, should be an ``Environment`` instance.  If
+        not supplied, it defaults to all distributions available within any
+        entry or distribution in the working set.  `installer`, if supplied,
+        will be invoked with each requirement that cannot be met by an
+        already-installed distribution; it should return a ``Distribution`` or
+        ``None``.
+    
+        Unless `replace_conflicting=True`, raises a VersionConflict exception
+        if
+        any requirements are found on the path that have the correct name but
+        the wrong version.  Otherwise, if an `installer` is supplied it will be
+        invoked to obtain the correct version of the requirement and activate
+        it.
+    
+        `extras` is a list of the extras to be used with these requirements.
+        This is important because extra requirements may look like `my_req;
+        extra = "my_extra"`, which would otherwise be interpreted as a purely
+        optional requirement.  Instead, we want to be able to assert that these
+        requirements are truly required.
+        """
+    
+        # set up the stack
+        requirements = list(requirements)[::-1]
+        # set of processed requirements
+        processed = {}
+        # key -> dist
+        best = {}
+        to_activate = []
+    
+        req_extras = _ReqExtras()
+    
+        # Mapping of requirement to set of distributions that required it;
+        # useful for reporting info about conflicts.
+        required_by = collections.defaultdict(set)
+    
+        while requirements:
+            # process dependencies breadth-first
+            req = requirements.pop(0)
+            if req in processed:
+                # Ignore cyclic or redundant dependencies
+                continue
+    
+            if not req_extras.markers_pass(req, extras):
+                continue
+    
+            dist = best.get(req.key)
+            if dist is None:
+                # Find the best distribution and add it to the map
+                dist = self.by_key.get(req.key)
+                if dist is None or (dist not in req and replace_conflicting):
+                    ws = self
+                    if env is None:
+                        if dist is None:
+                            env = Environment(self.entries)
+                        else:
+                            # Use an empty environment and workingset to avoid
+                            # any further conflicts with the conflicting
+                            # distribution
+                            env = Environment([])
+                            ws = WorkingSet([])
+                    dist = best[req.key] = env.best_match(
+                        req, ws, installer,
+                        replace_conflicting=replace_conflicting
+                    )
+                    if dist is None:
+                        requirers = required_by.get(req, None)
+>                       raise DistributionNotFound(req, requirers)
+E                       pkg_resources.DistributionNotFound: The 'autosolvate' distribution was not found and is required by the application
+
+C:\ProgramData\Anaconda3\envs\autosolvate\lib\site-packages\pkg_resources\__init__.py:795: DistributionNotFound
+---------------------------- Captured stdout setup ----------------------------
+C:\Users\Fangning Ren\AppData\Local\Temp\pytest-of-Fangning Ren\pytest-10\test_advanced_example_10
+=========================== short test summary info ===========================
+ERROR autosolvate/tests/test_advanced_example_1.py::test_advanced_example_1
+======================= 6 deselected, 1 error in 1.91s ========================

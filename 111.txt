@@ -1,0 +1,3 @@
+C:\Users\Fangning Ren\AppData\Local\Temp\pytest-of-Fangning Ren\pytest-29\test_temp_dir0\inputs\
+C:\Users\Fangning Ren\Desktop\research\Autosolvate-testcase\AutoSolvate\autosolvate\tests\inputs\
+FalseTrue
