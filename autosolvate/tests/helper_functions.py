@@ -25,21 +25,30 @@ initialize_random() # this function is instantly executed.
 def get_input_dir(name = ""):
     """
     will return the input directory if name is empty
-    This function will first try to find inputfiles in the temporary directory. If it do not exist, find it at the input directory.
+    This function will first check the temporary directory. If it do not exist, find it at the input directory.
+    This function can accept filename without extension. It will just add the absolute path before the file name.
     """
     # use this directory if we move the folder "tests" to the Autosolvate-main directory with setup.py . 
-    if os.path.exists(os.path.join(os.getcwd(), "inputs", name)):
+    if os.path.exists(os.path.join(os.getcwd(), "inputs")):
         return os.path.join(os.getcwd(), "inputs", name)
-    if os.path.exists(os.path.join(os.path.dirname(__file__), "inputs", name)):
+    if os.path.exists(os.path.join(os.path.dirname(__file__), "inputs")):
         return os.path.join(os.path.dirname(__file__), "inputs", name)
-    return resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/inputs/" + name)
+    try:
+        return resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/inputs/" + name)
+    except DistributionNotFound:
+        pass
+    raise FileNotFoundError(os.path.join(os.path.dirname(__file__), "inputs", name) + "\t" + os.path.join(os.getcwd(), "inputs", name) + "\t not exist.")
 
 def get_reference_dir(name = ""):
     """will return the reference directory if name is empty"""
     # use this directory if we move the folder "tests" to the Autosolvate-main directory with setup.py . 
-    if os.path.exists(os.path.join(os.path.dirname(__file__), "refs", name)):
+    if os.path.exists(os.path.join(os.path.dirname(__file__), "refs")):
         return os.path.join(os.path.dirname(__file__), "refs", name)
-    return resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/refs/" + name)
+    try:
+        return resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/refs/" + name)
+    except DistributionNotFound:
+        pass
+    raise FileNotFoundError(os.path.join(os.path.dirname(__file__), "refs", name)+"\t not exist.")
 
 def get_temporary_dir(tmpdir:Path, name = ""):
     """will return the temporary directory if name is empty. Can be replaced by tmpdir.dirname + '/' + name"""
