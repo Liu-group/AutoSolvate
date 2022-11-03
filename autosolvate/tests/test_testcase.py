@@ -10,14 +10,18 @@ def test_temp_dir(tmpdir):
 
     tmpdirstr = str(tmpdir)
     f.write("\nTESTSETDIR:\t" + os.path.dirname(__file__))
-    f.write("\nTMPDIR:\t" + tmpdirstr)
+    f.write("\nTEMPDIR:\t" + tmpdirstr)
     f.write("\nCURRENTDIR:\t" + os.getcwd())
     assert tmpdirstr != os.path.dirname(__file__)
     assert tmpdirstr not in __file__
     assert tmpdirstr == os.getcwd()
-
-    hp.get_input_dir("ThisFileDoNotHaveExtension")
+    try:
+        hp.get_input_dir("ThisFileDoNotExist")
+        assert False
+    except FileNotFoundError:
+        pass
     hp.get_input_dir("dmso")
+    hp.get_input_dir()
     hp.get_reference_dir()
     f.write("\nINPUTDIR:\t" + os.path.join(os.path.dirname(__file__), "inputs"))
     f.write("\nTEMPINPUTDIR:\t" + os.path.dirname(hp.get_input_dir("water_solvated.prmtop")))
