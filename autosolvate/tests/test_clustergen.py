@@ -5,9 +5,9 @@ from . import helper_functions as hp
 
 def compare_cluster(out, ref):
     with open(out, 'r') as f_in:
-        cluster_test = f_in.read()[2:]
+        cluster_test = f_in.readlines()[2:]
     with open(ref, 'r') as f_in:
-        cluster_ref = f_in.read()[2:]
+        cluster_ref = f_in.readlines()[2:]
     return cluster_test == cluster_ref
 
 def test_clustergen_aspherical(tmpdir):
