@@ -70,10 +70,17 @@ def get_temporary_dir(tmpdir:Path, name = ""):
 def compare_pdb(out, ref, threshold = 1.0e-3):
     """Compare the two pdb file. A default threshold 1.0e-3 is set for fuzzy compare because the accuracy for the coordinates of pdb file is only 1.0e-3"""
     out, ref = os.path.splitext(out)[0] + ".pdb", os.path.splitext(ref)[0] + ".pdb"
-    mol_out = md.load(out)
-    mol_ref = md.load(ref)
+    mol_out = md.load_pdb(out)
+    mol_ref = md.load_pdb(ref)
     if mol_out.n_atoms != mol_ref.n_atoms:
         return False
+    top_out, top_ref = mol_out.top, mol_ref.top
+    top_out:md.Topology
+    for i in range(mol_out.n_atoms):
+        if top_out.atom(i).name != top_ref.atom(i).name:
+            return False
+        if top_out.atom(i).residue.name != top_ref.atom(i).residue.name:
+            return False
     xyz_out, xyz_ref = mol_out.xyz[0], mol_ref.xyz[0]
     max_dist = np.max(np.sum((xyz_out - xyz_ref)**2, axis = 1)**0.5)
     return max_dist <= threshold

@@ -734,6 +734,8 @@ class solventBoxBuilder():
             solvent_prep = solvPrefix+'.prep'
             solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
                     os.path.join('data',solvPrefix,solvent_prep))
+            solvent_lib_path = ""
+            solvent_mol2_path = ""
 
         f = open("leap_packmol_solvated.cmd","w")
         f.write("source leaprc.protein.ff14SB\n")
@@ -741,6 +743,8 @@ class solventBoxBuilder():
         f.write("source leaprc.water.tip3p\n") # This will load the Ions. Neccessary
         f.write("loadamberparams " + solvent_frcmod_path + "\n")
         for command, fpath in zip(["loadamberprep", "loadoff", "loadmol2"], [solvent_prep_path, solvent_lib_path, solvent_mol2_path]):
+            if not fpath:
+                continue
             if os.path.exists(fpath):
                 f.write(command + " " + fpath + "\n")
                 break
