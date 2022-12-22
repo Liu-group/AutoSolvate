@@ -22,7 +22,6 @@ class AntechamberDocker:
         self.charge_fiiting_method          = charge_fiiting_method  
 
 
-
     def run(self, mol: Molecule):
         self.check_mol(mol) 
         cmd = self.generate_cmd(mol)
@@ -35,6 +34,10 @@ class AntechamberDocker:
 
     @tools.srun()
     def generate_cmd(self, mol: Molecule) -> str:
+        '''
+        @EXAMPLE: 
+        $AMBERHOME/bin/antechamber -i 1.pdb -fi pdb -o 1.mol2 -fo mol2 -c bcc -nc 0 -m 1 -rn MOL
+        '''
         cmd =  self.set_executable(mol)    + ' '
         cmd += self.set_input(mol)         + ' '
         cmd += self.set_output(mol)        + ' ' 

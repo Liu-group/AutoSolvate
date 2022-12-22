@@ -1,29 +1,47 @@
+r''' 
+    @TODO 
+    1. check '-> callable:' is used correctly 
+'''
 from Common import * 
 import os   
+from openbabel import openbabel as ob
 
 
-def get_basename_name_ext(inputfile):
+def extract_basename_name_extension(inputfile: str) -> tuple:
     r'''
     Get basename, name and extension of a file
 
     @Example: 
-    >>> get_basename_name_ext('test.pdb') 
+    >>> extract_basename_name_extension('test.pdb') 
     ('test.pdb', 'test', 'pdb')
     '''
     basename        = os.path.basename(inputfile) 
     name , ext      = os.path.splitext(basename)
     ext             = ext[1:]
     return basename, name, ext
-    
 
-def srun():
+
+def convert_xyz_to_pdb(inputfile: str) -> str: 
+    r'''
+    Convert xyz file to pdb file using openbabel
+    '''
+    basename, name, ext = extract_basename_name_extension(inputfile) 
+    if ext == 'xyz':
+        outputfile = name + '.pdb'
+        os.system('ob -ixyz {} -opdb -O {}'.format(inputfile, outputfile))
+        return outputfile
+    else:
+        raise Exception('Input file format not supported in function convert_xyz_to_pdb()')
+
+
+def srun() -> callable:
     r'''
     @Example:
     >>> @srun()
     ... def test():
-    ...     return 'FirePunch'
+    ...     return 'cmd'
     >>> test()
-    'srun -n 1 FirePunch'
+    'srun -n 1 cmd'
     '''
     def wrap(func): 
         def wrapped_func(*args, **kwargs): 
