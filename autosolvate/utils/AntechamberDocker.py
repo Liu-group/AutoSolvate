@@ -13,8 +13,8 @@ from Molecule import Molecule
 
 class AntechamberDocker:
 
-    SUPPORT_INPUT_FORMATS           = ['pdb']
-    SUPPORT_CHARGE_FITTING_METHODS  = ['bcc']
+    _SUPPORT_INPUT_FORMATS           = ['pdb']
+    _SUPPORT_CHARGE_FITTING_METHODS  = ['bcc']
 
     def __init__(self, charge_fiiting_method:str = 'bcc', output_format:str = 'mol2') -> None:      
         #setting
@@ -74,7 +74,7 @@ class AntechamberDocker:
         
 
     def set_charge_method(self) -> str: 
-        if self.charge_method not in self.SUPPORT_CHARGE_FITTING_METHODS:
+        if self.charge_method not in self._SUPPORT_CHARGE_FITTING_METHODS:
             raise Exception('Charge fitting method not supported in class AntechamberDocker()')
         return '-c %s' % self.charge_method
 
