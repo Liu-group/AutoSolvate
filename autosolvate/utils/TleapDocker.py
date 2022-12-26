@@ -20,9 +20,10 @@ class TleapDocker:
         1. do not store any molecule obejct in this class attribute 
            because this class is a function class, not a data class 
         '''
-        self._solute_num    = 0
-        self._solvent_num   = 0 
-        self._load_ions     = False
+        self._solute_num            = 0
+        self._solvent_num           = 0 
+        self._load_ions             = False
+        self.automate_closeness     = True
         
 
     def submit(self, cmd: str) -> None: 
@@ -32,13 +33,13 @@ class TleapDocker:
         else:
             subprocess.call(cmd, shell=True)
 
-
+    #dispatched run function 
     @dispatch(object)
     def run(self, mol: object) -> None:
-        check_args(mol)
+        self.check_args(mol)
         if self._solute_num == 1:
             self.write_tleap_in(mol)
-            self.generate_cmd(mol)
+            cmd = self.generate_cmd(mol)
         else: 
             raise Exception('invalid number of solute')
         self.submit(cmd)        
@@ -51,8 +52,8 @@ class TleapDocker:
         2. need to add to check if mol1 and mol2 are solute and solvent 
         3. need to check if solvent is custom or not 
         '''
-        check_args(mol1, mol2)
-
+        self.check_args(mol1, mol2)
+    #end 
 
     def check_args(self, *args: object) -> None: 
         for mol in args:
@@ -66,12 +67,13 @@ class TleapDocker:
         cmd = 'tleap -s -f leap_{}.in > leap_{}.out'.format(mol.name, mol.name)
         return cmd
 
-
+    #dispatched write_tleap_in function 
     @dispatch(object)
     def write_tleap_in(self, mol: object) -> None:  
         r'''
         @QUESTION 
         1. Is check mol necessary?, what is it for? 
+        2. Does self count as an object? in @dispatch(object) 
         '''
         f = open('leap_{}.in'.format(mol.name), 'w')
         self.add_forcefield(f)
@@ -82,8 +84,10 @@ class TleapDocker:
         f.write('{:<20}                     \n'.format('quit'))
         f.close() 
 
-    @dispatch(object, object)
-    def write_tleap_in(self, solute: object, solvent: object) -> None:
+    @dispatch(object, object, float, float)
+    def write_tleap_in(self, solute: object, solvent: object, 
+                             cubsize: int = 54, closeness: float = 0.8
+    ) -> None: 
         r'''
         @param slu: solute MOLECULE object
         @param slv: solvent MOLECULE object
@@ -92,13 +96,50 @@ class TleapDocker:
         1. does solvent need mol2 file? 
         '''
         #setting
-        self._load_ions = True 
+        if solute.charge != 0:
+            self._load_ions = True 
+        
+        #set closeness 
+        if self.automate_closeness: 
+            if solvent.name == 'acetonitrile':
+                closeness = 1.88 
+            elif solvent.name == 'water': 
+                closeness = 0.50
+            elif solvent.name == 'methanol': 
+                closeness = 0.60 
+            elif solvent.name == 'nma': 
+                closeness = 0.58 
+            elif solvent.name == 'chloroform': 
+                closeness = 0.58 
+            else: 
+                raise Warning('unknown solvent name')
+        else: 
+            closeness = closeness 
+
+        #set pos 
+        pos = cubsize / 2.0 
+
         #write tleap.in 
         f = open('leap_{}.in'.format('solventbox'), 'w')
         self.add_forcefield(f) 
         self.load_mol(f, solvent, frcmod=True, lib=True)
         self.load_mol(f, solute,  frcmod=True, mol2=True, check_mol=True)
+        self.add_solventbox(f, solute, solvent, pos, closeness)
+        if self._load_ions:
+            pass 
         
+
+    #end        
+
+    def load_ion(self, doc: object, solute: object) -> None:
+        if solute.charge > 0: 
+            ion = 'Cl-'
+        elif solute.charge < 0: 
+            ion = 'Na+' 
+        else: 
+            raise Exception('invalid charge') 
+        doc.write('{:<20} {:<5} {:<5} \n'.format('addIons2 mol', ion + ''))
+
 
     def add_forcefield(self, doc: object) -> None:
         doc.write('{:<20}  {:<20}       \n'.format('source', self._ff14SB)) 
@@ -122,6 +163,20 @@ class TleapDocker:
             doc.write('{:<20}  {:<20}       \n'.format('loadoff', mol.lib)) 
         if check_mol: 
             doc.write('{:<20}  {:<20}       \n'.format('check', 'mol'))
+
+
+    def add_solventbox(self, doc: object, solvent: object, pos: float, closeness: float) -> None:
+        if solvent.mol_type == 'amber_solvent':
+            box = solvent.box
+        
+        else:
+            box = solvent.name 
+
+        doc.write('{:<20}  {:<10}  {:<10}  {:<3}  {:<5} \n'.format(
+            'solvatebox mol', box, pos, 'iso', closeness
+        ))
+
+
 
     
     

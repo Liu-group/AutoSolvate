@@ -4,13 +4,14 @@
 # 3. TleapDocker().run(mol) not fully implemented yet 
 # 4. check update() method in Molecule class 
 
-from openbabel import pybel
-from openbabel import openbabel as ob
+# from openbabel import pybel
+# from openbabel import openbabel as ob
 import numpy as np
 import getopt, sys, os, subprocess, pkg_resources, glob 
 from dataclasses import dataclass, field, asdict
 from Common import * 
 from AntechamberDocker import AntechamberDocker 
+from TleapDocker import TleapDocker 
 import tools 
 
 
@@ -39,11 +40,15 @@ class Molecule:
     lib:    str = None 
     prmtop: str = None
     inpcrd: str = None
+    box:    str = None
 
     
     def __post_init__(self) -> None: 
         if self.inputfile == '': 
             raise Warning('inputfile is empty')
+
+        if not isinstance(self.name, str): 
+            raise Exception('name is not a string') 
 
         if self.charge not in [-1, 0, 1]: 
             raise Exception('invalid charge') 
@@ -53,9 +58,6 @@ class Molecule:
             
         if self.mol_type not in ['solute', 'solvent', 'amber_solvent']:
             raise Exception('invalid mol_type')
-
-        if not isinstance(self.name, str): 
-            raise Exception('name is not a string') 
 
         if self.mol_type != 'amber_solvent': 
             self.set_pdb()
