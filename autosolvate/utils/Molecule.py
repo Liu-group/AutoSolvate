@@ -4,8 +4,8 @@
 # 3. TleapDocker().run(mol) not fully implemented yet 
 # 4. check update() method in Molecule class 
 
-# from openbabel import pybel
-# from openbabel import openbabel as ob
+from openbabel import pybel
+from openbabel import openbabel as ob
 import numpy as np
 import getopt, sys, os, subprocess, pkg_resources, glob 
 from dataclasses import dataclass, field, asdict
@@ -32,9 +32,13 @@ class Molecule:
     
     #set by __post_init__ 
     pdb:    str = field(init=False)
-    name:   str = field(init=False) 
     
     #files 
+    '''
+    @TODO 
+    make these thing store doc instead of a string
+    or a specific place for storing files  
+    '''
     mol2:   str = None
     frcmod: str = None
     lib:    str = None 

@@ -10,12 +10,9 @@ DRY_RUN         = False
 USE_SRUN        = False
 
 
-
 WORKING_DIR     = os.getcwd() + '/'
 
 
-
-#@TODO, move custom solvents to a Tleap class later 
 
 # AMBER_SOLVENT_DIC   = { 'water':     [' ',  'TIP3PBOX '],
 #                         'methanol':  ['loadOff solvents.lib\n loadamberparams frcmod.meoh\n', 'MEOHBOX '],
@@ -43,3 +40,5 @@ AMBER_NMA.lib             =  'solvents.lib'
 AMBER_NMA.frcmod          =  'frcmod.nma' 
 AMBER_NMA.box             =  'NMABOX' 
 
+
+AMBER_SOLVENT_LIST       =  [AMBER_WATER, AMBER_METHANOL, AMBER_CHLOROFORM, AMBER_NMA] 
