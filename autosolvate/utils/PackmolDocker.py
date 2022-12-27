@@ -34,9 +34,8 @@ class PackmolDocker:
         self.check_args(*mol)
         self.write_packmol_inp(self._solute_list, self._solvent_list) 
         cmd = self.generate_cmd()
-
-
-
+        tools.submit(cmd)
+        
 
     @tools.srun()
     def generate_cmd(self) -> str:

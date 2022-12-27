@@ -172,9 +172,9 @@ class TleapDocker:
 
 
     def load_solventbox(self, doc: object, solvent: object, pos: float, closeness: float) -> None:
-        if solvent.mol_type == 'amber_solvent':
+        if solvent in AMBER_SOLVENT_LIST:
             box = solvent.box
-        
+            
         else:
             box = solvent.name 
 
