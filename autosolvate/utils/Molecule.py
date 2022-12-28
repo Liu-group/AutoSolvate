@@ -3,6 +3,7 @@
 # 2. implement charge and multiplicity determination
 # 3. TleapDocker().run(mol) not fully implemented yet 
 # 4. check update() method in Molecule class 
+
 # @DISCUSSION 
 # 1. should we store doc object instead of a string of the filename?
 #    for mol2, frcmod, lib, prmtop, inpcrd, box
@@ -12,8 +13,6 @@ import numpy as np
 import getopt, sys, os, subprocess, pkg_resources, glob 
 from dataclasses import dataclass, field, asdict
 from Common import * 
-from AntechamberDocker import AntechamberDocker 
-from TleapDocker import TleapDocker 
 import tools 
 
 
@@ -110,6 +109,8 @@ class Molecule:
             if not isinstance(self.box, str): 
                 raise Exception('box is not a string') 
 
+        self.set_outstream() 
+
 
     def __eq__(self, o: object) -> bool: 
         ''' 
@@ -124,55 +125,60 @@ class Molecule:
         return True
 
 
-    # def set_output_folder(self) -> None:
-    #     self.output_folder = WORKING_DIR + self.name + '/' 
-    #     if not os.path.exists(self.output_folder):
-    #         os.makedirs(self.output_folder)
-    #     return 
+    def set_outstream(self) -> None:
+        path = WORKING_DIR + self.name + '/'  
+        if not os.path.exists(path): 
+            os.makedirs(path) 
         
+
     def update(self) -> None:
-        search_range = WORKING_DIR + '{}/**/*'.format(self.name) 
+        search_range = WORKING_DIR + '{}/**/*'.format(self.name)
         
+        if self.name + '.pdb' in glob.glob( 
+            search_range + '.pdb', recursive=True 
+        ):
+            self.pdb = self.name + '.pdb'
+
+
         if self.name + '.mol2' in glob.glob(
             search_range + '.mol2', recursive=True
         ):
             self.mol2 = self.name + '.mol2' 
 
+
         if self.name + '.frcmod' in glob.glob(
             search_range + '.frcmod', recursive=True
         ):
             self.frcmod = self.name + '.frcmod' 
-        
+
+
         if self.residue_name + '.lib' in glob.glob(
             search_range + '.lib', recursive=True
         ):
             self.lib = self.residue_name + '.lib' 
 
-        # if self.name + '.prmtop' in glob.glob(search_range + '.prmtop', recursive=True): 
-        #     self.prmtop = self.name + '.prmtop' 
-
-        # if self.name + '.inpcrd' in glob.glob(search_range + '.inpcrd', recursive=True): 
-        #     self.inpcrd = self.name + '.inpcrd' 
-
-        
-def update_mol(mol: object) -> None:
-    r'''
-    @TODO: 
-        1. implement update for solute, or there is no need to update solute 
-    '''
-    if mol.mol_type == 'solvent': 
-        update_solvent(mol)
-    else: 
-        print('not implemented yet')
-    return 
-        
 
 
-def update_solvent(mol: object) -> None:
-    if mol.mol2 == None or mol.frcmod == None:
-        AntechamberDocker().run(mol)
-    if mol.lib == None: 
-        TleapDocker().run(mol)
-    mol.update()
-    return 
 
+#AMBER SOLVENTS 
+AMBER_WATER               = Molecule(name='water', charge=0, multiplicity=1, 
+                                     mol_type='solvent', 
+                                     box='TIP3PBOX'
+                            )
+
+AMBER_METHANOL            = Molecule(name='methanol', charge=0, multiplicity=1, 
+                                     mol_type='solvent', 
+                                     lib='solvents.lib', frcmod='frcmod.meoh', box='MEOHBOX'
+                            )
+
+AMBER_CHLOROFORM          = Molecule(name='chloroform', charge=0, multiplicity=1, 
+                                     mol_type='solvent',  
+                                     lib='solvents.lib', frcmod='frcmod.chcl3', box='CHCL3BOX'
+                            )
+                            
+AMBER_NMA                 = Molecule(name='nma', charge=0, multiplicity=1, 
+                                     mol_type='solvent',
+                                     lib='solvents.lib', frcmod='frcmod.nma', box='NMABOX'
+                            )
+
+AMBER_SOLVENT_LIST       =  [AMBER_WATER, AMBER_METHANOL, AMBER_CHLOROFORM, AMBER_NMA] 

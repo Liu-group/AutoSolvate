@@ -1,10 +1,13 @@
 from openbabel import pybel
 from openbabel import openbabel as ob
 from multipledispatch import dispatch 
-from Common import * 
 import numpy as np
 import getopt, sys, os, subprocess
+from Common     import *
+from Molecule   import Molecule 
+from SolventBox import SolventBox  
 import tools
+
 
 class TleapDocker: 
 
@@ -19,54 +22,45 @@ class TleapDocker:
         1. do not store any molecule obejct in this class attribute 
            because this class is a function class, not a data class 
         '''
-        self._solute_num            = 0
-        self._solvent_num           = 0 
         self._load_ions             = False
-        self.automate_closeness     = True
         
 
-    #dispatched run function 
-    @dispatch(object)
-    def run(self, mol: object) -> None:
-        self.check_args(mol)
-        #this tleap for fitting solute only 
-        if self._solute_num == 1:
+    def run(self, o: object) -> None:
+
+        if isinstance(o, Molecule):
+            mol = o 
+            check_mol_arributes(mol)
             self.write_tleap_in(mol)
             cmd = self.generate_cmd()
-        else: 
-            raise Exception('invalid number of solute')
-        tools.submit(cmd)        
-
-
-    @dispatch(object, object) 
-    def run(self, mol1: object, mol2: object) -> None:
-        r'''
-        @TODO 
-        1. finish this function 
-        3. need to check if solvent is custom or not 
-        '''
-        self.check_args(mol1, mol2)
-        #find solute and solvent
-        if 'solvent' in mol1.mol_type and 'solute' in mol2.mol_type:
-            solvent = mol1
-            solute  = mol2 
-        elif 'solvent' in mol2.mol_type and 'solute' in mol1.mol_type: 
-            solvent = mol2
-            solute  = mol1 
-        else: 
-            raise Exception('invalid number of solute and solvent') 
+            tools.submit(cmd)
+            return 
         
-        self.write_tleap_in(solute, solvent)
-        cmd = self.generate_cmd()
-        tools.submit(cmd)
-    #end of dispatched run function 
+        if isinstance(o, SolventBox):
+            '''
+            @TODO
+            modify 
+            finish this function
+            '''
+            box = o 
+            check_mol_arributes(*box.solute_list)
+            check_mol_arributes(*box.solvent_list)
 
+            if len(box.solute_list) == 1 and len(box.solvent_list) == 1:
+                '''
+                @NOTE: 
+                1. this is for one solute and one solvent 
+                '''
+                solute  = box.solute_list[0]
+                solvent = box.solvent_list[0]
+                self.write_tleap_in(solute, solvent, box.closeness, box.cubesize)
+                cmd = self.generate_cmd()
+                tools.submit(cmd)
+            else: 
+                raise Exception('now only support one solute and one solvent') 
+            return
 
-    def check_args(self, *args: object) -> None:
-        check_mol_arributes(*args)                
-        self._solute_num    = tools.count_solute(*args)
-        self._solvent_num   = tools.count_solvent(*args)
-
+        raise Warning('invalid input type')
+        
 
     @tools.srun()
     def generate_cmd(self) -> str:
@@ -95,13 +89,16 @@ class TleapDocker:
         f.close() 
 
     
-    @dispatch(object, object, float, float)
-    def write_tleap_in(self, solute: object, solvent: object, 
-                             cubsize: int = 54, closeness: float = 0.8
+    @dispatch(object, object, float, int)
+    def write_tleap_in(self, 
+                       solute:      object, 
+                       solvent:     object,
+                       closeness:   float, 
+                       cubsize:     int 
     ) -> None: 
         r'''
-        @param slu: solute MOLECULE object
-        @param slv: solvent MOLECULE object
+        @TODO: 
+        1. combine change pass in closeness and cubsize to pass in solventbox object 
 
         @QUESTION: 
         1. does solvent need mol2 file? 
@@ -109,23 +106,6 @@ class TleapDocker:
         #setting
         if solute.charge != 0:
             self._load_ions = True 
-        
-        #set closeness 
-        if self.automate_closeness: 
-            if solvent.name == 'acetonitrile':
-                closeness = 1.88 
-            elif solvent.name == 'water': 
-                closeness = 0.50
-            elif solvent.name == 'methanol': 
-                closeness = 0.60 
-            elif solvent.name == 'nma': 
-                closeness = 0.58 
-            elif solvent.name == 'chloroform': 
-                closeness = 0.58 
-            else: 
-                raise Warning('unknown solvent name')
-        else: 
-            closeness = closeness 
 
         #set pos 
         pos = cubsize / 2.0 
@@ -154,8 +134,13 @@ class TleapDocker:
             doc.write('{:<20}  {:<20}   \n'.format('source', self._water_tip3p))
         
 
-    def load_mol(self,  doc: object, mol: object, 
-                        frcmod: bool = False, mol2: bool = False, lib: bool = False, check_mol: bool = False
+    def load_mol(self,  
+                 doc:           object, 
+                 mol:           object, 
+                 frcmod:        bool = False, 
+                 mol2:          bool = False, 
+                 lib:           bool = False, 
+                 check_mol:     bool = False
     ) -> None: 
         r'''
         @QUESTION:
@@ -171,7 +156,12 @@ class TleapDocker:
             doc.write('{:<20}  {:<20}       \n'.format('check', 'mol'))
 
 
-    def load_solventbox(self, doc: object, solvent: object, pos: float, closeness: float) -> None:
+    def load_solventbox(self, 
+                        doc:            object, 
+                        solvent:        object, 
+                        pos:            float, 
+                        closeness:      float
+    ) -> None:
         if solvent in AMBER_SOLVENT_LIST:
             box = solvent.box
             
@@ -199,7 +189,6 @@ class TleapDocker:
         @TODO: 
             1. support multiple solute and solvent in the future             
         '''
-        
 
 
 #METHODS 

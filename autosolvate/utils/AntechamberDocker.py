@@ -1,8 +1,12 @@
 # @TODO: 
-# 1. change input to a Molecule object, remove charge and multiplicity 
-# 2. this does not need to be a class 
-# 3. check if 'mol: object' usage is valid 
+# 1. do we want output format to be .prep? 
+# 2. add parmchk command (maybe a class)
 
+# @NOTE: 
+# 1. check if 'mol: object' usage is valid 
+#    - yes, I think it is valid 
+# 2. this does not need to be a class 
+#    - yes it is a functional oriented class 
 from openbabel import pybel
 from openbabel import openbabel as ob
 from Common import * 
@@ -16,20 +20,25 @@ class AntechamberDocker:
     _SUPPORT_INPUT_FORMATS           = ['pdb']
     _SUPPORT_CHARGE_FITTING_METHODS  = ['bcc']
 
-    def __init__(self, charge_fiiting_method:str = 'bcc', output_format:str = 'mol2') -> None:      
+    def __init__(self, 
+                 charge_fiiting_method: str = 'bcc', 
+                 out_format:            str = 'mol2'
+    ) -> None:      
         #setting
-        self.output_format                  = output_format
-        self.charge_fiiting_method          = charge_fiiting_method  
+        self.out_format                 = out_format
+        self.charge_fiiting_method      = charge_fiiting_method  
 
 
-    def run(self, mol: object):
-        self.check_mol(mol) 
+    def run(self, mol: object) -> None:
+        check_mol(mol)    
+        os.chdir(mol.name)
         cmd = self.generate_cmd(mol)
         if DRY_RUN:
             print(cmd) 
             return
         else:
-            subprocess.call(cmd, shell=True)     
+            subprocess.call(cmd, shell=True)    
+        os.chdir(WORKING_DIR)  
 
 
     @tools.srun()
@@ -52,14 +61,17 @@ class AntechamberDocker:
         return '$AMBERHOME/bin/antechamber'
         
 
-    def set_input(self, mol: object) -> str: 
-        pdb = mol.pdb 
-        return '-i %s -fi %s' % (pdb, 'pdb') 
+    def set_input(self, mol: object) -> str:
+        return '-i %s -fi %s' % (os.path.basename(mol.pdb), 'pdb') 
 
-
+ 
     def set_output(self, mol: object) -> str:
-        return '-o %s.mol2 -fo mol2' % mol.name 
-
+        '''
+        @NOTE: 
+        dont use mol.mol2 because it is None at this point 
+        '''
+        return '-o %s.%s -fo %s' % (mol.name, self.out_format, self.out_format) 
+       
 
     def set_charge(self, mol: object) -> str:
         if mol.charge == 0:
@@ -85,18 +97,22 @@ class AntechamberDocker:
         return '-rn %s' % mol.residue_name
 
 
-    def check_mol(self, mol: object) -> None:
-        if mol.pdb is None:
-            raise Exception('mol.pdb is None')
-        if mol.name is None: 
-            raise Exception('mol.name is None')
-        if mol.charge is None: 
-            raise Exception('mol.charge is None')
-        if mol.multiplicity is None: 
-            raise Exception('mol.multiplicity is None')
-        if mol.residue_name is None: 
-            raise Exception('mol.residue_name is None')
+
+def check_mol(mol: object) -> None:
+    if mol.pdb is None:
+        raise Exception('mol.pdb is None')
+    if mol.name is None: 
+        raise Exception('mol.name is None')
+    if mol.charge is None: 
+        raise Exception('mol.charge is None')
+    if mol.multiplicity is None: 
+        raise Exception('mol.multiplicity is None')
+    if mol.residue_name is None: 
+        raise Exception('mol.residue_name is None')
+    if os.path.exists(mol.name) is False:
+        raise Exception('directory %s does not exist' % mol.name) 
         
+
 
 
 if __name__ == '__main__': 

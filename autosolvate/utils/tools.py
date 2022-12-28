@@ -8,7 +8,6 @@ from openbabel import openbabel as ob
 import subprocess 
 
 
-
 def extract_basename_name_extension(inputfile: str) -> tuple:
     r'''
     Get basename, name and extension of a file
@@ -23,6 +22,20 @@ def extract_basename_name_extension(inputfile: str) -> tuple:
     return basename, name, ext
 
 
+def extract(inputfile: str, info: str) -> str:
+    basename        = os.path.basename(inputfile) 
+    name , ext      = os.path.splitext(basename)
+    ext             = ext[1:]
+    if info == 'basename': 
+        return basename 
+    elif info == 'name': 
+        return name 
+    elif info == 'extension' or info == 'ext': 
+        return ext 
+    else: 
+        raise Exception('info not supported')
+    
+    
 def convert_xyz_to_pdb(inputfile: str) -> str: 
     r'''
     Convert xyz file to pdb file using openbabel
