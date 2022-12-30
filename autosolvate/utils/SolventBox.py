@@ -94,6 +94,14 @@ class SolventBox:
         else: 
             pass 
 
+    
+    def check_residue_name(self) -> None: 
+        '''
+        @TODO 
+        check residue name 
+        ''' 
+        pass 
+
 
     def update(self) -> None:
         search_range = WORKING_DIR + '{}/**/*'.format(self.name)

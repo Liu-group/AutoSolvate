@@ -8,20 +8,6 @@ from openbabel import openbabel as ob
 import subprocess 
 
 
-def extract_basename_name_extension(inputfile: str) -> tuple:
-    r'''
-    Get basename, name and extension of a file
-
-    @Example: 
-    >>> extract_basename_name_extension('test.pdb') 
-    ('test.pdb', 'test', 'pdb')
-    '''
-    basename        = os.path.basename(inputfile) 
-    name , ext      = os.path.splitext(basename)
-    ext             = ext[1:]
-    return basename, name, ext
-
-
 def extract(inputfile: str, info: str) -> str:
     basename        = os.path.basename(inputfile) 
     name , ext      = os.path.splitext(basename)
@@ -35,19 +21,6 @@ def extract(inputfile: str, info: str) -> str:
     else: 
         raise Exception('info not supported')
     
-    
-def convert_xyz_to_pdb(inputfile: str) -> str: 
-    r'''
-    Convert xyz file to pdb file using openbabel
-    '''
-    basename, name, ext = extract_basename_name_extension(inputfile) 
-    if ext == 'xyz':
-        outputfile = name + '.pdb'
-        os.system('ob -ixyz {} -opdb -O {}'.format(inputfile, outputfile))
-        return outputfile
-    else:
-        raise Exception('Input file format not supported in function convert_xyz_to_pdb()')
-
 
 def count_solvent(*args: object) -> int: 
     ''' 

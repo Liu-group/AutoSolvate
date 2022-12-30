@@ -97,43 +97,6 @@ class TleapDocker:
         f.write('{:<20}                     \n'.format('quit'))
         f.close() 
 
-    
-    @dispatch(object, object, float, int)
-    def write_tleap_in(self, 
-                       solute:      object, 
-                       solvent:     object,
-                       closeness:   float, 
-                       cubsize:     int, 
-                       system_pdb:  str 
-    ) -> None: 
-        r'''
-        @TODO: 
-        1. combine change pass in closeness and cubsize to pass in solventbox object
-        '''        
-
-        #setting
-        if solute.charge != 0:
-            self._load_ions = True 
-
-        #set pos 
-        pos = cubsize / 2.0 
-
-        #output name 
-        output_name = solute.name + '_solvated'
-
-        #write tleap.in 
-        f = open('leap.in', 'w')
-        self.load_forcefield(f) 
-        self.load_mol(f, solvent, frcmod=True, lib=True)
-        self.load_mol(f, solute,  frcmod=True, mol2=True, check_mol=True)
-        self.load_solventbox(f, solute, solvent, pos, closeness)
-        if self._load_ions:
-            self.load_ions(f, solute, solvent)
-        f.write('{:<20}  {:<20}         \n'.format('savepdb mol', output_name+'.pdb')) 
-        f.write('{:<20}  {:<20}  {:<20} \n'.format('saveamberparm mol', output_name+'.prmtop', output_name+'.inpcrd'))
-        f.write('{:<20}                 \n'.format('quit'))      
-    #end of write_tleap_in function 
-
 
     @dispatch(object, object, float, int)
     def write_tleap_in(self, 
@@ -163,13 +126,50 @@ class TleapDocker:
         f = open('leap.in', 'w')
         self.load_forcefield(f) 
         self.load_mol(f, solvent, frcmod=True, lib=True)
-        self.load_mol(f, solute,  frcmod=True, mol2=True, check_mol=True)
+        self.load_mol(f, solute,  frcmod=True, mol2=True, check=True)
         self.load_solventbox(f, solute, solvent, pos, closeness)
         if self._load_ions:
             self.load_ions(f, solute, solvent)
         f.write('{:<20}  {:<20}         \n'.format('savepdb mol', output_name+'.pdb')) 
         f.write('{:<20}  {:<20}  {:<20} \n'.format('saveamberparm mol', output_name+'.prmtop', output_name+'.inpcrd'))
         f.write('{:<20}                 \n'.format('quit'))      
+        f.close()
+    
+    
+    @dispatch(object, object, float, int, str) 
+    def write_tleap_in(self, 
+                       solute:      object, 
+                       solvent:     object,
+                       closeness:   float, 
+                       cubsize:     int, 
+                       system_pdb:  str 
+    ) -> None: 
+
+        #setting
+        if solute.charge != 0:
+            self._load_ions = True 
+
+        #set pos 
+        pos = cubsize / 2.0 
+
+        #output name 
+        output_name = solute.name + '_solvated'
+
+        #write tleap.in 
+        f = open('leap.in', 'w')
+        self.load_forcefield(f) 
+        self.load_mol(f, solvent, frcmod=True, mol2=True, check=True)
+        self.load_mol(f, solute,  frcmod=True, mol2=True, check=True)
+        '''
+        @QUESTION: 
+        I dont know how to load a ions in this case 
+        '''
+        f.write('{:<5}  {:<10}   {:<20}            \n'.format('SYS =', 'loadpdb', system_pdb)) 
+        f.write('{:<5}  {:<5}    {:<5}  {:<20}     \n'.format('set', 'SYS', 'box', '{'+str(cubsize)+' '+str(cubsize)+' '+str(cubsize)+'}'))
+        f.write('{:<20} {:<5}    {:<20} {:<20}     \n'.format('saveamberparm', 'SYS', output_name+'.prmtop', output_name+'.inpcrd'))
+        f.write('{:<20} {:<5}    {:<20}            \n'.format('savepdb', 'SYS', output_name+'.pdb'))
+        f.write('{:<5}                             \n'.format('quit'))     
+        f.close()    
     #end of write_tleap_in function 
         
 
@@ -187,20 +187,20 @@ class TleapDocker:
                  frcmod:        bool = False, 
                  mol2:          bool = False, 
                  lib:           bool = False, 
-                 check_mol:     bool = False
+                 check:         bool = False
     ) -> None: 
         r'''
         @QUESTION:
         1. what is check mol for? 
         '''
-        if frcmod: 
-            doc.write('{:<20}  {:<20}       \n'.format('loadamberparams', mol.frcmod))       
         if mol2:  
             doc.write('{:<5} {:<15} {:<20}  \n'.format(mol.residue_name, '= loadmol2', mol.mol2))
+        if frcmod: 
+            doc.write('{:<20}  {:<20}       \n'.format('loadamberparams', mol.frcmod))       
         if lib: 
             doc.write('{:<20}  {:<20}       \n'.format('loadoff', mol.lib)) 
-        if check_mol: 
-            doc.write('{:<20}  {:<20}       \n'.format('check', 'mol'))
+        if check: 
+            doc.write('{:<20}  {:<20}       \n'.format('check', mol.residue_name))
 
 
     def load_solventbox(self, 

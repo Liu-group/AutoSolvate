@@ -37,9 +37,15 @@ class Molecule:
     lib:            str = None 
     prmtop:         str = None
     inpcrd:         str = None
+    '''
+    @TODO: 
+    1. this box attribute name is confusing with box as SolventBox object 
+    2. we should use a better name
+    '''
     box:            str = None
 
     folder:         str = field(default=None, init=False)
+    init_folder:   bool = True
 
    
     def __post_init__(self) -> None:
@@ -47,7 +53,7 @@ class Molecule:
         @NOTE:
         1. amber dic solvent can not use os.path.exists() to check if the frcmod exists 
         
-        2. some frcmod files is named as frcmod.*  (not *.frcmod)
+        2. some frcmod files is named as frcmod.*  (not *.frcmod)[ask Dr.Liu]
 
         3. remember molecule can be initailzed many ways: 
             1. from pdb file
@@ -56,7 +62,7 @@ class Molecule:
             4. from mol2 and frcmod files (we provide these files in data/) 
 
         @TODO:
-        1. custome solvent does have mol2 and frcmod files.  
+        1. custome solvent does have mol2 and frcmod files.[ask Dr.Liu]
            we need to check if mol2 and frcmod files provided in the working directory or data/ 
         '''
 
@@ -111,7 +117,8 @@ class Molecule:
             if not isinstance(self.box, str): 
                 raise Exception('box is not a string') 
 
-        self.set_folder() 
+        if self.init_folder:
+            self.set_folder() 
 
 
     def __eq__(self, o: object) -> bool: 
@@ -161,22 +168,26 @@ class Molecule:
 #AMBER SOLVENTS 
 AMBER_WATER               = Molecule(name='water', charge=0, multiplicity=1, 
                                      mol_type='solvent', 
-                                     box='TIP3PBOX'
+                                     box='TIP3PBOX', 
+                                     init_folder=False 
                             )
 
 AMBER_METHANOL            = Molecule(name='methanol', charge=0, multiplicity=1, 
                                      mol_type='solvent', 
-                                     lib='solvents.lib', frcmod='frcmod.meoh', box='MEOHBOX'
+                                     lib='solvents.lib', frcmod='frcmod.meoh', box='MEOHBOX',
+                                     init_folder=False
                             )
 
 AMBER_CHLOROFORM          = Molecule(name='chloroform', charge=0, multiplicity=1, 
                                      mol_type='solvent',  
-                                     lib='solvents.lib', frcmod='frcmod.chcl3', box='CHCL3BOX'
+                                     lib='solvents.lib', frcmod='frcmod.chcl3', box='CHCL3BOX', 
+                                     init_folder=False
                             )
                             
 AMBER_NMA                 = Molecule(name='nma', charge=0, multiplicity=1, 
                                      mol_type='solvent',
-                                     lib='solvents.lib', frcmod='frcmod.nma', box='NMABOX'
+                                     lib='solvents.lib', frcmod='frcmod.nma', box='NMABOX', 
+                                     init_folder=False 
                             )
 
 AMBER_SOLVENT_LIST       =  [AMBER_WATER, AMBER_METHANOL, AMBER_CHLOROFORM, AMBER_NMA] 
