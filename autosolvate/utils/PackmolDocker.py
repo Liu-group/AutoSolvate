@@ -14,6 +14,9 @@ class PackmolDocker:
         1. I try to not let a function oriented class initialize any variables 
         2. Do not initialize a list as instance variable, because it will be shared by all instances 
            (python will only create one list for all instances)
+
+        @TODO: 
+        1. set up running directory
         '''
         self.out_name                   = 'system.pdb'   
 
@@ -110,5 +113,3 @@ def check_mol(*args: object) -> None:
             raise Exception('pdb file is not loaded')
         if mol.mol_type is None: 
             raise Exception('mol_type is not loaded') 
-
-

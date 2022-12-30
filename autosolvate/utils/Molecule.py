@@ -39,6 +39,8 @@ class Molecule:
     inpcrd:         str = None
     box:            str = None
 
+    folder:         str = field(default=None, init=False)
+
    
     def __post_init__(self) -> None:
         ''' 
@@ -109,7 +111,7 @@ class Molecule:
             if not isinstance(self.box, str): 
                 raise Exception('box is not a string') 
 
-        self.set_outstream() 
+        self.set_folder() 
 
 
     def __eq__(self, o: object) -> bool: 
@@ -125,39 +127,35 @@ class Molecule:
         return True
 
 
-    def set_outstream(self) -> None:
+    def set_folder(self) -> None:
         path = WORKING_DIR + self.name + '/'  
         if not os.path.exists(path): 
             os.makedirs(path) 
-        
+        self.folder = self.name + '/' 
+
 
     def update(self) -> None:
         search_range = WORKING_DIR + '{}/**/*'.format(self.name)
         
-        if self.name + '.pdb' in glob.glob( 
-            search_range + '.pdb', recursive=True 
-        ):
-            self.pdb = self.name + '.pdb'
+        for file in glob.glob(search_range, recursive=True):
+            
+            if os.path.isfile(file):
+                
+                if file.endswith(self.name + '.pdb'): 
+                    self.pdb = self.name + '.pdb' 
+                
+                elif file.endswith(self.name + '.xyz'):
+                    self.xyz = self.name + '.xyz'
+                
+                elif file.endswith(self.name + '.mol2'):
+                    self.mol2 = self.name + '.mol2'
+                
+                elif file.endswith(self.name + '.frcmod'):
+                    self.frcmod = self.name + '.frcmod' 
 
-
-        if self.name + '.mol2' in glob.glob(
-            search_range + '.mol2', recursive=True
-        ):
-            self.mol2 = self.name + '.mol2' 
-
-
-        if self.name + '.frcmod' in glob.glob(
-            search_range + '.frcmod', recursive=True
-        ):
-            self.frcmod = self.name + '.frcmod' 
-
-
-        if self.residue_name + '.lib' in glob.glob(
-            search_range + '.lib', recursive=True
-        ):
-            self.lib = self.residue_name + '.lib' 
-
-
+                elif file.endswith(self.residue_name + '.lib'):
+                    self.lib = self.residue_name + '.lib' 
+                
 
 
 #AMBER SOLVENTS 

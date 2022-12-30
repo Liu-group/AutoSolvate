@@ -4,7 +4,7 @@ from multipledispatch import dispatch
 import numpy as np
 import getopt, sys, os, subprocess
 from Common     import *
-from Molecule   import Molecule 
+from Molecule   import Molecule, AMBER_SOLVENT_LIST
 from SolventBox import SolventBox  
 import tools
 
@@ -21,12 +21,15 @@ class TleapDocker:
         @NOTE:
         1. do not store any molecule obejct in this class attribute 
            because this class is a function class, not a data class 
+        
+        @TODO: 
+        1. check if the logic of _load_ions is correctly applied
         '''
         self._load_ions             = False
-        
+
 
     def run(self, o: object) -> None:
-
+        #Molecule as input 
         if isinstance(o, Molecule):
             mol = o 
             check_mol_arributes(mol)
@@ -34,7 +37,7 @@ class TleapDocker:
             cmd = self.generate_cmd()
             tools.submit(cmd)
             return 
-        
+        #SolventBox as input 
         if isinstance(o, SolventBox):
             '''
             @TODO
@@ -50,9 +53,15 @@ class TleapDocker:
                 @NOTE: 
                 1. this is for one solute and one solvent 
                 '''
-                solute  = box.solute_list[0]
-                solvent = box.solvent_list[0]
-                self.write_tleap_in(solute, solvent, box.closeness, box.cubesize)
+                solute      = box.solute_list[0]
+                solvent     = box.solvent_list[0]
+                system_pdb  = box.system_pdb
+                
+                if solvent in AMBER_SOLVENT_LIST: 
+                    self.write_tleap_in(solute, solvent, box.closeness, box.cubesize)
+                else:
+                    self.write_tleap_in(solute, solvent, box.closeness, box.cubesize, box.system_pdb)
+                    pass 
                 cmd = self.generate_cmd()
                 tools.submit(cmd)
             else: 
@@ -94,6 +103,43 @@ class TleapDocker:
                        solute:      object, 
                        solvent:     object,
                        closeness:   float, 
+                       cubsize:     int, 
+                       system_pdb:  str 
+    ) -> None: 
+        r'''
+        @TODO: 
+        1. combine change pass in closeness and cubsize to pass in solventbox object
+        '''        
+
+        #setting
+        if solute.charge != 0:
+            self._load_ions = True 
+
+        #set pos 
+        pos = cubsize / 2.0 
+
+        #output name 
+        output_name = solute.name + '_solvated'
+
+        #write tleap.in 
+        f = open('leap.in', 'w')
+        self.load_forcefield(f) 
+        self.load_mol(f, solvent, frcmod=True, lib=True)
+        self.load_mol(f, solute,  frcmod=True, mol2=True, check_mol=True)
+        self.load_solventbox(f, solute, solvent, pos, closeness)
+        if self._load_ions:
+            self.load_ions(f, solute, solvent)
+        f.write('{:<20}  {:<20}         \n'.format('savepdb mol', output_name+'.pdb')) 
+        f.write('{:<20}  {:<20}  {:<20} \n'.format('saveamberparm mol', output_name+'.prmtop', output_name+'.inpcrd'))
+        f.write('{:<20}                 \n'.format('quit'))      
+    #end of write_tleap_in function 
+
+
+    @dispatch(object, object, float, int)
+    def write_tleap_in(self, 
+                       solute:      object, 
+                       solvent:     object,
+                       closeness:   float, 
                        cubsize:     int 
     ) -> None: 
         r'''
@@ -125,6 +171,7 @@ class TleapDocker:
         f.write('{:<20}  {:<20}  {:<20} \n'.format('saveamberparm mol', output_name+'.prmtop', output_name+'.inpcrd'))
         f.write('{:<20}                 \n'.format('quit'))      
     #end of write_tleap_in function 
+        
 
 
     def load_forcefield(self, doc: object) -> None:

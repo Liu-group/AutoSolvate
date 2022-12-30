@@ -3,10 +3,14 @@ from openbabel import openbabel as ob
 import numpy as np
 import getopt, sys, os, subprocess, pkg_resources, glob 
 from dataclasses import dataclass, field, asdict
-from Common import * 
-from Molecule import Molecule 
-from AntechamberDocker import AntechamberDocker 
-from TleapDocker import TleapDocker 
+from Common             import * 
+from Molecule           import Molecule 
+from SolventBox         import SolventBox 
+from AntechamberDocker  import AntechamberDocker 
+from TleapDocker        import TleapDocker 
+from PackmolDocker      import PackmolDocker 
+
+
 
 
 
@@ -21,6 +25,8 @@ def update_mol(mol: object) -> None:
         print('not implemented yet')
     return 
         
+
+
 
 
 def update_solvent(mol: object) -> None:
@@ -60,6 +66,14 @@ def update_solvent(mol: object) -> None:
         '''
         ante = AntechamberDocker() 
         ante.run(mol) 
-        #parmchk 
+        
+        parmk = ParmchkDocker() 
+        parmk.run(mol) 
+
         
 
+
+def pack_solventox(box: object) -> None:
+    pack = PackmolDocker()
+    pack.run(box)
+    box.update()
