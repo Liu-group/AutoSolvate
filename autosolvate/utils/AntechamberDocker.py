@@ -47,13 +47,14 @@ class AntechamberDocker:
         @EXAMPLE: 
         $AMBERHOME/bin/antechamber -i 1.pdb -fi pdb -o 1.mol2 -fo mol2 -c bcc -nc 0 -m 1 -rn MOL
         '''
-        cmd =  self.set_executable(mol)    + ' '
+        cmd =  self.set_executable()       + ' '
         cmd += self.set_input(mol)         + ' '
         cmd += self.set_output(mol)        + ' ' 
         cmd += self.set_charge(mol)        + ' ' 
         cmd += self.set_multiplicity(mol)  + ' ' 
-        cmd += self.set_charge_method(mol) + ' ' 
+        cmd += self.set_charge_method() + ' ' 
         cmd += self.set_residue_name(mol)  + ' ' 
+        print(cmd) 
         return cmd 
 
 
@@ -86,13 +87,13 @@ class AntechamberDocker:
         
 
     def set_charge_method(self) -> str: 
-        if self.charge_method not in self._SUPPORT_CHARGE_FITTING_METHODS:
+        if self.charge_fiiting_method not in self._SUPPORT_CHARGE_FITTING_METHODS:
             raise Exception('Charge fitting method not supported in class AntechamberDocker()')
-        return '-c %s' % self.charge_method
+        return '-c %s' % self.charge_fiiting_method
 
 
     def set_residue_name(self, mol: object) -> str: 
-        if self.residue_name == 'MOL':
+        if mol.residue_name == 'MOL':
             return '' 
         return '-rn %s' % mol.residue_name
 

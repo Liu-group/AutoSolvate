@@ -8,9 +8,8 @@ from Molecule           import Molecule
 from SolventBox         import SolventBox 
 from AntechamberDocker  import AntechamberDocker 
 from TleapDocker        import TleapDocker 
-from PackmolDocker      import PackmolDocker 
-
-
+from PackmolDocker      import PackmolDocker
+from ParmchkDocker      import ParmchkDocker 
 
 
 
@@ -25,8 +24,6 @@ def update_mol(mol: object) -> None:
         print('not implemented yet')
     return 
         
-
-
 
 
 def update_solvent(mol: object) -> None:
@@ -65,7 +62,8 @@ def update_solvent(mol: object) -> None:
         1. custome solvent. use AntechamberDocker to convert the solvet 
         '''
         ante = AntechamberDocker() 
-        ante.run(mol) 
+        ante.run(mol)
+        mol.update() 
         
         parmk = ParmchkDocker() 
         parmk.run(mol) 

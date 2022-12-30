@@ -1,0 +1,17 @@
+            --------------------------------------------------------
+                             AMBER SQM VERSION 19
+ 
+                                     By
+              Ross C. Walker, Michael F. Crowley, Scott Brozell,
+                         Tim Giese, Andreas W. Goetz,
+                        Tai-Sung Lee and David A. Case
+ 
+            --------------------------------------------------------
+ 
+
+--------------------------------------------------------------------------------
+  QM CALCULATION INFO
+--------------------------------------------------------------------------------
+QMMM: System specified with odd number of electrons (   31)
+QMMM: but odd spin (  1). You most likely have the charge of
+QMMM: QM region (qmcharge) set incorrectly. Correct error and re-run calculation.

@@ -10,7 +10,7 @@
 from openbabel import pybel
 from openbabel import openbabel as ob
 import numpy as np
-import getopt, sys, os, subprocess, pkg_resources, glob 
+import getopt, sys, os, subprocess, pkg_resources, glob, shutil
 from dataclasses import dataclass, field, asdict
 from Common import * 
 import tools 
@@ -142,26 +142,39 @@ class Molecule:
 
 
     def update(self) -> None:
-        search_range = WORKING_DIR + '{}/**/*'.format(self.name)
+        ''' 
+        @TODO
+        1. can be simplified 
+        ''' 
+        search_range = WORKING_DIR + '/**/*'
         
         for file in glob.glob(search_range, recursive=True):
-            
             if os.path.isfile(file):
-                
-                if file.endswith(self.name + '.pdb'): 
-                    self.pdb = self.name + '.pdb' 
+                if file.endswith(self.name + '.pdb'):
+                    self.pdb = self.name + '.pdb'
+                    #copy file to mol/ folder 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
                 
                 elif file.endswith(self.name + '.xyz'):
                     self.xyz = self.name + '.xyz'
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
                 
                 elif file.endswith(self.name + '.mol2'):
                     self.mol2 = self.name + '.mol2'
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
                 
                 elif file.endswith(self.name + '.frcmod'):
                     self.frcmod = self.name + '.frcmod' 
+                    if self.name+'/' not in file: 
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
 
                 elif file.endswith(self.residue_name + '.lib'):
-                    self.lib = self.residue_name + '.lib' 
+                    self.lib = self.residue_name + '.lib'
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
                 
 
 

@@ -1,0 +1,12 @@
+HEADER    Ideal coordinates
+ for PDB-CCD LCP
+COMPND    LCP
+AUTHOR    pdbccdutils 0.6
+AUTHOR    RDKit 2021.03.1
+HETATM    1 CL   LCP A   1       0.000   0.000   0.000  1.00 20.00          CL3+
+HETATM    2 O1   LCP A   1       0.000  -1.166  -0.824  1.00 20.00           O1-
+HETATM    3 O2   LCP A   1       0.000   1.166  -0.824  1.00 20.00           O1-
+HETATM    4 O3   LCP A   1      -1.166   0.000   0.824  1.00 20.00           O1-
+HETATM    5 O4   LCP A   1       1.166   0.000   0.824  1.00 20.00           O1-
+CONECT    1    2    3    4    5
+END
