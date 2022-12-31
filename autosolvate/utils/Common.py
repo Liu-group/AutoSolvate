@@ -1,5 +1,6 @@
 #@TODO: 
 #       is a better way to implement this? : central control of the whole project
+#       1. DRY_RUN: is not working 
 import os 
 
 

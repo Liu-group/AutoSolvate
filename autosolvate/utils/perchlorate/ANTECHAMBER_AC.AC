@@ -1,4 +1,4 @@
-CHARGE      0.00 ( 0 )
+CHARGE     -1.00 ( -1 )
 Formula: O4 Cl1 
 ATOM      1  CL  SLV     1       0.000   0.000   0.000  0.000000        cl
 ATOM      2  O1  SLV     1       0.000  -1.166  -0.824  0.000000         o

@@ -1,0 +1,11 @@
+CHARGE     -1.00 ( -1 )
+Formula: O4 Cl1 
+ATOM      1  CL  SLV     1       0.000   0.000   0.000  1.011000        cl
+ATOM      2  O1  SLV     1       0.000  -1.166  -0.824 -0.503000         o
+ATOM      3  O2  SLV     1       0.000   1.166  -0.824 -0.503000         o
+ATOM      4  O3  SLV     1      -1.166   0.000   0.824 -0.503000         o
+ATOM      5  O4  SLV     1       1.166   0.000   0.824 -0.503000         o
+BOND    1    1    2    0     CL   O1
+BOND    2    1    3    0     CL   O2
+BOND    3    1    4    0     CL   O3
+BOND    4    1    5    0     CL   O4

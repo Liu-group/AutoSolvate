@@ -22,7 +22,6 @@ def update_mol(mol: object) -> None:
         update_solvent(mol)
     else: 
         print('not implemented yet')
-    return 
         
 
 
@@ -67,6 +66,7 @@ def update_solvent(mol: object) -> None:
         
         parmk = ParmchkDocker() 
         parmk.run(mol) 
+        mol.update() 
 
         
 

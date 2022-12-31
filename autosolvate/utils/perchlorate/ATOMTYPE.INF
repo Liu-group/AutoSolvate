@@ -6,7 +6,7 @@
 
 ====================================================================================
 -------------------------------ring property (III)-----------------------------------
-atom[ 1] (CL  ) is not in any ring (nr[1]=1)
+atom[ 1] (Cl  ) is not in any ring (nr[1]=1)
 atom[ 2] (O1  ) is not in any ring (nr[2]=1)
 atom[ 3] (O2  ) is not in any ring (nr[3]=1)
 atom[ 4] (O3  ) is not in any ring (nr[4]=1)
@@ -17,7 +17,7 @@ atom[ 5] (O4  ) is not in any ring (nr[5]=1)
 
 ====================================================================================
 -------------------------------electronic property----------------------------------
-atom [ 1] (CL  ) is an electron-withdrew atom
+atom [ 1] (Cl  ) is an electron-withdrew atom
 atom [ 2] (O1  ) is an electron-withdrew atom
 atom [ 3] (O2  ) is an electron-withdrew atom
 atom [ 4] (O3  ) is an electron-withdrew atom
@@ -25,13 +25,13 @@ atom [ 5] (O4  ) is an electron-withdrew atom
 
 ====================================================================================
 --------------------------------connectivity property-------------------------------
-atom[ 1] (CL  )     2    O1
-atom[ 1] (CL  )     3    O2
-atom[ 1] (CL  )     4    O3
-atom[ 1] (CL  )     5    O4
-atom[ 2] (O1  )     1    CL
-atom[ 3] (O2  )     1    CL
-atom[ 4] (O3  )     1    CL
-atom[ 5] (O4  )     1    CL
+atom[ 1] (Cl  )     2    O1
+atom[ 1] (Cl  )     3    O2
+atom[ 1] (Cl  )     4    O3
+atom[ 1] (Cl  )     5    O4
+atom[ 2] (O1  )     1    Cl
+atom[ 3] (O2  )     1    Cl
+atom[ 4] (O3  )     1    Cl
+atom[ 5] (O4  )     1    Cl
 ----------------------------------------END-----------------------------------------
 
