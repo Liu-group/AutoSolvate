@@ -10,7 +10,7 @@
 from openbabel import pybel
 from openbabel import openbabel as ob
 import numpy as np
-import getopt, sys, os, subprocess, pkg_resources, glob 
+import getopt, sys, os, subprocess, pkg_resources, glob, shutil
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from Common import * 
@@ -30,24 +30,25 @@ class SolventBox:
     duplicate_solvent_num:  int   = 1 
 
     system_pdb:             str   = field(default=None, init=False)   
-    name:                   str   = field(default=None, init=False) 
+    name:                   str   = None
     folder:                 str   = field(default=None, init=False) 
 
 
     def __post_init__(self) -> None:
-        self.box_name()
+        self.set_box_name()
         self.set_folder()
 
         
-    def box_name(self) -> str:
+    def set_box_name(self) -> str:
         '''
         @TODO: 
         name can be improved  
         but I have no idea now what naming scheme should be 
         '''
-        now = datetime.now()
-        current_time = now.strftime("%H_%M_%S")
-        self.name = 'box_{}'.format(current_time) 
+        if self.name is None: 
+            now = datetime.now()
+            current_time = now.strftime("%H_%M_%S")
+            self.name = 'box_' + current_time
 
 
     def set_folder(self) -> None:
@@ -104,9 +105,55 @@ class SolventBox:
 
 
     def update(self) -> None:
-        search_range = WORKING_DIR + '{}/**/*'.format(self.name)
+        '''
+        @TODO: 
+        simplify this code
+        '''
+        search_range = WORKING_DIR + '/**/*'
         
         for file in glob.glob(search_range, recursive=True):
             
             if file.endswith('system.pdb'):
-                self.system_pdb = file
+                self.system_pdb = system.pdb
+                if self.name+'/' not in file:
+                    shutil.copy(file, WORKING_DIR + self.name + '/')
+            
+            for solute in self.solute_list:
+                if file.endswith(solute.name + '.pdb'):
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
+                if file.endswith(solute.name + '.mol2'):
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+                if file.endswith(solute.name + '.frcmod'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+                if file.endswith(solute.residue_name + '.lib'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
+                if file.endswith(solute.name + '.prmtop'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+                if file.endswith(solute.name + '.inpcrd'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+
+            for solvent in self.solvent_list: 
+                if file.endswith(solvent.name + '.pdb'):
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
+                if file.endswith(solvent.name + '.mol2'):
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+                if file.endswith(solvent.name + '.frcmod'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+                if file.endswith(solvent.residue_name + '.lib'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
+                if file.endswith(solvent.name + '.prmtop'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+                if file.endswith(solvent.name + '.inpcrd'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')

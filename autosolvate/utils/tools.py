@@ -64,11 +64,23 @@ def get_list_mol_type(*args: object, mol_type: str) -> list:
     return solvent_list
 
 
+def xyz_to_pdb(mol: object) -> None: 
+    r'''
+    Convert xyz file to pdb file using openbabel
+    '''
+    # os.system('ob -ixyz {} -opdb -O {}'.format(mol.xyz, mol.name+'.pdb'))
+    obConversion = ob.OBConversion() 
+    obConversion.SetInAndOutFormats("xyz", "pdb") 
+    OBMOL = ob.OBMol() 
+    obConversion.ReadFile(OBMOL, mol.xyz) 
+    obConversion.WriteFile(OBMOL, mol.name+'/'+mol.name+'.pdb')
+
+
 #handle job submission in class 
 def srun() -> callable:
     r'''
     @Example:
-    >>> @srun()
+    >>> @srun()xyz_to_pdb
     ... def test():
     ...     return 'cmd'
     >>> test()

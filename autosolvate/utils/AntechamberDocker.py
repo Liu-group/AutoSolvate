@@ -34,9 +34,7 @@ class AntechamberDocker:
         os.chdir(mol.name)
         cmd = self.generate_cmd(mol)
         if DRY_RUN:
-            print('FLAG')
-            print(cmd) 
-            return
+            print('dry-run: ' + cmd) 
         else:
             subprocess.call(cmd, shell=True)    
         os.chdir(WORKING_DIR)  
