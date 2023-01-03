@@ -39,7 +39,7 @@ def update_solvent(mol: object) -> None:
     #solvent ready in amber library
     if mol.pdb is None and mol.xyz is None: 
         if mol.box is not None and mol.frcmod is not None and mol.lib is not None: 
-            pass 
+            return 
     
 
     #only has xyz ready 
@@ -58,7 +58,7 @@ def update_solvent(mol: object) -> None:
                 @TODO: 
                 1. double check with Fangning if it is ok to only have frcmod file 
                 ''' 
-                pass
+                return
 
 
     #custome solvent only has pdb file 
@@ -77,7 +77,7 @@ def update_solvent(mol: object) -> None:
         return 
 
 
-def pack_solventox(box: object) -> None:
-    pack = PackmolDocker()
-    pack.run(box)
-    box.update()
+
+def update_box(box: object) -> None: 
+    tleap = TleapDocker() 
+    tleap.run(box)

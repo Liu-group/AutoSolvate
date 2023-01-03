@@ -97,7 +97,7 @@ def srun() -> callable:
     return wrap
 
 
-def submit(self, cmd: str) -> None: 
+def submit(cmd: str) -> None: 
         if DRY_RUN:
             print(cmd) 
             return

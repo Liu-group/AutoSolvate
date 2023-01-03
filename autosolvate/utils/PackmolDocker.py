@@ -22,6 +22,7 @@ class PackmolDocker:
 
 
     def run(self, box: object) -> None:
+        os.chdir(box.name)
         check_mol(*box.solute_list)
         check_mol(*box.solvent_list) 
         r'''
@@ -31,6 +32,7 @@ class PackmolDocker:
         self.write_packmol_inp(box)
         cmd = self.generate_cmd()
         tools.submit(cmd)
+        os.chdir(WORKING_DIR)
         
 
     @tools.srun()
@@ -70,7 +72,7 @@ class PackmolDocker:
             raise Exception('multiple different solutes not supported yet')
         
         if len(box.solute_list) == 1:
-            solute      = solute_list[0]
+            solute      = box.solute_list[0]
             solute_pos  = box.cubesize / 2.0 
 
             doc.write('{}           \n'.format('# add the solute'))
@@ -109,7 +111,7 @@ class PackmolDocker:
 #METHODS 
 def check_mol(*args: object) -> None:
     for mol in args: 
-        if mol.pdb is None: 
-            raise Exception('pdb file is not loaded')
-        if mol.mol_type is None: 
+        if mol.pdb is None:
+            raise Exception('pdb is not loaded')
+        if mol.mol_type is None:
             raise Exception('mol_type is not loaded') 

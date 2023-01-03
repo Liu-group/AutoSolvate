@@ -19,7 +19,6 @@ import tools
 
 @dataclass 
 class SolventBox:
-
     solute_list:            list  = field(default_factory=list, init=False)
     solvent_list:           list  = field(default_factory=list, init=False)
 
@@ -63,7 +62,8 @@ class SolventBox:
         @TODO 
         check solute validity  
         ''' 
-        self.solute_list.append(mol) 
+        self.solute_list.append(mol)
+        self.update()
 
 
     def add_solvent(self, mol: object) -> None: 
@@ -72,6 +72,7 @@ class SolventBox:
         check solvent validity 
         ''' 
         self.solvent_list.append(mol)
+        self.update()
 
 
     def set_closeness(self, solvent: object, automate: bool = False) -> None: 
@@ -128,7 +129,7 @@ class SolventBox:
                 if file.endswith(solute.name + '.frcmod'): 
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/') 
-                if file.endswith(solute.residue_name + '.lib'): 
+                if file.endswith(solute.name + '.lib'): 
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/')
                 if file.endswith(solute.name + '.prmtop'): 
@@ -148,7 +149,7 @@ class SolventBox:
                 if file.endswith(solvent.name + '.frcmod'): 
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/') 
-                if file.endswith(solvent.residue_name + '.lib'): 
+                if file.endswith(solvent.name + '.lib'): 
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/')
                 if file.endswith(solvent.name + '.prmtop'): 

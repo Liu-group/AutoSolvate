@@ -22,7 +22,7 @@ class Molecule:
     _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz'] 
     
     #required arguments
-    name :          str  
+    name:           str  
     charge:         int
     multiplicity:   int
     mol_type:       str
@@ -60,7 +60,7 @@ class Molecule:
             2. from xyz file (not implemented yet) 
             3. from amber library. (we provide lib, frcmod and box files) 
             4. from mol2 and frcmod files (we provide these files in data/) 
-
+ 
         @TODO:
         1. custome solvent does have mol2 and frcmod files.[ask Dr.Liu]
            we need to check if mol2 and frcmod files provided in the working directory or data/ 
@@ -111,14 +111,16 @@ class Molecule:
             
         if self.inpcrd is not None: 
             if not isinstance(self.inpcrd, str): 
-                raise Exception('inpcrd is not a string') 
+                raise Exception('inpcrd is not a string')
 
         if self.box is not None: 
             if not isinstance(self.box, str): 
                 raise Exception('box is not a string') 
 
         if self.init_folder:
-            self.set_folder() 
+            self.set_folder()
+
+        self.update()
 
 
     def __eq__(self, o: object) -> bool: 
@@ -135,7 +137,7 @@ class Molecule:
 
 
     def set_folder(self) -> None:
-        path = WORKING_DIR + self.name + '/'  
+        path = WORKING_DIR + self.name + '/'
         if not os.path.exists(path): 
             os.makedirs(path) 
         self.folder = self.name + '/' 
@@ -171,8 +173,8 @@ class Molecule:
                     if self.name+'/' not in file: 
                         shutil.copy(file, WORKING_DIR + self.name + '/') 
 
-                elif file.endswith(self.residue_name + '.lib'):
-                    self.lib = self.residue_name + '.lib'
+                elif file.endswith(self.name + '.lib'):
+                    self.lib = self.name + '.lib'
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/')
                 

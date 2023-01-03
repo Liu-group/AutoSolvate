@@ -11,7 +11,7 @@ import tools
 
 class TleapDocker: 
 
-    _ff14SB         = 'leaprc.ff14SB'               #Source leaprc file for ff14SB protein force field
+    _ff14SB         = 'leaprc.protein.ff14SB'               #Source leaprc file for ff14SB protein force field
     _gaff           = 'leaprc.gaff'                 #Source leaprc file for gaff force field
     _water_tip3p    = 'leaprc.water.tip3p'
 
@@ -29,20 +29,26 @@ class TleapDocker:
 
 
     def run(self, o: object) -> None:
+        
         #Molecule as input 
         if isinstance(o, Molecule):
+            os.chdir(o.name)
             mol = o 
             check_mol_arributes(mol)
             self.write_tleap_in(mol)
             cmd = self.generate_cmd()
             tools.submit(cmd)
+            os.chdir(WORKING_DIR)
             return 
+        
+        
         #SolventBox as input 
         if isinstance(o, SolventBox):
+            os.chdir(o.name)
             '''
             @TODO
-            modify 
-            finish this function
+            1. logic for checking these conditions can be simplified or better written 
+            2. need to discuss with Dr Liu about the logic of this function 
             '''
             box = o 
             check_mol_arributes(*box.solute_list)
@@ -57,15 +63,24 @@ class TleapDocker:
                 solvent     = box.solvent_list[0]
                 system_pdb  = box.system_pdb
                 
-                if solvent in AMBER_SOLVENT_LIST: 
-                    self.write_tleap_in(solute, solvent, box.closeness, box.cubesize)
-                else:
+                if system_pdb is not None:
                     self.write_tleap_in(solute, solvent, box.closeness, box.cubesize, box.system_pdb)
-                    pass 
+                
+                elif solvent in AMBER_SOLVENT_LIST: 
+                    self.write_tleap_in(solute, solvent, box.closeness, box.cubesize)
+                
+                elif solvent.frcmod is not None and solvent.lib is not None:
+                    self.write_tleap_in(solute, solvent, box.closeness, box.cubesize)
+
+                else: 
+                    raise Exception('case not considered yet') 
+
                 cmd = self.generate_cmd()
                 tools.submit(cmd)
             else: 
-                raise Exception('now only support one solute and one solvent') 
+                raise Exception('only support one solute and one solvent') 
+            
+            os.chdir(WORKING_DIR)
             return
 
         raise Warning('invalid input type')
@@ -204,19 +219,20 @@ class TleapDocker:
 
 
     def load_solventbox(self, 
-                        doc:            object, 
+                        doc:            object,
+                        solute:         object, 
                         solvent:        object, 
                         pos:            float, 
                         closeness:      float
     ) -> None:
         if solvent in AMBER_SOLVENT_LIST:
-            box = solvent.box
+            solvent_model= solvent.box
             
         else:
-            box = solvent.name 
+            solvent_model = solvent.name 
 
-        doc.write('{:<20}  {:<10}  {:<10}  {:<3}  {:<5} \n'.format(
-            'solvatebox mol', box, pos, 'iso', closeness
+        doc.write('{:<20}  {:<10}  {:<10}  {:<10}  {:<3}  {:<5} \n'.format(
+            'solvatebox', solute.residue_name, solvent_model, pos, 'iso', closeness
         ))
     
 
@@ -245,11 +261,11 @@ def check_mol_arributes(*args: object) -> None:
         check if important attributes of the molecule are set for tleap 
     ''' 
     for mol in args:
-        if mol.mole_type is None: 
+        if mol.mol_type is None: 
             raise Exception('mole_type is not set') 
         if mol.residue_name is None:
             raise Exception('residue name is not set')     
-        if mol.mol2 is None:
-            raise Exception('mol2 file is not set')
+        # if mol.mol2 is None:
+            # raise Warning('mol2 file is not set')
         if mol.frcmod is None:
             raise Exception('frcmod file is not set')

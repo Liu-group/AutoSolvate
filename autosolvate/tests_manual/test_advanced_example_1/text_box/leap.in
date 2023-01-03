@@ -1,0 +1,11 @@
+source                leaprc.protein.ff14SB       
+source                leaprc.gaff                
+loadamberparams       dmso.frcmod                
+loadoff               dmso.lib                   
+SLU   = loadmol2      naphthalene_neutral.mol2  
+loadamberparams       naphthalene_neutral.frcmod       
+check                 SLU                        
+solvatebox            SLU         dmso        27.0        iso  0.8   
+savepdb mol           naphthalene_neutral_solvated.pdb         
+saveamberparm mol     naphthalene_neutral_solvated.prmtop  naphthalene_neutral_solvated.inpcrd 
+quit                                 
