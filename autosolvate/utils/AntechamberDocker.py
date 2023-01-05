@@ -110,7 +110,7 @@ def check_mol(mol: object) -> None:
     if mol.residue_name is None: 
         raise Exception('mol.residue_name is None')
     if os.path.exists(mol.name) is False:
-        raise Exception('directory %s does not exist' % mol.name) 
+        raise Exception('mol folder %s/ is not initialized' % mol.name) 
         
 
 
