@@ -80,7 +80,7 @@ class SolventBox:
         @TODO: 
             1. It only supports one solvent 
         '''     
-        if automate_closeness: 
+        if automate: 
             if solvent.name == 'acetonitrile':
                 self.closeness = 1.88 
             elif solvent.name == 'water': 

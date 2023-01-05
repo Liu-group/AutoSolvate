@@ -103,7 +103,8 @@ class Molecule:
 
         if self.lib is not None:
             if not isinstance(self.lib, str): 
-                raise Exception('lib is not a string') 
+                raise Exception('lib is not a string')
+            check_lib(self.lib, self.name) 
 
         if self.prmtop is not None:
             if not isinstance(self.prmtop, str): 
@@ -178,6 +179,39 @@ class Molecule:
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/')
                 
+
+
+
+def check_lib(lib: str, name: str) -> None: 
+    r'''
+    @NOTE: 
+    1. this method checks if the lib file is valid 
+    
+    there is 3 cases 
+       case 1: the lib file (2nd line) constains a different name than the molecule name 
+
+       case 2: we do not check when the lib str equals 'solvents.lib', 
+               (the .lib file for amber solvents)
+               because this file is not explicitly provided  
+       
+       case 3: the lib file does not exist            
+    '''
+    if os.path.exists(lib):
+        f     = open(lib, 'r') 
+        fname = f.readlines()[1].strip().replace('"', '')
+        if fname != name:
+            print('Warning: .lib file molecule name is {} but molecule name is {}                 '.format(fname, name))
+            print('         please go to the .lib file replace the molecule name on the 2nd line  ') 
+            print('         and                                                                   ')
+            print('         Find and Replace {}.unit with {}.unit for everywhere in .lib document\n' .format(fname, name))
+            raise Warning(' lib file molecule name does not match the molecule name') 
+        f.close()
+    elif lib == 'solvents.lib':
+        pass
+    else:
+        raise Exception('lib file does not exist')
+
+
 
 
 #AMBER SOLVENTS 

@@ -24,7 +24,7 @@ slv = Molecule(name='dmso',
                frcmod='dmso.frcmod')
 
 
-box = SolventBox(name='text_box')
+box = SolventBox(name='test_box')
 box.add_solute(slu)
 box.add_solvent(slv)
 update_box(box) 

@@ -75,6 +75,21 @@ def xyz_to_pdb(mol: object) -> None:
     obConversion.ReadFile(OBMOL, mol.xyz) 
     obConversion.WriteFile(OBMOL, mol.name+'/'+mol.name+'.pdb')
 
+    mol.update()
+    truncate_pdb(mol)
+
+
+def truncate_pdb(mol: object) -> None:
+    with open(mol.name+'/'+mol.pdb, 'r') as f: 
+        lines = f.readlines() 
+    with open(mol.name+'/'+mol.pdb, 'w') as f: 
+        for line in lines: 
+            if line.startswith('CONECT'): 
+                continue
+            else: 
+                f.write(line)
+    
+
 
 #handle job submission in class 
 def srun() -> callable:

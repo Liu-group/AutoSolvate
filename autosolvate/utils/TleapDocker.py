@@ -11,7 +11,7 @@ import tools
 
 class TleapDocker: 
 
-    _ff14SB         = 'leaprc.protein.ff14SB'               #Source leaprc file for ff14SB protein force field
+    _ff14SB         = 'leaprc.protein.ff14SB'       #Source leaprc file for ff14SB protein force field
     _gaff           = 'leaprc.gaff'                 #Source leaprc file for gaff force field
     _water_tip3p    = 'leaprc.water.tip3p'
 
@@ -34,7 +34,7 @@ class TleapDocker:
         if isinstance(o, Molecule):
             os.chdir(o.name)
             mol = o 
-            check_mol_arributes(mol)
+            check_mol(mol)
             self.write_tleap_in(mol)
             cmd = self.generate_cmd()
             tools.submit(cmd)
@@ -51,8 +51,8 @@ class TleapDocker:
             2. need to discuss with Dr Liu about the logic of this function 
             '''
             box = o 
-            check_mol_arributes(*box.solute_list)
-            check_mol_arributes(*box.solvent_list)
+            check_mol(*box.solute_list)
+            check_mol(*box.solvent_list)
 
             if len(box.solute_list) == 1 and len(box.solvent_list) == 1:
                 '''
@@ -92,7 +92,16 @@ class TleapDocker:
         return cmd
 
 
+
+
+
+
+
+
+
+
     #dispatched write_tleap_in function 
+    #CASE 1. only one mol 
     @dispatch(object)
     def write_tleap_in(self, mol: object) -> None:  
         r'''
@@ -112,7 +121,7 @@ class TleapDocker:
         f.write('{:<20}                     \n'.format('quit'))
         f.close() 
 
-
+    #CASE 2. one solute and one solvent 
     @dispatch(object, object, float, int)
     def write_tleap_in(self, 
                        solute:      object, 
@@ -131,26 +140,26 @@ class TleapDocker:
         if solute.charge != 0:
             self._load_ions = True 
 
-        #set pos 
-        pos = cubsize / 2.0 
-
-        #output name 
+        pos         = cubsize / 2.0 
         output_name = solute.name + '_solvated'
 
         #write tleap.in 
         f = open('leap.in', 'w')
-        self.load_forcefield(f) 
+
+        self.load_forcefield(f)
         self.load_mol(f, solvent, frcmod=True, lib=True)
         self.load_mol(f, solute,  frcmod=True, mol2=True, check=True)
         self.load_solventbox(f, solute, solvent, pos, closeness)
         if self._load_ions:
             self.load_ions(f, solute, solvent)
-        f.write('{:<20}  {:<20}         \n'.format('savepdb mol', output_name+'.pdb')) 
-        f.write('{:<20}  {:<20}  {:<20} \n'.format('saveamberparm mol', output_name+'.prmtop', output_name+'.inpcrd'))
-        f.write('{:<20}                 \n'.format('quit'))      
+        
+        f.write('{:<20}  {:<5}   {:<15}         \n'.format('savepdb', solute.residue_name, output_name+'.pdb')) 
+        f.write('{:<20}  {:<5}   {:<20}  {:<20} \n'.format('saveamberparm', solute.residue_name, output_name+'.prmtop', output_name+'.inpcrd'))
+        f.write('{:<20}                         \n'.format('quit'))      
         f.close()
     
     
+    #CASE 3. one solute, one solvent, and  system_pdb
     @dispatch(object, object, float, int, str) 
     def write_tleap_in(self, 
                        solute:      object, 
@@ -164,14 +173,12 @@ class TleapDocker:
         if solute.charge != 0:
             self._load_ions = True 
 
-        #set pos 
-        pos = cubsize / 2.0 
-
-        #output name 
+        pos         = cubsize / 2.0 
         output_name = solute.name + '_solvated'
 
         #write tleap.in 
         f = open('leap.in', 'w')
+        
         self.load_forcefield(f) 
         self.load_mol(f, solvent, frcmod=True, mol2=True, check=True)
         self.load_mol(f, solute,  frcmod=True, mol2=True, check=True)
@@ -189,11 +196,14 @@ class TleapDocker:
         
 
 
+
+
+
+    #helper functions that write tleap.in 
     def load_forcefield(self, doc: object) -> None:
         doc.write('{:<20}  {:<20}       \n'.format('source', self._ff14SB)) 
         doc.write('{:<20}  {:<20}       \n'.format('source', self._gaff))
-        if self._load_ions:
-            doc.write('{:<20}  {:<20}   \n'.format('source', self._water_tip3p))
+        doc.write('{:<20}  {:<20}       \n'.format('source', self._water_tip3p))
         
 
     def load_mol(self,  
@@ -208,6 +218,8 @@ class TleapDocker:
         @QUESTION:
         1. what is check mol for? 
         '''
+        if mol in AMBER_SOLVENT_LIST: 
+            return 
         if mol2:  
             doc.write('{:<5} {:<15} {:<20}  \n'.format(mol.residue_name, '= loadmol2', mol.mol2))
         if frcmod: 
@@ -247,25 +259,21 @@ class TleapDocker:
         doc.write('{:<20}             \n'.format('check mol')) 
 
 
-    def write_packmol(self, closeness: float, *args: object) -> None: 
-        '''
-        @TODO: 
-            1. support multiple solute and solvent in the future             
-        '''
+
 
 
 #METHODS 
-def check_mol_arributes(*args: object) -> None: 
+def check_mol(*args: object) -> None: 
     '''
     @Description: 
         check if important attributes of the molecule are set for tleap 
-    ''' 
+    '''
     for mol in args:
+        if mol in AMBER_SOLVENT_LIST:
+            continue
         if mol.mol_type is None: 
-            raise Exception('mole_type is not set') 
+            raise Exception('{} mole_type is not set'.format(mol.name))
         if mol.residue_name is None:
-            raise Exception('residue name is not set')     
-        # if mol.mol2 is None:
-            # raise Warning('mol2 file is not set')
+            raise Exception('{} residue name is not set'.format(mol.name))  
         if mol.frcmod is None:
-            raise Exception('frcmod file is not set')
+            raise Exception('{} frcmod file is not set'.format(mol.name)) 

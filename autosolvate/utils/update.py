@@ -46,7 +46,8 @@ def update_solvent(mol: object) -> None:
     if mol.xyz is not None and mol.pdb is None:
         if mol.box is None and mol.frcmod is None and mol.lib is None and mol.mol2 is None: 
             tools.xyz_to_pdb(mol) 
-            mol.update() 
+            mol.update()
+            update_solvent(mol) 
             return
 
 
