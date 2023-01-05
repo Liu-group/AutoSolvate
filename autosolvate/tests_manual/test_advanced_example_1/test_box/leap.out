@@ -1,0 +1,97 @@
+-I: Adding /opt/anaconda3/dat/leap/prep to search path.
+-I: Adding /opt/anaconda3/dat/leap/lib to search path.
+-I: Adding /opt/anaconda3/dat/leap/parm to search path.
+-I: Adding /opt/anaconda3/dat/leap/cmd to search path.
+-s: Ignoring startup file: leaprc
+-f: Source leap.in.
+
+Welcome to LEaP!
+Sourcing: ./leap.in
+----- Source: /opt/anaconda3/dat/leap/cmd/leaprc.protein.ff14SB
+----- Source of /opt/anaconda3/dat/leap/cmd/leaprc.protein.ff14SB done
+Log file: ./leap.log
+Loading parameters: /opt/anaconda3/dat/leap/parm/parm10.dat
+Reading title:
+PARM99 + frcmod.ff99SB + frcmod.parmbsc0 + OL3 for RNA
+Loading parameters: /opt/anaconda3/dat/leap/parm/frcmod.ff14SB
+Reading force field modification type file (frcmod)
+Reading title:
+ff14SB protein backbone and sidechain parameters
+Loading library: /opt/anaconda3/dat/leap/lib/amino12.lib
+Loading library: /opt/anaconda3/dat/leap/lib/aminoct12.lib
+Loading library: /opt/anaconda3/dat/leap/lib/aminont12.lib
+----- Source: /opt/anaconda3/dat/leap/cmd/leaprc.gaff
+----- Source of /opt/anaconda3/dat/leap/cmd/leaprc.gaff done
+Log file: ./leap.log
+Loading parameters: /opt/anaconda3/dat/leap/parm/gaff.dat
+Reading title:
+AMBER General Force Field for organic molecules (Version 1.81, May 2017)
+----- Source: /opt/anaconda3/dat/leap/cmd/leaprc.water.tip3p
+----- Source of /opt/anaconda3/dat/leap/cmd/leaprc.water.tip3p done
+Loading library: /opt/anaconda3/dat/leap/lib/atomic_ions.lib
+Loading library: /opt/anaconda3/dat/leap/lib/solvents.lib
+Loading parameters: /opt/anaconda3/dat/leap/parm/frcmod.tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+This is the additional/replacement parameter set for TIP3P water
+Loading parameters: /opt/anaconda3/dat/leap/parm/frcmod.ions1lm_126_tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+Li/Merz ion parameters of monovalent ions for TIP3P water model (12-6 normal usage set)
+Loading parameters: /opt/anaconda3/dat/leap/parm/frcmod.ionsjc_tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+Monovalent ion parameters for Ewald and TIP3P water from Joung & Cheatham JPCB (2008)
+Loading parameters: /opt/anaconda3/dat/leap/parm/frcmod.ions234lm_126_tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
+Loading parameters: ./dmso.frcmod
+Reading force field modification type file (frcmod)
+Reading title:
+ DMSO parameters file
+Loading library: ./dmso.lib
+Loading Mol2 file: ./naphthalene_neutral.mol2
+Reading MOLECULE named SLU
+Loading parameters: ./naphthalene_neutral.frcmod
+Reading force field modification type file (frcmod)
+Reading title:
+Remark line goes here
+Checking 'SLU'....
+Checking parameters for unit 'SLU'.
+Checking for bond parameters.
+Checking for angle parameters.
+Unit is OK.
+  Solute vdw bounding box:              9.686 7.904 3.816
+  Total bounding box for atom centers:  63.686 63.686 63.686
+      (box expansion for 'iso' is  13.3%)
+  Solvent unit box:                     21.483 20.823 28.502
+  Volume: 287354.289 A^3 
+  Total mass 127382.386 amu,  Density 0.736 g/cc
+  Added 1629 residues.
+Writing pdb file: naphthalene_neutral_solvated.pdb
+   printing CRYST1 record to PDB file with box info
+Checking Unit.
+Building topology.
+Building atom parameters.
+Building bond parameters.
+Building angle parameters.
+Building proper torsion parameters.
+Building improper torsion parameters.
+ total 10 improper torsions applied
+Building H-Bond parameters.
+Incorporating Non-Bonded adjustments.
+Not Marking per-residue atom chain types.
+Marking per-residue atom chain types.
+  (Residues lacking connect0/connect1 - 
+   these don't have chain types marked:
+
+	res	total affected
+
+	DMS	1629
+	SLU	1
+  )
+ (no restraints)
+	Quit
+
+Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.

@@ -1,6 +1,6 @@
 !!index array str
- "d"
-!entry.d.unit.atoms table  str name  str type  int typex  int resx  int flags  int seq  int elmnt  dbl chg
+ "dmso"
+!entry.dmso.unit.atoms table  str name  str type  int typex  int resx  int flags  int seq  int elmnt  dbl chg
  "S" "S" 0 1 131073 1 16 0.307524
  "CT1" "CT" 0 1 131073 2 6 -0.262450
  "O" "O" 0 1 131073 3 8 -0.517786
@@ -1091,7 +1091,7 @@
  "HZ4" "H1" 0 109 131073 8 1 0.122527
  "HZ5" "H1" 0 109 131073 9 1 0.122527
  "HZ6" "H1" 0 109 131073 10 1 0.122527
-!entry.d.unit.atomspertinfo table  str pname  str ptype  int ptypex  int pelmnt  dbl pchg
+!entry.dmso.unit.atomspertinfo table  str pname  str ptype  int ptypex  int pelmnt  dbl pchg
  "S" "S" 0 -1 0.307524
  "CT1" "CT" 0 -1 -0.262450
  "O" "O" 0 -1 -0.517786
@@ -2182,18 +2182,18 @@
  "HZ4" "H1" 0 -1 0.122527
  "HZ5" "H1" 0 -1 0.122527
  "HZ6" "H1" 0 -1 0.122527
-!entry.d.unit.boundbox array dbl
+!entry.dmso.unit.boundbox array dbl
  1.000000
  1.570797
  21.483227
  20.822683
  28.502075
-!entry.d.unit.childsequence single int
+!entry.dmso.unit.childsequence single int
  110
-!entry.d.unit.connect array int
+!entry.dmso.unit.connect array int
  0
  0
-!entry.d.unit.connectivity table  int atom1x  int atom2x  int flags
+!entry.dmso.unit.connectivity table  int atom1x  int atom2x  int flags
  2 1 17
  3 1 17
  4 1 17
@@ -3175,7 +3175,7 @@
  1088 1084 17
  1089 1084 17
  1090 1084 17
-!entry.d.unit.hierarchy table  str abovetype  int abovex  str belowtype  int belowx
+!entry.dmso.unit.hierarchy table  str abovetype  int abovex  str belowtype  int belowx
  "U" 0 "R" 1
  "R" 1 "A" 1
  "R" 1 "A" 2
@@ -4375,9 +4375,9 @@
  "R" 109 "A" 1088
  "R" 109 "A" 1089
  "R" 109 "A" 1090
-!entry.d.unit.name single str
+!entry.dmso.unit.name single str
  ""
-!entry.d.unit.positions table  dbl x  dbl y  dbl z
+!entry.dmso.unit.positions table  dbl x  dbl y  dbl z
  -1.283334 -2.446650 8.676658
  -0.933334 -1.175650 7.377658
  -0.792334 -2.023650 10.009658
@@ -5468,7 +5468,7 @@
  5.772666 -12.847650 -13.375342
  6.009666 -12.738650 -15.091342
  5.014666 -11.513650 -14.272342
-!entry.d.unit.residueconnect table  int c1x  int c2x  int c3x  int c4x  int c5x  int c6x
+!entry.dmso.unit.residueconnect table  int c1x  int c2x  int c3x  int c4x  int c5x  int c6x
  0 0 0 0 0 0
  0 0 0 0 0 0
  0 0 0 0 0 0
@@ -5578,7 +5578,7 @@
  0 0 0 0 0 0
  0 0 0 0 0 0
  0 0 0 0 0 0
-!entry.d.unit.residues table  str name  int seq  int childseq  int startatomx  str restype  int imagingx
+!entry.dmso.unit.residues table  str name  int seq  int childseq  int startatomx  str restype  int imagingx
  "DMS" 1 11 1 "?" 0
  "DMS" 2 11 11 "?" 0
  "DMS" 3 11 21 "?" 0
@@ -5688,7 +5688,7 @@
  "DMS" 107 11 1061 "?" 0
  "DMS" 108 11 1071 "?" 0
  "DMS" 109 11 1081 "?" 0
-!entry.d.unit.residuesPdbSequenceNumber array int
+!entry.dmso.unit.residuesPdbSequenceNumber array int
  1
  2
  3
@@ -5798,13 +5798,13 @@
  107
  108
  109
-!entry.d.unit.solventcap array dbl
+!entry.dmso.unit.solventcap array dbl
  -1.000000
  0.0
  0.0
  0.0
  0.0
-!entry.d.unit.velocities table  dbl x  dbl y  dbl z
+!entry.dmso.unit.velocities table  dbl x  dbl y  dbl z
  0.0 0.0 0.0
  0.0 0.0 0.0
  0.0 0.0 0.0
