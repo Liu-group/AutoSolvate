@@ -1,0 +1,18 @@
+tolerance       2.00                
+filetype        pdb                     
+output          system.pdb                   
+# add the solute           
+structure       naphthalene_neutral.pdb 
+number          1     
+fixed      28.0 28.0 28.0 0. 0. 0.
+centerofmass                                       
+resnumbers      2                                  
+end structure                                          
+
+# add the solvent                                       
+structure       acetonitrile.pdb                             
+number          1680                              
+inside cube 0. 0. 0. 56       
+resnumbers      2                                 
+end structure                                     
+

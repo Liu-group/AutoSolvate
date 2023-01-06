@@ -58,9 +58,9 @@ def update_solvent(mol: object) -> None:
                 '''
                 @TODO: 
                 1. double check with Fangning if it is ok to only have frcmod file 
+                2. I dont see how this case is different from the case below
                 ''' 
-                return
-
+                pass 
 
     #custome solvent only has pdb file 
     if mol.pdb is not None: 
@@ -75,10 +75,28 @@ def update_solvent(mol: object) -> None:
         parmk = ParmchkDocker() 
         parmk.run(mol) 
         mol.update() 
+
+        tleap = TleapDocker() 
+        tleap.run(mol)
+        mol.update()
         return 
 
 
 
 def update_box(box: object) -> None: 
+    tleap_box(box) 
+
+
+def pack_box(box: object) -> None: 
+    pack = PackmolDocker() 
+    pack.run(box) 
+    tools.edit_system_pdb(box)
+    box.update()
+    
+
+
+def tleap_box(box: object) -> None: 
     tleap = TleapDocker() 
-    tleap.run(box)
+    tleap.run(box) 
+    box.update() 
+

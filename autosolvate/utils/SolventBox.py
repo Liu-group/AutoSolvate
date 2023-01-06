@@ -115,7 +115,7 @@ class SolventBox:
         for file in glob.glob(search_range, recursive=True):
             
             if file.endswith('system.pdb'):
-                self.system_pdb = system.pdb
+                self.system_pdb = 'system.pdb'
                 if self.name+'/' not in file:
                     shutil.copy(file, WORKING_DIR + self.name + '/')
             
@@ -137,7 +137,11 @@ class SolventBox:
                         shutil.copy(file, WORKING_DIR + self.name + '/') 
                 if file.endswith(solute.name + '.inpcrd'): 
                     if self.name+'/' not in file:
-                        shutil.copy(file, WORKING_DIR + self.name + '/') 
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
+                if file.endswith(solute.name + '.prep'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')   
+                        
 
             for solvent in self.solvent_list: 
                 if file.endswith(solvent.name + '.pdb'):
@@ -156,5 +160,8 @@ class SolventBox:
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/') 
                 if file.endswith(solvent.name + '.inpcrd'): 
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
+                if file.endswith(solvent.name + '.prep'):
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/')

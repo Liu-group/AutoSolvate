@@ -73,7 +73,7 @@ class TleapDocker:
                     self.write_tleap_in(solute, solvent, box.closeness, box.cubesize)
 
                 else: 
-                    raise Exception('case not considered yet') 
+                    raise Exception('Tleap.run() case not considered yet') 
 
                 cmd = self.generate_cmd()
                 tools.submit(cmd)
@@ -180,14 +180,15 @@ class TleapDocker:
         f = open('leap.in', 'w')
         
         self.load_forcefield(f) 
-        self.load_mol(f, solvent, frcmod=True, mol2=True, check=True)
-        self.load_mol(f, solute,  frcmod=True, mol2=True, check=True)
+        self.load_mol(f, solvent, frcmod=True, mol2=True, check=True) 
+        self.load_mol(f, solute,  frcmod=True, lib=True, check=True)
         '''
         @QUESTION: 
         I dont know how to load a ions in this case 
         '''
         f.write('{:<5}  {:<10}   {:<20}            \n'.format('SYS =', 'loadpdb', system_pdb)) 
-        f.write('{:<5}  {:<5}    {:<5}  {:<20}     \n'.format('set', 'SYS', 'box', '{'+str(cubsize)+' '+str(cubsize)+' '+str(cubsize)+'}'))
+        f.write('{:<5}  {:<10}                     \n'.format('check', 'SYS'))
+        f.write('{:<5}  {:<5}    {:<5}  {:<20}     \n'.format('set', 'SYS', 'box', '{'+str(cubsize)+', '+str(cubsize)+', '+str(cubsize)+'}'))
         f.write('{:<20} {:<5}    {:<20} {:<20}     \n'.format('saveamberparm', 'SYS', output_name+'.prmtop', output_name+'.inpcrd'))
         f.write('{:<20} {:<5}    {:<20}            \n'.format('savepdb', 'SYS', output_name+'.pdb'))
         f.write('{:<5}                             \n'.format('quit'))     
@@ -226,6 +227,8 @@ class TleapDocker:
             doc.write('{:<20}  {:<20}       \n'.format('loadamberparams', mol.frcmod))       
         if lib: 
             doc.write('{:<20}  {:<20}       \n'.format('loadoff', mol.lib)) 
+        if mol.prep != None: 
+            doc.write('{:<20}  {:<20}       \n'.format('loadamberprep', mol.prep))
         if check: 
             doc.write('{:<20}  {:<20}       \n'.format('check', mol.residue_name))
 

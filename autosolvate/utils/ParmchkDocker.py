@@ -44,7 +44,7 @@ class ParmchkDocker:
         if mol.mol2 is not None:
             return '-i %s -f %s' % (os.path.basename(mol.mol2), 'mol2') 
 
-        raise Exception('only support mol2 as input format') 
+        raise Exception('only support mol2 as input format and {} mol2 is none'.format(mol.name)) 
 
 
     def set_output(self, mol: object) -> str: 

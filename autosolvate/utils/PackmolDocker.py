@@ -81,9 +81,8 @@ class PackmolDocker:
 
             if box.duplicate_solute_num == 1:
                 doc.write('{:<10} {pos} {pos} {pos} {com} {com} {com}\n'.format('fixed', pos=solute_pos, com='0.'))
-                doc.write('{:<15} {:<5}                              \n'.format('resnumbers', '2'))
                 doc.write('{:<15}                                    \n'.format('centerofmass'))
-                doc.write('{:<15}                                    \n'.format('end structure'))
+                doc.write('{:<15} {:<5}                              \n'.format('resnumbers', '2'))
 
             else:
                 doc.write('{:<10} {pos} {pos} {pos} {cube}           \n'.format('inside cube', pos=solute_pos, cube=box.cubesize))
@@ -102,7 +101,8 @@ class PackmolDocker:
             doc.write('{}                                       \n'.format('# add the solvent'))
             doc.write('{:<15} {:<5}                             \n'.format('structure', solvent.pdb))
             doc.write('{:<15} {:<5}                             \n'.format('number',    box.duplicate_solvent_num))
-            doc.write('{:<10} {pos} {pos} {pos} {boxsize}       \n'.format('inside cube', pos=box.cubesize/2.0, boxsize=box.cubesize))
+            doc.write('{:<10} {pos} {pos} {pos} {boxsize}       \n'.format('inside cube', pos='0.', boxsize=box.cubesize))
+            doc.write('{:<15} {:<5}                             \n'.format('resnumbers', '2'))
             doc.write('{:<15}                                   \n'.format('end structure'))
             doc.write('\n')    
         

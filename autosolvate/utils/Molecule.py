@@ -28,24 +28,25 @@ class Molecule:
     mol_type:       str
 
     #positional arguments 
-    residue_name:   str = 'MOL'
+    residue_name:   str = field(default='MOL')
     #files 
-    pdb:            str = None
-    xyz:            str = None
-    mol2:           str = None
-    frcmod:         str = None
-    lib:            str = None 
-    prmtop:         str = None
-    inpcrd:         str = None
+    pdb:            str = field(default=None) 
+    xyz:            str = field(default=None) 
+    mol2:           str = field(default=None) 
+    frcmod:         str = field(default=None) 
+    lib:            str = field(default=None) 
+    prmtop:         str = field(default=None) 
+    inpcrd:         str = field(default=None) 
+    prep:           str = field(default=None)
     '''
     @TODO: 
     1. this box attribute name is confusing with box as SolventBox object 
     2. we should use a better name
     '''
-    box:            str = None
+    box:            str = field(default=None) 
 
-    folder:         str = field(default=None, init=False)
-    init_folder:   bool = True
+    folder:         str = field(default=None) 
+    init_folder:   bool = field(default=True) 
 
    
     def __post_init__(self) -> None:
@@ -114,6 +115,10 @@ class Molecule:
             if not isinstance(self.inpcrd, str): 
                 raise Exception('inpcrd is not a string')
 
+        if self.prep is not None:
+            if not isinstance(self.prep, str): 
+                raise Exception('prep is not a string')
+
         if self.box is not None: 
             if not isinstance(self.box, str): 
                 raise Exception('box is not a string') 
@@ -179,9 +184,13 @@ class Molecule:
                     if self.name+'/' not in file:
                         shutil.copy(file, WORKING_DIR + self.name + '/')
                 
+                elif file.endswith(self.name + '.prep'):
+                    self.prep = self.name + '.prep'
+                    if self.name+'/' not in file:
+                        shutil.copy(file, WORKING_DIR + self.name + '/')
+                
 
-
-
+        
 def check_lib(lib: str, name: str) -> None: 
     r'''
     @NOTE: 

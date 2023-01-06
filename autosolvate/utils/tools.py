@@ -74,12 +74,11 @@ def xyz_to_pdb(mol: object) -> None:
     OBMOL = ob.OBMol() 
     obConversion.ReadFile(OBMOL, mol.xyz) 
     obConversion.WriteFile(OBMOL, mol.name+'/'+mol.name+'.pdb')
-
     mol.update()
-    truncate_pdb(mol)
+    edit_pdb(mol)
 
 
-def truncate_pdb(mol: object) -> None:
+def edit_pdb(mol: object) -> None:
     with open(mol.name+'/'+mol.pdb, 'r') as f: 
         lines = f.readlines() 
     with open(mol.name+'/'+mol.pdb, 'w') as f: 
@@ -88,6 +87,21 @@ def truncate_pdb(mol: object) -> None:
                 continue
             else: 
                 f.write(line)
+
+def edit_system_pdb(box: object) -> None:
+    with open(box.name+'/'+box.system_pdb, 'r') as f: 
+        lines = f.readlines()
+    with open(box.name+'/'+box.system_pdb, 'w') as f:  
+        this_resid = 1
+        last_resid = 1
+        for line in lines:
+            if 'ATOM' in line:
+                last_resid = int(this_resid)
+                this_resid = int(line[22:26])
+            if last_resid != this_resid:
+                f.write("TER\n")
+            f.write(line)
+        f.close()
     
 
 
@@ -120,11 +134,3 @@ def submit(cmd: str) -> None:
             subprocess.call(cmd, shell=True)
 
 
-
-if __name__ == '__main__': 
-    import doctest
-
-    global USE_SRUN, DRY_RUN
-    USE_SRUN = True
-    
-    doctest.testmod() 

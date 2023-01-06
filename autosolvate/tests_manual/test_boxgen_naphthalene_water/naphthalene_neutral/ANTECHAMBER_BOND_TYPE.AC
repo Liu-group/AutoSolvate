@@ -18,27 +18,22 @@ ATOM     15  H4  SLU     1      -1.245   2.493   0.000  0.000000         H
 ATOM     16  H5  SLU     1       1.245   2.493   0.000  0.000000         H
 ATOM     17  H6  SLU     1       3.384   1.245   0.000  0.000000         H
 ATOM     18  H7  SLU     1       3.384  -1.245   0.000  0.000000         H
-BOND    1    1    2    1      C   C1
-BOND    2    1   10    1      C   C9
-BOND    3    1   10    1      C   C9
-BOND    4    1   18    1      C   H7
-BOND    5    2    3    1     C1   C2
-BOND    6    2    3    1     C1   C2
-BOND    7    2   17    1     C1   H6
-BOND    8    3    4    1     C2   C3
-BOND    9    3   16    1     C2   H5
-BOND   10    4    5    1     C3   C4
-BOND   11    4    9    1     C3   C8
-BOND   12    4    9    1     C3   C8
-BOND   13    5    6    1     C4   C5
-BOND   14    5    6    1     C4   C5
-BOND   15    5   15    1     C4   H4
-BOND   16    6    7    1     C5   C6
-BOND   17    6   14    1     C5   H3
-BOND   18    7    8    1     C6   C7
-BOND   19    7    8    1     C6   C7
-BOND   20    7   13    1     C6   H2
-BOND   21    8    9    1     C7   C8
-BOND   22    8   12    1     C7   H1
-BOND   23    9   10    1     C8   C9
-BOND   24   10   11    1     C9    H
+BOND    1    1    2    7      C   C1
+BOND    2    1   10    8      C   C9
+BOND    3    1   18    1      C   H7
+BOND    4    2    3    8     C1   C2
+BOND    5    2   17    1     C1   H6
+BOND    6    3    4    7     C2   C3
+BOND    7    3   16    1     C2   H5
+BOND    8    4    5    7     C3   C4
+BOND    9    4    9    8     C3   C8
+BOND   10    5    6    8     C4   C5
+BOND   11    5   15    1     C4   H4
+BOND   12    6    7    7     C5   C6
+BOND   13    6   14    1     C5   H3
+BOND   14    7    8    8     C6   C7
+BOND   15    7   13    1     C6   H2
+BOND   16    8    9    7     C7   C8
+BOND   17    8   12    1     C7   H1
+BOND   18    9   10    7     C8   C9
+BOND   19   10   11    1     C9    H
