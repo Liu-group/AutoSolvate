@@ -25,6 +25,10 @@ class SolventBox:
     cubesize:               int   = 54 
     closeness:              float = 0.8  
 
+    '''
+    @TODO 
+    duplicate should be a list
+    '''
     duplicate_solute_num:   int   = 1  
     duplicate_solvent_num:  int   = 1 
 

@@ -22,8 +22,8 @@ class Molecule:
     _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz'] 
     
     #required arguments
-    name:           str  
-    charge:         int
+    name:           str 
+    charge:         int 
     multiplicity:   int
     mol_type:       str
 
@@ -71,9 +71,18 @@ class Molecule:
             raise Exception('name is not a string') 
 
         if self.charge not in [-1, 0, 1]: 
+            '''
+            @TODO:
+            no contrains about the charge
+            '''
             raise Exception('invalid charge') 
 
-        if self.multiplicity not in [1, 2, 3]: 
+        if self.multiplicity not in [1, 2, 3]:
+            '''
+            @TODO:
+            no contrains about the charge
+            only pos integers 
+            ''' 
             raise Exception('invalid multiplicity')
             
         if self.mol_type not in ['solute', 'solvent']:
@@ -224,6 +233,10 @@ def check_lib(lib: str, name: str) -> None:
 
 
 #AMBER SOLVENTS 
+'''
+@TODO
+RENAME to TIP3
+'''
 AMBER_WATER               = Molecule(name='water', charge=0, multiplicity=1, 
                                      mol_type='solvent', 
                                      box='TIP3PBOX', 
