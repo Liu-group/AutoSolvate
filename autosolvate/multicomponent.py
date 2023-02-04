@@ -18,7 +18,7 @@ from autosolvate import AmberParamsBuilder
 class MulticomponentParamsBuilder():
     def __init__(self, xyzfile: str, 
     name="", resname="", charge=0, spinmult=1, 
-    charge_method="resp", outputFile="", srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None): 
+    charge_method="resp", outputFile="", srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, pre_optimize_fragments = True): 
         """
         The charge and spinmultiplicity for each fragment should be sequentially defined by the user. 
         The length of these array should equal to the number of fragments.
@@ -44,7 +44,10 @@ class MulticomponentParamsBuilder():
             f.write(content)
             f.close()
         if True:
-            f = open(self.basename + "-origin" + ext, "w")
+            f = open(self.mainfilename, "r")
+            content = f.read()
+            f.close()
+            f = open(self.basename + "-original" + ext, "w")
             f.write(content)
             f.close()
 
@@ -58,6 +61,7 @@ class MulticomponentParamsBuilder():
         self.gaussianexe = gaussianexe
         self.gaussiandir = gaussiandir
         self.amberhome = amberhome
+        self.pre_optimize_fragments = pre_optimize_fragments
 
         self.aminoacidresidues = set(["ALA", "ARG", "ASN", "ASP", "CYS", "GLU", "GLN", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"])
 
@@ -316,6 +320,11 @@ class MulticomponentParamsBuilder():
         pybel.Molecule(ob.OBMol(self.mol_obmol)).write("pdb", self.mainfilename, overwrite=True)
         
         for i, pdbname in enumerate(self.newfragpdbs):
+            # if self.charges[i] == 0 and self.spinmults[i] == 1 and self.pre_optimize_fragments: # pre-optimize each fragment before proceeding to antechamber
+            #     bname = os.path.splitext(pdbname)[0]
+            #     os.rename(pdbname, bname+"1.pdb")
+            #     subprocess.run(f"obminimize -ff gaff {bname}1.pdb > {pdbname}", shell = True)
+            #     os.remove(bname+"1.pdb")
             mol = pybel.readfile("pdb", pdbname).__next__()
             mname = os.path.splitext(os.path.basename(pdbname))[0]
             inst = AmberParamsBuilder(
