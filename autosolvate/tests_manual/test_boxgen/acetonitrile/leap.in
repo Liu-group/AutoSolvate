@@ -1,0 +1,10 @@
+source                leaprc.protein.ff14SB       
+source                leaprc.gaff                
+source                leaprc.water.tip3p         
+SLV   = loadmol2      acetonitrile.mol2     
+loadamberparams       acetonitrile.frcmod        
+loadamberprep         acetonitrile.prep          
+saveoff              SLV   acetonitrile.lib        
+savepdb              SLV   acetonitrile.pdb        
+saveamberparm        SLV   acetonitrile.prmtop acetonitrile.inpcrd 
+quit                                     
