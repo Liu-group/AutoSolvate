@@ -196,9 +196,9 @@ class AmberParamsBuilder():
         if self.charge_method == "bcc":
             self.removeConectFromPDB()
         if self.charge_method == "resp":
-            cmd3 = f"$AMBERHOME/bin/antechamber -i {self.name}.gesp -fi gesp -o {self.name}.mol2 -fo mol2 -c resp -eq 2 -rn {self.resname} -pl {pl}"
+            cmd3 = f"$AMBERHOME/bin/antechamber -i {self.name}.gesp -fi gesp -o {self.name}.mol2 -fo mol2 -c resp -eq 2 -rn {self.resname} -pl {pl} -nc {self.charge} -m {self.spinmult}"
         elif self.charge_method == "bcc":
-            cmd3 = f"$AMBERHOME/bin/antechamber -i {self.name}.pdb -fi pdb -o {self.name}.mol2 -fo mol2 -c bcc -eq 2 -rn {self.resname} -pl {pl}"
+            cmd3 = f"$AMBERHOME/bin/antechamber -i {self.name}.pdb -fi pdb -o {self.name}.mol2 -fo mol2 -c bcc -eq 2 -rn {self.resname} -pl {pl} -nc {self.charge} -m {self.spinmult}"
         if self.srun_use:
             cmd3 = 'srun -n 1 ' + cmd3
         subprocess.call(cmd3, shell=True)
@@ -325,10 +325,6 @@ class solventBoxBuilder():
         self.xyzformat = os.path.splitext(self.xyz)[-1][1:]
         print(f"{self.xyzformat.upper()} file detected by checking the extension.")
         self.solute = pybel.readfile(self.xyzformat, self.xyz).__next__()
-        self.slu_name = os.path.basename(xyzfile)[0]
-        self.slu_netcharge = slu_netcharge
-        self.slu_spinmult = slu_spinmult
-        self.slu_count = slu_count
         # currently hard coded. Can be changed later to be determined automatically based on the density of the solute
         self.solvent = solvent
         if closeness=='automated':
@@ -349,8 +345,6 @@ class solventBoxBuilder():
         self.waterbox_size = 8.0
         # following are for custom organic solvent
         self.cube_size = cube_size # in angstrom
-        self.slu_pos = self.cube_size/2.0
-        self.slv_count = slv_count # 210
         self.pbcbox_size = self.cube_size+2
         self.outputFile=outputFile
         if self.outputFile == "":
@@ -363,6 +357,15 @@ class solventBoxBuilder():
         self.solvent_off=solvent_off
         self.solvent_frcmod=solvent_frcmod
         self.is_custom_solvent = False
+
+        self.slu_name = os.path.splitext(os.path.basename(xyzfile))[0]
+        self.slu_netcharge = slu_netcharge
+        self.slu_spinmult = slu_spinmult
+        self.slu_count = slu_count
+        self.slu_pos = cube_size/2.0
+
+        self.slv_name = self.solvent
+        self.slv_count = slv_count # 210
         self.slv_generate = slv_generate
         self.slv_xyz = slv_xyz
         self.slv_xyzformat = os.path.splitext(self.slv_xyz)[-1]
@@ -474,60 +477,6 @@ class solventBoxBuilder():
         if len(self.solute.atoms) > 100:
             print("The solute molecule has over 100 atoms. Will adjust -pl to 15")
          
-    def getHeadTail(self):
-        r"""
-        Detect start and end of coordinates
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        pdb = open('solute.mol2').readlines()
-        start =0
-        end = 0
-        for i in range(0,len(pdb)):
-            if "@<TRIPOS>ATOM" in pdb[i]:
-                start = i+1
-            if "@<TRIPOS>BOND" in pdb[i]:
-                end = i
-        for i in range(start, end):
-            atom =  pdb[i].split()[1]
-            if "H" not in atom:
-                self.head = atom
-                break
-        for i in reversed(range(start,end)):
-            atom =  pdb[i].split()[1]
-            if "H" not in atom:
-                self.tail = atom
-                break
-
-    def createLib(self):
-        r"""
-        Run tleap
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        print("Now create the solute library file")
-        self.writeTleapcmd1()
-        cmd ="tleap -s -f leap.cmd > leap_savelib.log"
-        if self.srun_use:
-            cmd='srun -n 1 '+cmd
-        subprocess.call(cmd, shell=True)
-        if not os.path.isfile('solute.pdb'):
-            print("gaussian failed to generate solute.pdb") 
-            sys.stdout.flush()
-            sys.exit()
-
     def writeTleapcmd_add_solvent(self):
         r"""
         Write tleap input file to add solvent
@@ -542,14 +491,15 @@ class solventBoxBuilder():
         """
         if self.solvent in amber_solv_dict:
             print("Now add pre-equlibrated solvent box to the solute")
-            self.getHeadTail()
             f = open("leap_add_solventbox.cmd","w")
             f.write("source leaprc.protein.ff14SB\n")
             f.write("source leaprc.gaff\n")
             f.write("source leaprc.water.tip3p\n")
-            f.write(str(amber_solv_dict[str(self.solvent)][0]))        
-            f.write(f"loadamberparams solute.frcmod\n")
-            f.write(f"mol=loadmol2 solute.mol2\n")
+            f.write(str(amber_solv_dict[str(self.solvent)][0]))
+            if os.path.exists(f"{self.slu_name}.frcmod"):
+                f.write(f"loadamberparams {self.slu_name}.frcmod\n")
+            f.write(f"loadoff {self.slu_name}.lib\n")
+            f.write(f"mol=loadmol2 {self.slu_name}.mol2\n")
             f.write("check mol\n")
             f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso "+str(self.closeness)+"  #Solvate the complex with a cubic solvent box\n") 
             # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
@@ -579,15 +529,15 @@ class solventBoxBuilder():
         None
         """
         print("Now add custom pre-equlibrated solvent box to the solute")
-        self.getHeadTail()
         f = open("leap_add_solventbox.cmd","w")
         f.write("source leaprc.protein.ff14SB\n")
         f.write("source leaprc.gaff\n")
         f.write("source leaprc.water.tip3p\n")
         f.write("loadoff " + self.solvent_off + "\n")
         f.write("loadamberparams " + self.solvent_frcmod + "\n")
-        f.write("loadamberparams solute.frcmod\n")
-        f.write("mol=loadmol2 solute.mol2\n")
+        if os.path.exists(f"{self.slu_name}.frcmod"):
+            f.write(f"loadamberparams {self.slu_name}.frcmod\n")
+        f.write(f"mol=loadmol2 {self.slu_name}.mol2\n")
         f.write("check mol\n")
         f.write("solvatebox mol " + self.solvent + " " 
                 + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic solvent box\n") 
@@ -659,7 +609,7 @@ class solventBoxBuilder():
                 subprocess.call(['cp',solvent_pdb_origin,solvent_pdb])
         elif self.slv_generate:
             solvPrefix = self.solvent
-            solvent_pdb = "solvent.pdb"
+            solvent_pdb = {self.slv_name}+"pdb"
 
         output_pdb = solvPrefix + "_solvated.packmol.pdb"
 
@@ -673,7 +623,7 @@ class solventBoxBuilder():
         packmol_inp.write("\n")
         packmol_inp.write("# add the solute\n")
         if self.slu_count == 1:
-            packmol_inp.write("structure solute.pdb\n")
+            packmol_inp.write(f"structure {self.slu_name}.pdb\n")
             packmol_inp.write("   number 1\n")
             packmol_inp.write("   fixed " + " " + str(self.slu_pos) + " "+ str(self.slu_pos) + " " + str(self.slu_pos) + " 0. 0. 0.\n")
             packmol_inp.write("   centerofmass\n")
@@ -682,7 +632,7 @@ class solventBoxBuilder():
             packmol_inp.write("\n")
         elif self.slu_count > 1:
             packmol_inp.write("# add the solute\n")
-            packmol_inp.write("structure solute.pdb\n")
+            packmol_inp.write(f"structure {self.slu_name}.pdb\n")
             packmol_inp.write("    number %d\n" % self.slu_count)
             packmol_inp.write("    inside cube 0. 0. 0. " + str(self.cube_size) + " \n")
             packmol_inp.write("    resnumbers 2 \n")
@@ -717,13 +667,13 @@ class solventBoxBuilder():
         """
         if self.slv_generate:
             solvPrefix = self.solvent
-            solvent_frcmod = "solvent.frcmod"
+            solvent_frcmod = {self.slv_name}+"frcmod"
             solvent_frcmod_path = os.path.join(os.getcwd(), solvent_frcmod)
-            solvent_prep = "solvent.prep"
+            solvent_prep = {self.slv_name}+"prep"
             solvent_prep_path = os.path.join(os.getcwd(), solvent_prep)
-            solvent_mol2 = "solvent.mol2"
+            solvent_mol2 = {self.slv_name}+"mol2"
             solvent_mol2_path = os.path.join(os.getcwd(), solvent_mol2)
-            solvent_lib = "solvent.lib"
+            solvent_lib = {self.slv_name}+"lib"
             solvent_lib_path = os.path.join(os.getcwd(), solvent_lib)
         else:
             solvPrefix = custom_solv_dict[self.solvent]
@@ -751,8 +701,9 @@ class solventBoxBuilder():
         else:
             print("ERROR: no solvent amberprep or library file!")
             exit()
-        f.write("loadamberparams solute.frcmod\n")
-        f.write("loadoff solute.lib\n")
+        if os.path.exists(f"{self.slu_name}.frcmod"):
+            f.write(f"loadamberparams {self.slu_name}.frcmod\n")
+        f.write(f"loadoff {self.slu_name}.lib\n")
         f.write("\n")
         f.write("SYS = loadpdb " + solvPrefix + "_solvated.processed.pdb\n")
         f.write("check SYS\n")
@@ -831,7 +782,7 @@ class solventBoxBuilder():
         """
         solutebuilder = AmberParamsBuilder(
             xyzfile= self.xyz,
-            name = "solute",
+            name = self.slu_name,
             resname = "SLU",
             charge = self.slu_netcharge,
             spinmult= self.slu_spinmult,
@@ -847,7 +798,7 @@ class solventBoxBuilder():
         if self.slv_generate:
             solventbuilder = AmberParamsBuilder(
                 xyzfile = self.slv_xyz,
-                name = "solvent",
+                name = self.slv_name,
                 resname = "SLV",
                 charge = 0,
                 spinmult = 1,
