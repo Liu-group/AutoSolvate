@@ -3,6 +3,7 @@
 # Description: 
 #   This module calls TeraChem for RESP charge fitting. 
 #   This is just to avoid the situation where Gaussian is not installed.
+# Warning: This module use terachem instead of antechamber to perform RESP, result may varies slightly.
 #--------------------------------------------------------------------------------------------------#
 import os, subprocess
 import time
