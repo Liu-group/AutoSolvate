@@ -108,6 +108,7 @@ class MulticomponentParamsBuilder():
         self.charges = charge
         self.netcharge = 0
         self.spinmults = spinmult
+        self.charge_method = charge_method
 
         self.mainfilename = xyzfile
         self.basename, ext = os.path.splitext(self.mainfilename)
@@ -480,7 +481,7 @@ class MulticomponentParamsBuilder():
                 resname = mol.OBMol.GetResidue(0).GetName(),
                 charge = self.charges[resname],
                 spinmult = self.spinmults[resname],
-                charge_method = "bcc",
+                charge_method = self.charge_method,
             )
             inst.build()
         self.updateAtomLabels()

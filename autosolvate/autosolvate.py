@@ -5,6 +5,8 @@ import subprocess
 import pkg_resources
 import numpy as np
 
+from terachem_docker import *
+
 
 amber_solv_dict = {'water':     [' ','TIP3PBOX '],
                    'methanol':  ['loadOff solvents.lib\n loadamberparams frcmod.meoh\n', 'MEOHBOX '],
@@ -21,7 +23,7 @@ class AmberParamsBuilder():
     3. Tleap create Lib
     """
     def __init__(self, xyzfile:str, name = "", resname = "", charge = 0, spinmult = 1, charge_method="resp", 
-        outputFile="", srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None):
+        outputFile="", srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, use_terachem = True):
 
         self.xyz = xyzfile
         self.xyzformat = os.path.splitext(self.xyz)[-1][1:]
@@ -45,6 +47,8 @@ class AmberParamsBuilder():
         self.gaussian_dir = gaussiandir
         self.gaussian_exe = gaussianexe
         self.amberhome = amberhome
+        self.use_terachem = use_terachem
+        self.uuse_terachem = False
         self.inputCheck()
 
     def inputCheck(self):
@@ -69,9 +73,15 @@ class AmberParamsBuilder():
                 self.gaussian_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
                 gspath = os.path.join(self.gaussian_dir, self.gaussian_exe)
                 if not os.path.exists(gspath):
-                    print("Error! Gaussian executable path",gspath)
-                    print("Does not exist! Exiting...")
-                    exit()
+                    if self.use_terachem:
+                        print("WARNING: Gaussian executable path", gspath)
+                        print("Does not exist! Try to use TeraChem for RESP charge fitting.")
+                        check_terachem()
+                        self.uuse_terachem = True
+                    else:
+                        print("Error! Gaussian executable path",gspath)
+                        print("Does not exist! Exiting....")
+                        exit()
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
             print("WARNING: Checking AMBERHOME environment variable...")
@@ -150,7 +160,7 @@ class AmberParamsBuilder():
             if 'CONECT' not in line:
                 pdb2.write(line)
         pdb2.close()
-
+    
     def getFrcmod(self):
         r"""
         Get partial charges and create frcmod
@@ -165,6 +175,13 @@ class AmberParamsBuilder():
         """
         print(f"Generate frcmod file for {self.name}")
         if self.charge_method == "resp":
+            if self.uuse_terachem:
+                resp_terachem(self.name + ".pdb", self.resname, self.charge, self.spinmult)
+                cmd4 = f"$AMBERHOME/bin/parmchk2 -i {self.name}.mol2 -f mol2 -o {self.name}.frcmod"
+                if self.srun_use:
+                    cmd4 = 'srun -n 1 ' + cmd4
+                subprocess.call(cmd4, shell=True)
+                return 
             print("First generate the gaussian input file for RESP charge fitting")
             cmd1 = f"$AMBERHOME/bin/antechamber -i {self.name}.pdb -fi pdb -o gcrt.com -fo gcrt -gv 1 -ge {self.name}.gesp  -s 2 -nc {self.charge} -m {self.spinmult}"
             if self.srun_use:
@@ -318,8 +335,8 @@ class solventBoxBuilder():
 
     def __init__(self, xyzfile:str, solvent='water', slu_netcharge=0, cube_size=54, 
             charge_method="resp", slu_spinmult=1, outputFile="", 
-            srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, closeness=0.8,
-            solvent_off="", solvent_frcmod="",
+            srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, use_terachem = True,
+            closeness=0.8, solvent_off="", solvent_frcmod="",
             slu_count=1, slv_count=210*8, slv_generate=False, slv_xyz=""):
         self.xyz = xyzfile
         self.xyzformat = os.path.splitext(self.xyz)[-1][1:]
@@ -390,9 +407,14 @@ class solventBoxBuilder():
                 self.gaussian_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
                 gspath = os.path.join(self.gaussian_dir, self.gaussian_exe)
                 if not os.path.exists(gspath):
-                    print("Error! Gaussian executable path",gspath)
-                    print("Does not exist! Exiting...")
-                    exit()
+                    if self.use_terachem:
+                        print("WARNING: Gaussian executable path", gspath)
+                        print("Does not exist! Try to use TeraChem for RESP charge fitting.")
+                        check_terachem()
+                    else:
+                        print("Error! Gaussian executable path",gspath)
+                        print("Does not exist! Exiting....")
+                        exit()
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
             print("WARNING: Checking AMBERHOME environment variable...")
