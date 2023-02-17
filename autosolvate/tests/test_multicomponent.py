@@ -18,6 +18,7 @@ def test_multicomponent(tmpdir):
     builder = MulticomponentParamsBuilder(
         hp.get_input_dir(f"{inpfname}.pdb"),
         pre_optimize_fragments=True,
+        charge_method="bcc"
     )
     builder.buildAmberParamsForAll()
     pass_exist = True
@@ -38,6 +39,7 @@ def test_ionpair_solvation(tmpdir):
         slu_charge={"SUF":-2, "TPA":1},
         solvent="water",
         cube_size=20,
+        charge_method="bcc"
     )
     inst.build()
     pass_fragment_exist = True

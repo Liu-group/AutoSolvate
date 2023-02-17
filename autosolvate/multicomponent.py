@@ -16,7 +16,7 @@ import subprocess
 from openbabel import pybel
 from openbabel import openbabel as ob
 
-from autosolvate import *
+from autosolvate.autosolvate import *
 
 def check_multicomponent(filename:str):
     mol = pybel.readfile(os.path.splitext(filename)[-1][1:], filename).__next__()
@@ -543,15 +543,19 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
     solvent="water", solvent_frcmod="", solvent_off="",
     slv_xyz="", slv_generate=False, slv_count=210*8, cube_size = 54, closeness = 0.8,
     charge_method="resp", outputFile="", pre_optimize_fragments = False, deletefiles=False,
-    srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None): 
+    srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, use_terachem = False): 
 
         super().__init__(xyzfile,
         solvent = solvent, slu_netcharge=slu_charge, slu_spinmult=slu_spinmult, 
-        cube_size = cube_size, charge_method = charge_method, outputFile = outputFile, srun_use=srun_use, gaussianexe = gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, closeness=closeness, solvent_off = solvent_off, solvent_frcmod=solvent_frcmod, slu_count=slu_count, slv_count=slv_count, slv_generate=slv_generate, slv_xyz=slv_xyz)
+        cube_size = cube_size, charge_method = charge_method, outputFile = outputFile, srun_use=srun_use,
+        gaussianexe = gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, use_terachem=use_terachem,
+        closeness=closeness, solvent_off = solvent_off, solvent_frcmod=solvent_frcmod, slu_count=slu_count, slv_count=slv_count, slv_generate=slv_generate, slv_xyz=slv_xyz)
 
         self.pre_optimize_fragments = pre_optimize_fragments
         self.deletefiles = deletefiles
         self.slu_charge = slu_charge
+        self.newresiduenames = []
+        self.newfragpdbs = []
 
     def inputCheck(self):
         if self.amberhome == None:
@@ -621,6 +625,162 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
         if len(self.solute.atoms) > 100:
             print("The solute molecule has over 100 atoms. Will adjust -pl to 15")
    
+    def writeTleapcmd_custom_solvated(self):
+        r"""
+        Write tleap file for custom solvents like CH3CN
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        if self.slv_generate:
+            solvPrefix = self.solvent
+            solvent_frcmod = {self.slv_name}+"frcmod"
+            solvent_frcmod_path = os.path.join(os.getcwd(), solvent_frcmod)
+            solvent_prep = {self.slv_name}+"prep"
+            solvent_prep_path = os.path.join(os.getcwd(), solvent_prep)
+            solvent_mol2 = {self.slv_name}+"mol2"
+            solvent_mol2_path = os.path.join(os.getcwd(), solvent_mol2)
+            solvent_lib = {self.slv_name}+"lib"
+            solvent_lib_path = os.path.join(os.getcwd(), solvent_lib)
+        else:
+            solvPrefix = custom_solv_dict[self.solvent]
+            solvent_frcmod = solvPrefix+'.frcmod'
+            solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
+                    os.path.join('data',solvPrefix,solvent_frcmod))
+
+            solvent_prep = solvPrefix+'.prep'
+            solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
+                    os.path.join('data',solvPrefix,solvent_prep))
+            solvent_lib_path = ""
+            solvent_mol2_path = ""
+
+        f = open("leap_packmol_solvated.cmd","w")
+        f.write("source leaprc.protein.ff14SB\n")
+        f.write("source leaprc.gaff\n")
+        f.write("source leaprc.water.tip3p\n") # This will load the Ions. Neccessary
+        f.write("loadamberparams " + solvent_frcmod_path + "\n")
+        for command, fpath in zip(["loadamberprep", "loadoff", "loadmol2"], [solvent_prep_path, solvent_lib_path, solvent_mol2_path]):
+            if not fpath:
+                continue
+            if os.path.exists(fpath):
+                f.write(command + " " + fpath + "\n")
+                break
+        else:
+            print("ERROR: no solvent amberprep or library file!")
+            exit()
+        for pdbname in self.newfragpdbs:
+            bname = os.path.splitext(os.path.basename(pdbname))[0]
+            f.write(f"loadamberparams {bname}.frcmod\n")
+            f.write(f"loadoff {bname}.lib\n")
+        f.write("\n")
+        f.write("SYS = loadpdb " + solvPrefix + "_solvated.processed.pdb\n")
+        f.write("check SYS\n")
+        f.write("\n")
+        if self.slu_netcharge > 0:
+            ion = 'Cl-'
+        else:
+            ion = 'Na+'
+        if self.slu_netcharge != 0:
+            if self.slu_netcharge > 0:
+                ion = 'Cl-'
+            else:
+                ion = 'Na+'
+            f.write("addIons2 SYS " + ion + " 0\n")
+            f.write("check SYS\n")
+        f.write("# set the dimension of the periodic box\n")
+        f.write("set SYS box {" + str(self.pbcbox_size) +", " + str(self.pbcbox_size) + ", " + str(self.pbcbox_size) + "}\n")
+        f.write("\n")
+        f.write("saveamberparm SYS "+str(self.outputFile)+".prmtop "+str(self.outputFile)+".inpcrd #Save AMBER topology and coordinate files\n")
+        f.write("savepdb SYS "+str(self.outputFile)+".pdb\n")
+        f.write("quit\n")
+        f.close()
+
+    def writeTleapcmd_add_solvent(self):
+        r"""
+        Write tleap input file to add solvent
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        if self.solvent in amber_solv_dict:
+            print("Now add pre-equlibrated solvent box to the solute")
+            f = open("leap_add_solventbox.cmd","w")
+            f.write("source leaprc.protein.ff14SB\n")
+            f.write("source leaprc.gaff\n")
+            f.write("source leaprc.water.tip3p\n")
+            f.write(str(amber_solv_dict[str(self.solvent)][0]))
+            for pdbname in self.newfragpdbs:
+                bname = os.path.splitext(os.path.basename(pdbname))[0]
+                f.write(f"loadamberparams {bname}.frcmod\n")
+                f.write(f"loadoff {bname}.lib\n")
+            f.write(f"mol=loadmol2 {self.slu_name}.mol2\n")
+            f.write("check mol\n")
+            f.write("solvatebox mol " + (str(amber_solv_dict[str(self.solvent)][1])) + str(self.slu_pos) + " iso "+str(self.closeness)+"  #Solvate the complex with a cubic solvent box\n") 
+            # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
+            if self.slu_netcharge != 0:
+                if self.slu_netcharge > 0:
+                    ion = 'Cl-'
+                else:
+                    ion = 'Na+'
+                f.write("addIons2 mol " + ion + " 0\n")
+                f.write("check mol\n")
+            f.write("check mol\n")
+            f.write("savepdb mol " + str(self.outputFile) + ".pdb\n")
+            f.write("saveamberparm mol " + str(self.outputFile) + ".prmtop " + str(self.outputFile) + ".inpcrd\n")
+            f.write("quit\n")
+            f.close()
+
+    def writeTleapcmd_add_solvent_custom(self):
+        r"""
+        Write tleap input file to add solvent from user provided .off and .frcmod files
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        print("Now add custom pre-equlibrated solvent box to the solute")
+        f = open("leap_add_solventbox.cmd","w")
+        f.write("source leaprc.protein.ff14SB\n")
+        f.write("source leaprc.gaff\n")
+        f.write("source leaprc.water.tip3p\n")
+        f.write("loadoff " + self.solvent_off + "\n")
+        f.write("loadamberparams " + self.solvent_frcmod + "\n")
+        for pdbname in self.newfragpdbs:
+            bname = os.path.splitext(os.path.basename(pdbname))[0]
+            f.write(f"loadamberparams {bname}.frcmod\n")
+            f.write(f"loadoff {bname}.lib\n")
+        f.write(f"mol=loadmol2 {self.slu_name}.mol2\n")
+        f.write("check mol\n")
+        f.write("solvatebox mol " + self.solvent + " " 
+                + str(self.slu_pos) + " iso 0.8  #Solvate the complex with a cubic solvent box\n") 
+        # Notice that we want to add the ion after solvation because we don't want the counter ion to be too close to solute
+        if self.slu_netcharge != 0:
+            if self.slu_netcharge > 0:
+                ion = 'Cl-'
+            else:
+                ion = 'Na+'
+            f.write("addIons2 mol " + ion + " 0\n")
+            f.write("check mol\n")
+        f.write("check mol\n")
+        f.write("savepdb mol " + str(self.outputFile) + ".pdb\n")
+        f.write("saveamberparm mol " + str(self.outputFile) + ".prmtop " + str(self.outputFile) + ".inpcrd\n")
+        f.write("quit\n")
+        f.close()
+
     def build(self):
         if check_multicomponent(self.xyz):
             self.solutebuilder = MulticomponentParamsBuilder(
@@ -640,6 +800,8 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
             )
             self.solutebuilder.buildAmberParamsForAll()
             self.slu_netcharge = self.solutebuilder.netcharge
+            self.newresiduenames = self.solutebuilder.newresiduenames
+            self.newfragpdbs = self.solutebuilder.newfragpdbs   
         else:
             self.solutebuilder = AmberParamsBuilder(
                 xyzfile= self.xyz,
@@ -655,6 +817,8 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
                 amberhome=self.amberhome
             )
             self.solutebuilder.build()
+            self.newresiduenames = [self.solutebuilder.resname, ]
+            self.newfragpdbs = [self.solutebuilder.xyz, ]
 
         if self.slv_generate:
             solventbuilder = AmberParamsBuilder(
@@ -674,6 +838,7 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
             
         self.createAmberParm()
         print("The script has finished successfully")
+
 
 
 

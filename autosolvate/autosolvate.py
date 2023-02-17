@@ -5,7 +5,7 @@ import subprocess
 import pkg_resources
 import numpy as np
 
-from terachem_docker import *
+from .terachem_docker import *
 
 
 amber_solv_dict = {'water':     [' ','TIP3PBOX '],
@@ -23,7 +23,7 @@ class AmberParamsBuilder():
     3. Tleap create Lib
     """
     def __init__(self, xyzfile:str, name = "", resname = "", charge = 0, spinmult = 1, charge_method="resp", 
-        outputFile="", srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, use_terachem = True):
+        outputFile="", srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, use_terachem = False):
 
         self.xyz = xyzfile
         self.xyzformat = os.path.splitext(self.xyz)[-1][1:]
@@ -48,7 +48,6 @@ class AmberParamsBuilder():
         self.gaussian_exe = gaussianexe
         self.amberhome = amberhome
         self.use_terachem = use_terachem
-        self.uuse_terachem = False
         self.inputCheck()
 
     def inputCheck(self):
@@ -61,27 +60,23 @@ class AmberParamsBuilder():
                 print("Error: atomic charge fitting for open-shell system only works for resp charge method")
                 print("Error: exiting...")
                 exit(1)
-        if self.charge_method == "resp":
+        if self.charge_method == "resp" and self.use_terachem:
+            check_terachem()
+        elif self.charge_method == "resp" and not self.use_terachem:
             if self.gaussian_exe == None:
                 print("WARNING: Gaussian executable name is not specified for RESP charge fitting!")
                 print("WARNING: Using g16 by default. If failed later, please rerun with the option -e specified!")
                 self.gaussian_exe = 'g16'
-            if self.gaussian_dir == None:
+            if self.gaussian_dir == None or not os.path.exists(self.gaussian_dir):
                 print("WARNING: Gaussian executable directory is not specified for RESP charge fitting!")
                 print("WARNING: Setting to default path: /opt/packages/gaussian/g16RevC.01/g16/")
                 print("WARNING: If failed later, please rerun with the option -d specified!")
                 self.gaussian_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
                 gspath = os.path.join(self.gaussian_dir, self.gaussian_exe)
                 if not os.path.exists(gspath):
-                    if self.use_terachem:
-                        print("WARNING: Gaussian executable path", gspath)
-                        print("Does not exist! Try to use TeraChem for RESP charge fitting.")
-                        check_terachem()
-                        self.uuse_terachem = True
-                    else:
-                        print("Error! Gaussian executable path",gspath)
-                        print("Does not exist! Exiting....")
-                        exit()
+                    print("Error! Gaussian executable path",gspath)
+                    print("Does not exist! Exiting....")
+                    exit()
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
             print("WARNING: Checking AMBERHOME environment variable...")
@@ -175,7 +170,7 @@ class AmberParamsBuilder():
         """
         print(f"Generate frcmod file for {self.name}")
         if self.charge_method == "resp":
-            if self.uuse_terachem:
+            if self.use_terachem:
                 resp_terachem(self.name + ".pdb", self.resname, self.charge, self.spinmult)
                 cmd4 = f"$AMBERHOME/bin/parmchk2 -i {self.name}.mol2 -f mol2 -o {self.name}.frcmod"
                 if self.srun_use:
@@ -203,6 +198,7 @@ class AmberParamsBuilder():
             subprocess.call(cmd2, shell=True)
             if not os.path.isfile(f'{self.name}.gesp'):
                 print(f"gaussian failed to generate {self.name}.gesp")
+                raise Exception
                 sys.stdout.flush()
                 sys.exit()
             print("Gaussian ESP calculation done.")
@@ -335,7 +331,7 @@ class solventBoxBuilder():
 
     def __init__(self, xyzfile:str, solvent='water', slu_netcharge=0, cube_size=54, 
             charge_method="resp", slu_spinmult=1, outputFile="", 
-            srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, use_terachem = True,
+            srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, use_terachem = False,
             closeness=0.8, solvent_off="", solvent_frcmod="",
             slu_count=1, slv_count=210*8, slv_generate=False, slv_xyz=""):
         self.xyz = xyzfile
@@ -371,6 +367,7 @@ class solventBoxBuilder():
         self.gaussian_dir = gaussiandir
         self.gaussian_exe = gaussianexe
         self.amberhome = amberhome
+        self.use_terachem = use_terachem
         self.solvent_off=solvent_off
         self.solvent_frcmod=solvent_frcmod
         self.is_custom_solvent = False
@@ -395,7 +392,9 @@ class solventBoxBuilder():
                 print("Error: atomic charge fitting for open-shell system only works for resp charge method")
                 print("Error: exiting...")
                 exit(1)
-        if self.charge_method == "resp":
+        if self.charge_method == "resp" and self.use_terachem:
+            check_terachem()
+        elif self.charge_method == "resp" and not self.use_terachem:
             if self.gaussian_exe == None:
                 print("WARNING: Gaussian executable name is not specified for RESP charge fitting!")
                 print("WARNING: Using g16 by default. If failed later, please rerun with the option -e specified!")
@@ -407,14 +406,9 @@ class solventBoxBuilder():
                 self.gaussian_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
                 gspath = os.path.join(self.gaussian_dir, self.gaussian_exe)
                 if not os.path.exists(gspath):
-                    if self.use_terachem:
-                        print("WARNING: Gaussian executable path", gspath)
-                        print("Does not exist! Try to use TeraChem for RESP charge fitting.")
-                        check_terachem()
-                    else:
-                        print("Error! Gaussian executable path",gspath)
-                        print("Does not exist! Exiting....")
-                        exit()
+                    print("Error! Gaussian executable path",gspath)
+                    print("Does not exist! Exiting....")
+                    exit()
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
             print("WARNING: Checking AMBERHOME environment variable...")
@@ -813,7 +807,8 @@ class solventBoxBuilder():
             srun_use=self.srun_use,
             gaussianexe=self.gaussian_exe,
             gaussiandir=self.gaussian_dir,
-            amberhome=self.amberhome
+            amberhome=self.amberhome,
+            use_terachem=self.use_terachem
         )
         solutebuilder.build()
 
@@ -829,7 +824,8 @@ class solventBoxBuilder():
                 srun_use=self.srun_use,
                 gaussianexe=self.gaussian_exe,
                 gaussiandir=self.gaussian_dir, 
-                amberhome=self.amberhome
+                amberhome=self.amberhome,
+                use_terachem=self.use_terachem
             )
             solventbuilder.build()
             
