@@ -395,6 +395,7 @@ class solventBoxBuilder():
         if self.charge_method == "resp" and self.use_terachem:
             check_terachem()
         elif self.charge_method == "resp" and not self.use_terachem:
+            assert self.use_terachem
             if self.gaussian_exe == None:
                 print("WARNING: Gaussian executable name is not specified for RESP charge fitting!")
                 print("WARNING: Using g16 by default. If failed later, please rerun with the option -e specified!")
@@ -625,7 +626,7 @@ class solventBoxBuilder():
                 subprocess.call(['cp',solvent_pdb_origin,solvent_pdb])
         elif self.slv_generate:
             solvPrefix = self.solvent
-            solvent_pdb = {self.slv_name}+"pdb"
+            solvent_pdb = self.slv_name+".pdb"
 
         output_pdb = solvPrefix + "_solvated.packmol.pdb"
 
@@ -683,13 +684,13 @@ class solventBoxBuilder():
         """
         if self.slv_generate:
             solvPrefix = self.solvent
-            solvent_frcmod = {self.slv_name}+"frcmod"
+            solvent_frcmod = self.slv_name+".frcmod"
             solvent_frcmod_path = os.path.join(os.getcwd(), solvent_frcmod)
-            solvent_prep = {self.slv_name}+"prep"
+            solvent_prep = self.slv_name+".prep"
             solvent_prep_path = os.path.join(os.getcwd(), solvent_prep)
-            solvent_mol2 = {self.slv_name}+"mol2"
+            solvent_mol2 = self.slv_name+".mol2"
             solvent_mol2_path = os.path.join(os.getcwd(), solvent_mol2)
-            solvent_lib = {self.slv_name}+"lib"
+            solvent_lib = self.slv_name+".lib"
             solvent_lib_path = os.path.join(os.getcwd(), solvent_lib)
         else:
             solvPrefix = custom_solv_dict[self.solvent]
@@ -709,6 +710,7 @@ class solventBoxBuilder():
         f.write("source leaprc.water.tip3p\n") # This will load the Ions. Neccessary
         f.write("loadamberparams " + solvent_frcmod_path + "\n")
         for command, fpath in zip(["loadamberprep", "loadoff", "loadmol2"], [solvent_prep_path, solvent_lib_path, solvent_mol2_path]):
+            print(command, fpath)
             if not fpath:
                 continue
             if os.path.exists(fpath):

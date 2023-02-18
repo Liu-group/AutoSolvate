@@ -72,7 +72,7 @@ def splitpdb(pdbname:str):
 class MulticomponentParamsBuilder():
     def __init__(self, xyzfile: str, 
     name="", resname="", charge=0, spinmult=1, charge_method="resp", outputFile="", pre_optimize_fragments = False,
-    srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, deletefiles=False): 
+    srun_use=False, gaussianexe=None, gaussiandir=None, amberhome=None, deletefiles=False, use_terachem = False): 
         """
         Create amber parameter files for a single xyz or pdb file with multiple separate fragments
 
@@ -109,6 +109,7 @@ class MulticomponentParamsBuilder():
         self.netcharge = 0
         self.spinmults = spinmult
         self.charge_method = charge_method
+        self.use_terachem = use_terachem
 
         self.mainfilename = xyzfile
         self.basename, ext = os.path.splitext(self.mainfilename)
@@ -482,6 +483,7 @@ class MulticomponentParamsBuilder():
                 charge = self.charges[resname],
                 spinmult = self.spinmults[resname],
                 charge_method = self.charge_method,
+                use_terachem=self.use_terachem,
             )
             inst.build()
         self.updateAtomLabels()
@@ -556,6 +558,7 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
         self.slu_charge = slu_charge
         self.newresiduenames = []
         self.newfragpdbs = []
+        self.use_terachem = use_terachem
 
     def inputCheck(self):
         if self.amberhome == None:
@@ -639,13 +642,13 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
         """
         if self.slv_generate:
             solvPrefix = self.solvent
-            solvent_frcmod = {self.slv_name}+"frcmod"
+            solvent_frcmod = self.slv_name+".frcmod"
             solvent_frcmod_path = os.path.join(os.getcwd(), solvent_frcmod)
-            solvent_prep = {self.slv_name}+"prep"
+            solvent_prep = self.slv_name+".prep"
             solvent_prep_path = os.path.join(os.getcwd(), solvent_prep)
-            solvent_mol2 = {self.slv_name}+"mol2"
+            solvent_mol2 = self.slv_name+".mol2"
             solvent_mol2_path = os.path.join(os.getcwd(), solvent_mol2)
-            solvent_lib = {self.slv_name}+"lib"
+            solvent_lib = self.slv_name+".lib"
             solvent_lib_path = os.path.join(os.getcwd(), solvent_lib)
         else:
             solvPrefix = custom_solv_dict[self.solvent]
@@ -665,6 +668,7 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
         f.write("source leaprc.water.tip3p\n") # This will load the Ions. Neccessary
         f.write("loadamberparams " + solvent_frcmod_path + "\n")
         for command, fpath in zip(["loadamberprep", "loadoff", "loadmol2"], [solvent_prep_path, solvent_lib_path, solvent_mol2_path]):
+            print(command, fpath)
             if not fpath:
                 continue
             if os.path.exists(fpath):
@@ -796,6 +800,7 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
                 gaussianexe=self.gaussian_exe,
                 gaussiandir=self.gaussian_dir,
                 amberhome = self.amberhome,
+                use_terachem=self.use_terachem,
                 deletefiles=False
             )
             self.solutebuilder.buildAmberParamsForAll()
@@ -814,7 +819,8 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
                 srun_use=self.srun_use,
                 gaussianexe=self.gaussian_exe,
                 gaussiandir=self.gaussian_dir,
-                amberhome=self.amberhome
+                amberhome=self.amberhome,
+                use_terachem=self.use_terachem,
             )
             self.solutebuilder.build()
             self.newresiduenames = [self.solutebuilder.resname, ]
@@ -827,12 +833,13 @@ class MulticomponentSolventBoxBuilder(solventBoxBuilder):
                 resname = "SLV",
                 charge = 0,
                 spinmult = 1,
-                charge_method=self.charge_method,
+                charge_method="bcc",
                 outputFile="solventgen.out",
                 srun_use=self.srun_use,
                 gaussianexe=self.gaussian_exe,
                 gaussiandir=self.gaussian_dir, 
-                amberhome=self.amberhome
+                amberhome=self.amberhome,
+                use_terachem=self.use_terachem,
             )
             solventbuilder.build()
             
