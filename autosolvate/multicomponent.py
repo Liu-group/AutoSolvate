@@ -483,6 +483,10 @@ class MulticomponentParamsBuilder():
                 charge = self.charges[resname],
                 spinmult = self.spinmults[resname],
                 charge_method = self.charge_method,
+                srun_use=self.srun_use,
+                gaussianexe=self.gaussianexe,
+                gaussiandir=self.gaussiandir,
+                amberhome = self.amberhome,
                 use_terachem=self.use_terachem,
             )
             inst.build()
