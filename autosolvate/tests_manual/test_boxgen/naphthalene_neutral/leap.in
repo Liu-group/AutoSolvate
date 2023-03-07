@@ -1,9 +1,0 @@
-source                leaprc.protein.ff14SB       
-source                leaprc.gaff                
-source                leaprc.water.tip3p         
-SLU   = loadmol2      naphthalene_neutral.mol2  
-loadamberparams       naphthalene_neutral.frcmod       
-saveoff              SLU   naphthalene_neutral.lib        
-savepdb              SLU   naphthalene_neutral.pdb        
-saveamberparm        SLU   naphthalene_neutral.prmtop naphthalene_neutral.inpcrd 
-quit                                     
