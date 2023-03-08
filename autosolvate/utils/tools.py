@@ -299,6 +299,13 @@ def formatPDB(pdbfile:str):
     subprocess.run(f"pdb4amber -i {mainname}-original.pdb -o {pdbfile} -l {mainname}-format.log", shell = True)
     os.remove(f"{mainname}-original.pdb")
 
+def updatePDB(obmol:ob.OBMol, pdbpath:str):
+    if os.path.isfile(pdbpath):
+        mainname, ext = os.path.splitext(pdbpath)
+        os.rename(pdbpath, mainname + "-original.pdb")
+    pyobmol = pybel.Molecule(ob.OBMol(obmol))
+    pyobmol.write("pdb", pdbpath, overwrite=True)
+
 # other functions
 def process_system_name(name:str, xyzfile:str, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib"), check_exist = True):
     if not os.path.isfile(xyzfile) and check_exist:

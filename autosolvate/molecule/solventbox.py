@@ -15,7 +15,7 @@ from ..Common import *
 from .molecule import *
 
 
-from logging import DEBUG, INFO, WARN, WARNING, CRITICAL
+from logging import DEBUG, INFO, WARN, WARNING, CRITICAL, ERROR
 logging.basicConfig(level = INFO, force = True, handlers=[])
 
 logger              = logging.getLogger(name = "Molecule")
@@ -80,38 +80,8 @@ class SolventBox(System):
                 break
         return previousname
 
-    def reset_box_name(self, fname:str):
-        with open(fname, "r") as f:
-            lines = f.readlines()
-        rline, nline = 0, 0
-        for line in lines:
-            if line.startswith("!"):
-                rline += 1
-            else:
-                nline += 1
-                rline += 1
-            if nline == 1:
-                logger.info("the name of the solvent box is found at line {}".format(rline))
-                previousname = line.strip().replace('"', "")
-                logger.info("The previous name of the solvent box is {}".format(previousname))
-                break
-        logger.info("The new name of the solvent box is {}".format(self.box_name))
-        with open(fname, "w") as f:
-            for i in range(0, rline - 1):
-                f.write(lines[i])
-            f.write('"{}"\n'.format(self.box_name))
-            for i in range(rline, len(lines)):
-                print(lines[i].startswith("!entry.{}".format(previousname)), "!entry.{}".format(previousname), lines[i])
-                if lines[i].startswith("!entry.{}".format(previousname)):
-                    newline = lines[i].replace("!entry.{}".format(previousname), "!entry.{}".format(self.box_name))
-                else:
-                    newline = lines[i]
-                f.write(newline)
-        logger.info("The solvent box file {} has been updated".format(fname))
 
-
-
-
+logging.basicConfig(level = ERROR, force = True, handlers=[])
 AMBER_WATER               = SolventBox( name='water',
                                         solventbox='solvents.lib',
                                         box_name='TIP3PBOX',
@@ -146,3 +116,4 @@ AMBER_SOLVENT_DICT       =  {
                              AMBER_CHLOROFORM.name  :AMBER_CHLOROFORM, 
                              AMBER_NMA.name         :AMBER_NMA,
                             }
+logging.basicConfig(level = INFO, force = True, handlers=[])

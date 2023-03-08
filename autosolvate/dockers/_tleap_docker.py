@@ -30,6 +30,7 @@ class TleapDocker(GeneralDocker):
 
         self.outpdb         = None
         self.outlib         = None
+        self.outmol2        = None
         self.outprmtop      = None
         self.outinpcrd      = None
 
@@ -78,11 +79,10 @@ class TleapDocker(GeneralDocker):
             slu:System
             self.logger.info("Checking solute {:s}...".format(slu.name))
             self.logger.info("Number of {}: {}".format(slu.name, slu.number))
-            for ext in ["mol2", "lib", "frcmod"]:
-                if slu.check_exist(ext):
-                    self.logger.info("Solute {}: {:s}".format(ext, getattr(slu, ext)))
-                else:
-                    self.logger.critical("Solute {} not found".format(ext, getattr(slu, ext)))
+            if isinstance(slu, Molecule):
+                self.check_system_molecule(slu)
+            elif isinstance(slu, MoleculeComplex):
+                self.check_system_multimolecule(mol)
         for slv in mol.solvents:
             self.logger.info("Checking solvent {:s}...".format(slv.name))
             if isinstance(slv, SolventBox):
@@ -119,6 +119,7 @@ class TleapDocker(GeneralDocker):
         if isinstance(mol, Molecule):
             self.check_system_molecule(mol)
         elif isinstance(mol, MoleculeComplex):
+            mol.tleap_pre_process()
             self.check_system_multimolecule(mol)
         elif isinstance(mol, SolvatedSystem):
             self.check_system_solvatedsystem(mol)
@@ -128,7 +129,7 @@ class TleapDocker(GeneralDocker):
         return mol.reference_name + "." + fmt
 
     def predict_output(self, mol:System):
-        for fmt in ["pdb", "lib", "prmtop", "inpcrd"]:
+        for fmt in ["pdb", "lib", "mol2", "prmtop", "inpcrd"]:
             outname = self.get_output_name(mol, fmt)
             self.logger.info("The {} file will be generated at {}".format(fmt, outname))
             if os.path.exists(outname):
@@ -174,6 +175,7 @@ class TleapDocker(GeneralDocker):
                 if m.check_exist("lib"): 
                     doc.write('{:<20}  {:<20}       \n'.format('loadoff', m.lib))
             doc.write('{:<5} {:<15} {:<20}          \n'.format(mol.residue_name, '= loadpdb', mol.pdb))
+            # doc.write('{:<5} {:<15} {:<20}          \n'.format(mol.residue_name, '= loadmol2', mol.mol2))
   
     def load_solvent_box(self,
                         doc:           TextIO,
@@ -211,6 +213,7 @@ class TleapDocker(GeneralDocker):
         self.load_mol(f, mol) 
         if mol.check_exist("mol2"):
             self.load_head_tail(f, mol) 
+        f.write('{} {} {} {}     \n'.format('savemol2', mol.residue_name, self.outmol2, 1))
         f.write('{} {} {}        \n'.format('saveoff', mol.residue_name, self.outlib))
         f.write('{} {} {}        \n'.format('savepdb', mol.residue_name, self.outpdb))
         f.write('{} {} {} {}     \n'.format('saveamberparm', mol.residue_name, self.outprmtop, self.outinpcrd)) 
@@ -221,8 +224,8 @@ class TleapDocker(GeneralDocker):
         self.logger.info("Tleap input file: {}".format(self.leapinp))
         f = open(self.leapinp, 'w')
         self.load_forcefield(f)
-        slu = mol.solutes[0]
-        slv = mol.solvents[0]
+        slu: Molecule   = mol.solutes[0]
+        slv: SolventBox = mol.solvents[0]
         slu_pos = mol.cubesize / 2
         self.load_mol(f, slu)
         self.load_solvent_box(f, slv)

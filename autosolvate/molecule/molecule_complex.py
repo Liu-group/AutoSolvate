@@ -167,6 +167,10 @@ class MoleculeComplex(System):
         if os.path.exists("temp.smi"):
             os.remove("temp.smi")
 
+    def update_pdb(self):
+        pybel.Molecule(ob.OBMol(self.mol_obmol)).write("pdb", self.pdb, overwrite=True)
+        pass
+
     def getFragmentAtomIndex(self):
         """Get the exact atom labels in the original system for each new fragments."""
         fragresidueatomidxs = []
@@ -181,7 +185,9 @@ class MoleculeComplex(System):
         Change the atom label in pdb to the standard amber format. The atom label in the mainpdb may be incorrect, which may cause problems when running tleap. Only the NEW residues will be updated.
         """
         # get standard atom names for each individual residues.
+        logger.info("Start to update the atom label to standard amber format")
         res_aname_dict = {}
+
         for fragpdb in self.newfragpdbs:
             atomnames = []
             f = open(fragpdb, "r")
@@ -215,6 +221,7 @@ class MoleculeComplex(System):
                 targetline = lines[atomlinelocations[aid-1]]
                 targetline = targetline[0:12] + aflb + targetline[16:]
                 lines[atomlinelocations[aid-1]] = targetline
+
         # Determine the last line for each fragment. 'TER\n' will be added after these lines
         fragmentlastlineindex = []
         for fragatomidx in fragatomidxs:
@@ -226,16 +233,15 @@ class MoleculeComplex(System):
             for i, line in enumerate(lines):
                 f.write(line)
 
-
     def checkParams(self):
         """check parameters, especially for the length of charge and multiplicity"""
         logger.info(f"All fragments: {' '.join(self.fragresiduenames)}")
         logger.info(f"New fragments: {' '.join(self.newresiduenames)}")
         if isinstance(self.charges, int):
-            logger.warn("All charges are set to 0")
+            logger.warning("All charges are set to 0")
             self.charges = {frname:0 for frname in self.fragresiduenames}
         if isinstance(self.spinmults, int):
-            logger.warn("All multiplicities are set to 1")
+            logger.warning("All multiplicities are set to 1")
             self.spinmults = {frname:1 for frname in self.fragresiduenames}
         if isinstance(self.charges, list):
             if len(self.charges) != len(self.fragresiduenames):
@@ -257,12 +263,12 @@ class MoleculeComplex(System):
                     else:
                         logger.info(f"{frname} corresponds to a new fragment.")
                     if frname not in self.charges:
-                        logger.warn(f"charge for {frname} not defined! Set it to 0 by default.")
+                        logger.warning(f"charge for {frname} not defined! Set it to 0 by default.")
                         self.charges[frname] = 0
                     else:
                         logger.info(f"Set charge for {frname} to {self.charges[frname]}")
                     if frname not in self.spinmults:
-                        logger.warn(f"multiplicity for {frname} not defined! Set it to 1 by default.")
+                        logger.warning(f"multiplicity for {frname} not defined! Set it to 1 by default.")
                         self.spinmults[frname] = 1
                     else:
                         logger.info(f"Set multiplicity for {frname} to {self.spinmults[frname]}")
@@ -295,12 +301,10 @@ class MoleculeComplex(System):
         formatPDB(self.pdb)
         for fragpdb in self.newfragpdbs:
             formatPDB(fragpdb)
-        self.updateAtomLabels()
+        updatePDB(self.mol_obmol, self.pdb)
         self.checkParams()
         self.computeNetCharge()
         self.computeMultiplicity()
-
-
 
         for newresiduename, newpdbname, newfragmol in zip(self.newresiduenames, self.newfragpdbs, self.newfragmols):
             logger.info(f"Create Molecule object for fragment {newresiduename}")
@@ -308,3 +312,17 @@ class MoleculeComplex(System):
             spinmult = self.spinmults[newresiduename]
             mol = Molecule(newpdbname, charge, spinmult, residue_name=newresiduename, folder = self.folder)
             self.newmolecules.append(mol)
+
+    def tleap_pre_process(self):
+        logger.info("Before being passed to tleap, the atom label in the original pdb should be updated.")
+        logger.info("original pdb: {}".format(self.pdb))
+        allgenerated = True
+        for molecule in self.newmolecules:
+            molecule:Molecule
+            if not molecule.check_exist("mol2") and not molecule.check_exist("prep") and not molecule.check_exist("frcmod"):
+                logger.critical("molecule {} has not been parameterized!".format(molecule.residue_name))
+                allgenerated = False
+        if not allgenerated:
+            raise ValueError("Molecules in this complex are not fully parameterized!")
+        self.updateAtomLabels()
+

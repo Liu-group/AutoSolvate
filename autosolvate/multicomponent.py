@@ -70,7 +70,7 @@ class MulticomponentParamsBuilder():
             for docker in self.single_molecule_pipeline:
                 docker.run(m)
         for docker in self.complex_pipeline:
-            docker.run(m)
+            docker.run(self.mol)
 
        
 class MulticomponentSolventBoxBuilder():
