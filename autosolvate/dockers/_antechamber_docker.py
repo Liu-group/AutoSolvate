@@ -118,7 +118,6 @@ class AntechamberDocker(GeneralDocker):
     def predict_output(self, mol: System):
         outname = self.generate_outputfile_name(mol, self.out_format)
         self.logger.info("The {} file will be generated at {}".format(self.out_format, outname))
-        self.output_files.append(outname)
         self.outfile = outname
         if os.path.exists(outname):
             self.logger.warn("Found a existing file with the same name: {}".format(outname))
@@ -126,7 +125,7 @@ class AntechamberDocker(GeneralDocker):
 
     def check_output(self, mol: System):
         success = True
-        mol2file = self.output_files[0]
+        mol2file = self.outfile
         if os.path.exists(mol2file):
             self.logger.info("Successfully generated target {} file: {}".format(self.out_format, mol2file))
             success = True
@@ -137,7 +136,7 @@ class AntechamberDocker(GeneralDocker):
             raise RuntimeError
         
     def process_output(self, mol: System):
-        mol2file = self.output_files[0]
+        mol2file = self.outfile
         setattr(mol, self.out_format, mol2file)
         mol.update()
 

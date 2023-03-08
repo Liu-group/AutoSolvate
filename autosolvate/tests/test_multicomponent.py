@@ -7,8 +7,7 @@ import os
 import pytest
 import numpy as np
 
-import autosolvate
-from autosolvate.multicomponent import *
+from ..multicomponent import *
 from . import helper_functions as hp
 
 
@@ -17,17 +16,17 @@ def test_multicomponent(tmpdir):
     inpfname = "PAHs"
     builder = MulticomponentParamsBuilder(
         hp.get_input_dir(f"{inpfname}.pdb"),
+        charge_method="bcc",
+        folder = os.getcwd(),
         pre_optimize_fragments=True,
-        charge_method="bcc"
     )
-    builder.buildAmberParamsForAll()
+    builder.build()
     pass_exist = True
     for res in ("UAA", "UAB", "UAC", "UAD"):
         pass_exist *= os.path.exists(f"{inpfname}-{res.lower()}.pdb")
         pass_exist *= os.path.exists(f"{inpfname}-{res.lower()}.lib")
+        pass_exist *= os.path.exists(f"{inpfname}-{res.lower()}.frcmod")
     assert pass_exist
-    assert os.path.exists(f"{inpfname}.pdb")
-    assert os.path.exists(f"{inpfname}.lib")
     assert hp.compare_pdb(f"{inpfname}.pdb", hp.get_reference_dir(f"multicomponent/{inpfname}-processed.pdb"))
 
 def test_ionpair_solvation(tmpdir):
@@ -39,7 +38,8 @@ def test_ionpair_solvation(tmpdir):
         slu_charge={"SUF":-2, "TPA":1},
         solvent="water",
         cube_size=20,
-        charge_method="bcc"
+        charge_method="bcc",
+        folder = os.getcwd()
     )
     inst.build()
     pass_fragment_exist = True
@@ -48,7 +48,7 @@ def test_ionpair_solvation(tmpdir):
         pass_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.lib")
     assert pass_fragment_exist
     pass_main_exist = True
-    for suffix in ("lib", "mol2"):
+    for suffix in ("lib", "pdb"):
         pass_main_exist *= os.path.exists(f"{name}.{suffix}")
     assert pass_main_exist
 

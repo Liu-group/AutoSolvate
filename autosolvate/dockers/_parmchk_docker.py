@@ -59,12 +59,10 @@ class ParmchkDocker(GeneralDocker):
     def predict_output(self, mol:System):
         outname = self.get_output_name(mol, self.out_format)
         self.logger.info("The {} file will be generated at {}".format(self.out_format, outname))
-        self.output_files.append(outname)
         self.outfile = outname
         if os.path.exists(outname):
             self.logger.warn("Found a existing file with the same name: {}".format(outname))
             self.logger.warn("This file will be Overwritten!".format(outname))
-        self.output_files.append(outname)
         return outname
     
     def check_output(self, mol: System):
@@ -80,7 +78,7 @@ class ParmchkDocker(GeneralDocker):
             raise RuntimeError("Failed to generate target {} file: {}".format(self.out_format, outfile))
     
     def process_output(self, mol:System):
-        frcmodfile = self.output_files[0]
+        frcmodfile = self.outfile
         setattr(mol, self.out_format, frcmodfile)
         mol.update()
 

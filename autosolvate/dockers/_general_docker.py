@@ -19,8 +19,6 @@ class GeneralDocker(ABC):
         self.executable      = executable
         self.workfolder      = os.path.abspath(workfolder)
         self.exeoutfile      = os.path.abspath(exeoutfile) if isinstance(exeoutfile, str) else exeoutfile
-        self.input_files     = []
-        self.output_files    = []
         self.logger                     = logging.getLogger(name = "GeneralDocker")
         # output_handler                = logging.FileHandler(filename = "log.txt", mode = "a", encoding="utf-8")
         self.output_handler             = logging.StreamHandler()

@@ -41,7 +41,6 @@ class TleapDocker(GeneralDocker):
         for i, suffix in enumerate(suffixs):
             if mol.check_exist(suffix):
                 self.logger.info("System {}: {:s}".format(suffix, getattr(mol, suffix)))
-                self.input_files.append(getattr(mol, suffix))
                 suffixf[i] = 1
             else:
                 self.logger.warn("System {} not found".format(suffix, getattr(mol, suffix)))
@@ -50,7 +49,6 @@ class TleapDocker(GeneralDocker):
         suffix = "frcmod"
         if mol.check_exist("frcmod"):
             self.logger.info("System {}: {:s}".format(suffix, getattr(mol, suffix)))
-            self.input_files.append(getattr(mol, suffix))
         else:
             self.logger.warn("System {} not found".format(suffix, getattr(mol, suffix)))
             self.logger.warn("Tleap may failed to generate AMBER parameter files!")
@@ -137,7 +135,6 @@ class TleapDocker(GeneralDocker):
                 self.logger.warn("Found a existing file with the same name: {}".format(outname))
                 self.logger.warn("This file will be Overwritten!".format(outname))
             setattr(self, "out"+fmt, outname)
-            self.output_files.append(outname)
         self.leapinp = os.path.join(self.workfolder, "leap_{}.cmd".format(mol.name))
         self.logger.info("The tleap input file will be generated at {}".format(self.leapinp))
         self.leapout = os.path.join(self.workfolder, "leap_{}.log".format(mol.name))
@@ -212,7 +209,8 @@ class TleapDocker(GeneralDocker):
         f = open(self.leapinp, 'w')
         self.load_forcefield(f)
         self.load_mol(f, mol) 
-        self.load_head_tail(f, mol) 
+        if mol.check_exist("mol2"):
+            self.load_head_tail(f, mol) 
         f.write('{} {} {}        \n'.format('saveoff', mol.residue_name, self.outlib))
         f.write('{} {} {}        \n'.format('savepdb', mol.residue_name, self.outpdb))
         f.write('{} {} {} {}     \n'.format('saveamberparm', mol.residue_name, self.outprmtop, self.outinpcrd)) 

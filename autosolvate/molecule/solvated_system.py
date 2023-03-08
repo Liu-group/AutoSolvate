@@ -13,6 +13,7 @@ from dataclasses import dataclass, field, asdict
 from ..Common import *
 from ..utils import *
 from .molecule import *
+from .solventbox import *
 from .molecule_complex import *
 
 # Define module logger

@@ -7,6 +7,7 @@ import numpy as np
 from openbabel import pybel
 from openbabel import openbabel as ob
 import subprocess 
+from typing import List, Tuple, Dict, Union, Optional, Any, Callable, Iterable
 
 from ..Common import * 
 
@@ -258,7 +259,7 @@ def write_xyz(fname, element, data, energy = ""):
         f.write(f"{element[i]}    {data[i][0]:>12.8f}    {data[i][1]:>12.8f}    {data[i][2]:>12.8f}\n")
     f.close()
 
-def getHeadTail(self):
+def getHeadTail(mol2):
     r"""
     Detect start and end of coordinates
 
@@ -270,7 +271,7 @@ def getHeadTail(self):
     -------
     None
     """
-    pdb = open(f'{self.name}.mol2').readlines()
+    pdb = open(mol2).readlines()
     start = 0
     end = 0
     head, tail = 0, 0
@@ -291,7 +292,23 @@ def getHeadTail(self):
             break
     return head, tail
 
+def formatPDB(pdbfile:str):
+    """format the pdb to the standard amber pdb using pdb4amber"""
+    mainname, ext = os.path.splitext(pdbfile)
+    os.rename(pdbfile, mainname + "-original.pdb")
+    subprocess.run(f"pdb4amber -i {mainname}-original.pdb -o {pdbfile} -l {mainname}-format.log", shell = True)
+    os.remove(f"{mainname}-original.pdb")
 
+# other functions
+def process_system_name(name:str, xyzfile:str, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib"), check_exist = True):
+    if not os.path.isfile(xyzfile) and check_exist:
+        raise ValueError("The input file {:s} does not exist".format(xyzfile))
+    ext = os.path.splitext(xyzfile)[1][1:]
+    if ext not in support_input_format:
+        raise ValueError("The input file {:s} is not supported".format(xyzfile))
+    if name == "":
+        name = os.path.basename(os.path.splitext(xyzfile)[0])  
+    return name
 
 def extract(inputfile: str, info: str) -> str:
     """

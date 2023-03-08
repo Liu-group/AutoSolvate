@@ -33,21 +33,21 @@ class SolventBox(System):
     # constants
     _SUPPORT_INPUT_FORMATS = ["lib", "off"] 
 
-    def __init__(
-            self, name:str, solventbox:str,
+    def __init__(self, 
+            solventbox:     str = "",
             frcmod:         str = "",
+            name:           str = "", 
             box_name:       str = "SLVBOX",
             folder:         str = WORKING_DIR,
             amber_solvent:  bool = False,
             ) -> None:
-        self.name           = os.path.basename(os.path.splitext(name)[0])      
+        self.name           = process_system_name(name, solventbox, support_input_format=SolventBox._SUPPORT_INPUT_FORMATS, check_exist = False if amber_solvent else True)
         self.folder         = os.path.abspath(folder)
         self.frcmod         = os.path.abspath(frcmod)
         self.box_name       = box_name
         self.amber_solvent  = amber_solvent
         self.solventbox     = os.path.abspath(solventbox)
         
-
         if not amber_solvent:
             if not os.path.exists(solventbox):
                 logger.error("The pre-built solvent box file {} does not exist".format(solventbox))
@@ -57,13 +57,11 @@ class SolventBox(System):
                 logger.error("The input file format of the solvent box is not supported")
                 raise ValueError("The input file format of the solvent box is not supported")
             setattr(self, ext, solventbox)
-            # self.reset_box_name(self.solventbox)
             self.box_name = self.get_box_name(self.solventbox)
             self.solventbox = getattr(self, ext)
         else:
             pass
         super(SolventBox, self).__init__(name = self.name)
-        # super(SolventBox, self).__post_init__()
 
     def get_box_name(self, fname:str):
         with open(fname, "r") as f:
@@ -113,6 +111,7 @@ class SolventBox(System):
 
 
 
+
 AMBER_WATER               = SolventBox( name='water',
                                         solventbox='solvents.lib',
                                         box_name='TIP3PBOX',
@@ -127,8 +126,8 @@ AMBER_METHANOL            = SolventBox( name='methanol',
                                     )                           
 
 AMBER_CHLOROFORM          = SolventBox(name='chloroform',
-                                       solventbox='solvents.lib',
-                                       frcmod="frcmod.chcl3",
+                                        solventbox='solvents.lib',
+                                        frcmod="frcmod.chcl3",
                                         box_name='CHCL3BOX',
                                         amber_solvent = True
                                     )
@@ -141,5 +140,9 @@ AMBER_NMA                 = SolventBox(name='nma',
                                     )
 
 AMBER_SOLVENT_LIST       =  [AMBER_WATER, AMBER_METHANOL, AMBER_CHLOROFORM, AMBER_NMA] 
-AMBER_SOLVENT_NAME       =  [AMBER_WATER.name, AMBER_METHANOL.name, AMBER_CHLOROFORM.name, AMBER_NMA.name] 
-    
+AMBER_SOLVENT_DICT       =  {
+                             AMBER_WATER.name       :AMBER_WATER, 
+                             AMBER_METHANOL.name    :AMBER_METHANOL, 
+                             AMBER_CHLOROFORM.name  :AMBER_CHLOROFORM, 
+                             AMBER_NMA.name         :AMBER_NMA,
+                            }

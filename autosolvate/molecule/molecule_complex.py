@@ -31,22 +31,25 @@ if len(logger.handlers) == 0:
 
 class MoleculeComplex(System):
 
-    def __init__(self, name: str, 
+    _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz']
+
+    def __init__(self, 
+                xyzfile:        str = "",
                 charges:        int = 0,
                 multiplicities: int = 1,
+                name:           str = "", 
                 residue_name:   str = "SYS",
                 folder:         str = ".",
                 reorder_pdb:    bool = False,
                 ):
-        if os.path.isfile(name) and os.path.splitext(name)[-1][1:] in Molecule._SUPPORT_INPUT_FORMATS:
-            self.read_coordinate(name)
-        self.name           = os.path.basename(os.path.splitext(name)[0])      
+        self.name           = process_system_name(name, xyzfile, support_input_format=MoleculeComplex._SUPPORT_INPUT_FORMATS)   
         self.folder         = os.path.abspath(folder)
         self.charges        = charges
         self.multiplicity   = multiplicities
         self.spinmults      = multiplicities
-        self.residue_name   = residue_name
+        self.residue_name   = "SYS" if not residue_name else residue_name
         self.number         = 0
+        self.read_coordinate(xyzfile)
         super(MoleculeComplex, self).__init__(name = self.name)
 
         self.mol_obmol          = pybel.readfile("pdb", self.pdb).__next__().OBMol
@@ -164,12 +167,65 @@ class MoleculeComplex(System):
         if os.path.exists("temp.smi"):
             os.remove("temp.smi")
 
-    def formatPDB(self, pdbfile:str):
-        """format the pdb to the standard amber pdb using pdb4amber"""
-        mainname, ext = os.path.splitext(pdbfile)
-        os.rename(pdbfile, mainname + "-original.pdb")
-        subprocess.run(f"pdb4amber -i {mainname}-original.pdb -o {pdbfile} -l {mainname}-format.log", shell = True)
-        os.remove(f"{mainname}-original.pdb")
+    def getFragmentAtomIndex(self):
+        """Get the exact atom labels in the original system for each new fragments."""
+        fragresidueatomidxs = []
+        for i, frag in enumerate(self.fragmols):
+            frag:ob.OBMol
+            fragresidueatomidx = [frag.GetAtom(j).GetId() + 1 for j in range(1, frag.NumAtoms() + 1)]
+            fragresidueatomidxs.append(fragresidueatomidx)
+        return fragresidueatomidxs
+
+    def updateAtomLabels(self):
+        r"""
+        Change the atom label in pdb to the standard amber format. The atom label in the mainpdb may be incorrect, which may cause problems when running tleap. Only the NEW residues will be updated.
+        """
+        # get standard atom names for each individual residues.
+        res_aname_dict = {}
+        for fragpdb in self.newfragpdbs:
+            atomnames = []
+            f = open(fragpdb, "r")
+            for line in f:
+                if not (line.startswith("ATOM") or line.startswith("HETATM")):
+                    continue
+                atomidx = line[6:11]
+                atomname = line[12:16]
+                resname = line[17:20]
+                atomnames.append((int(atomidx), atomname))
+            f.close()
+            res_aname_dict[resname] = atomnames
+
+        # reduce complexity by pre determine the line index for each atom
+        natom = self.mol_obmol.NumAtoms()
+        atomlinelocations = [-1 for i in range(natom)]
+        with open(self.pdb, "r") as f:
+            lines = f.readlines()
+        for i, line in enumerate(lines):
+            if not (line.startswith("ATOM") or line.startswith("HETATM")):
+                continue
+            atomlinelocations[int(line[6:11])-1] = i
+
+        # generate atom labels sequentially into a list
+        fragatomidxs = self.getFragmentAtomIndex()
+        for fragname, fragatomidx in zip(self.fragresiduenames, fragatomidxs):
+            if fragname not in res_aname_dict:
+                continue
+            fragatomlabel = res_aname_dict[fragname]
+            for aid, (afid, aflb) in zip(fragatomidx, fragatomlabel):
+                targetline = lines[atomlinelocations[aid-1]]
+                targetline = targetline[0:12] + aflb + targetline[16:]
+                lines[atomlinelocations[aid-1]] = targetline
+        # Determine the last line for each fragment. 'TER\n' will be added after these lines
+        fragmentlastlineindex = []
+        for fragatomidx in fragatomidxs:
+            fragmentlastlineindex.append(max([atomlinelocations[aid-1] for aid in fragatomidx]))
+        for lineidx in fragmentlastlineindex:
+            if lines[lineidx+1].find("TER") == -1:
+                lines[lineidx] += "TER\n"
+        with open(self.pdb, "w") as f:
+            for i, line in enumerate(lines):
+                f.write(line)
+
 
     def checkParams(self):
         """check parameters, especially for the length of charge and multiplicity"""
@@ -236,16 +292,19 @@ class MoleculeComplex(System):
 
     def build_molecules(self):
         self.getFragments()
-        self.formatPDB(self.pdb)
+        formatPDB(self.pdb)
         for fragpdb in self.newfragpdbs:
-            self.formatPDB(fragpdb)
+            formatPDB(fragpdb)
+        self.updateAtomLabels()
         self.checkParams()
         self.computeNetCharge()
         self.computeMultiplicity()
+
+
 
         for newresiduename, newpdbname, newfragmol in zip(self.newresiduenames, self.newfragpdbs, self.newfragmols):
             logger.info(f"Create Molecule object for fragment {newresiduename}")
             charge = self.charges[newresiduename]
             spinmult = self.spinmults[newresiduename]
-            mol = Molecule(newpdbname, charge, spinmult, newresiduename, self.folder)
+            mol = Molecule(newpdbname, charge, spinmult, residue_name=newresiduename, folder = self.folder)
             self.newmolecules.append(mol)
