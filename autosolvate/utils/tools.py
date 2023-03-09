@@ -439,6 +439,57 @@ def submit(cmd: str) -> None:
         else:
             subprocess.call(cmd, shell=True)
 
+
+def calculate_fake_charge(charge, spinmult) -> int:
+    """create a fake charge that can make the spinmult to be 1."""
+    if spinmult <= 1:
+        return charge
+    if spinmult % 2 == 1:
+        return charge
+    if charge <= 0:
+        fakecharge = charge + 1
+    elif charge > 0:
+        fakecharge = charge - 1
+    return fakecharge
+
+def write_mol2_line(res) -> str:
+    newline = ""
+    newline += " {:>3d}"     .format(int(res[0]))
+    newline += " {:<4s}"     .format(res[1])
+    newline += " {:>12.6f} {:>12.6f} {:>12.6f}".format(float(res[2]), float(res[3]), float(res[4]))
+    newline += " {:<6s}"    .format(res[5])
+    newline += " {:>3d}"     .format(int(res[6]))
+    newline += " {:<7s}"    .format(res[7])
+    newline += " {:>9.6f} "  .format(float(res[8]))
+    if len(res) > 9:
+        newline += " ".join(res[9:])
+    newline += "\n"
+    return newline
+
+def modify_mol2(fakemol2, targetmol2, charges:List[float]) -> None:
+    f1 = open(fakemol2, "r")
+    f2 = open(targetmol2, "w")
+    section = ""
+    atomid = 0
+    for line in f1:
+        if line.startswith("@"):
+            section = line.strip("\n").replace("@<TRIPOS>", "")
+        if section.find("ATOM") == -1:
+            f2.write(line)
+        else:
+            res = line.split()
+            if len(res) == 9 or len(res) == 10:
+                res[8] = str(charges[atomid])
+                newline = write_mol2_line(res)
+                f2.write(newline)
+                atomid += 1
+            else:
+                f2.write(line)
+    f1.close()
+    f2.close()
+
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

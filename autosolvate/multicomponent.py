@@ -67,8 +67,11 @@ class MulticomponentParamsBuilder():
 
     def build(self):
         for m in self.mol.newmolecules:
-            for docker in self.single_molecule_pipeline:
-                docker.run(m)
+            if self.charge_method == "resp":
+                build_resp_terachem(m, folder = self.folder)
+            else:
+                for docker in self.single_molecule_pipeline:
+                    docker.run(m)
         for docker in self.complex_pipeline:
             docker.run(self.mol)
 
@@ -145,8 +148,11 @@ class MulticomponentSolventBoxBuilder():
 
     def build(self):
         for m in self.solute.newmolecules:
-            for docker in self.single_molecule_pipeline:
-                docker.run(m)
+            if self.charge_method == "resp":
+                build_resp_terachem(m, folder = self.folder)
+            else:
+                for docker in self.single_molecule_pipeline:
+                    docker.run(m)
         for docker in self.complex_pipeline:
             docker.run(self.solute)
 

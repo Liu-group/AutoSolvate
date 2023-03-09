@@ -58,6 +58,7 @@ class MoleculeComplex(System):
         self.newfragmols        = []    # ob.OBMol object for new fragments that are not known residues, ligands, or water
         self.newfragpdbs        = []    # pdb file for these new fragments
         self.newresiduenames    = []    # residue name for these new fragments
+        self.pdb_processed      = False # whether the atom label in this pdb has been corrected to amber format
 
         self.newmolecules       = []    # list of Molecule objects
         self.netcharge          = 0     # net charge of the system
@@ -160,7 +161,7 @@ class MoleculeComplex(System):
                 self.newresiduenames.append(resname)
                 logger.info(f"Fragment {i} is a new molecule with res name {resname}. Update the term list.")
             else:
-                logger.info(f"Fragment {i} is a known molecule with res name {resname}. ")
+                logger.debug(f"Fragment {i} is a known molecule with res name {resname}. ")
             self.fragmols.append(fragment_obmol)
             self.fragresiduenames.append(resname)
 
@@ -314,6 +315,8 @@ class MoleculeComplex(System):
             self.newmolecules.append(mol)
 
     def tleap_pre_process(self):
+        if self.pdb_processed:
+            return 
         logger.info("Before being passed to tleap, the atom label in the original pdb should be updated.")
         logger.info("original pdb: {}".format(self.pdb))
         allgenerated = True
@@ -325,4 +328,4 @@ class MoleculeComplex(System):
         if not allgenerated:
             raise ValueError("Molecules in this complex are not fully parameterized!")
         self.updateAtomLabels()
-
+        self.pdb_processed = True

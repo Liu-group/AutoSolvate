@@ -15,16 +15,16 @@ AMINO_ACID_RESIDUES = set(["ALA", "ARG", "ASN", "ASP", "CYS", "GLU", "GLN", "GLY
 
 # external programs
 # ambertools
-ANTECHAMBER = "antechamber"
-PACKMOL = "packmol"
-TLEAP = "tleap"
-PARMCHK = "parmchk2"
-MDGX = "mdgx"
+ANTECHAMBER     = "antechamber"
+PACKMOL         = "packmol"
+TLEAP           = "tleap"
+PARMCHK         = "parmchk2"
+MDGX            = "mdgx"
 
 # QM programs
-GAUSSIAN = "g16"
-TERACHEM = "terachem"
+GAUSSIAN        = "g16"
+TERACHEM        = "terachem"
 
 # other programs
-OBABEL = "obabel"
-FORCEBALANCE = "ForceBalance"
+OBABEL          = "obabel"
+FORCEBALANCE    = "ForceBalance"

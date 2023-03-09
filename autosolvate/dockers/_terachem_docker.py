@@ -246,7 +246,7 @@ class TeraChemDocker(GeneralDocker):
     def generate_slurm_script(self, inputfile:str, **kwargs) -> str:
         # 我不知道为什么在pascal上使用srun会永远等下去但sbatch就不会。
         jobname = os.path.splitext(os.path.basename(inputfile))[0]
-        outfile = jobname + ".out"
+        outfile = self.output_file
         subfile = jobname + ".sh"
         subpath = os.path.join(self.workfolder, subfile)
         myfile = open(subpath, "w")
