@@ -7,6 +7,9 @@ from ._tleap_docker import TleapDocker
 
 from ._terachem_docker import TeraChemDocker
 
+from ._mdgx_docker import MDGXDocker
+from ._forcebalance_docker import ForceBalanceDocker
+
 from ..utils import *
 
 # __all__ = [

@@ -18,12 +18,15 @@ class TleapDocker(GeneralDocker):
     def __init__(self, 
                  workfolder:            str = WORKING_DIR,
                  exeoutfile:            str = None,
+                 boxsize:               float = None,
     ) -> None:
         super().__init__(
             executable = 'tleap',
             workfolder = workfolder,
             exeoutfile = sys.stdout)
         self.logger.name    = self.__class__.__name__
+        self.boxsize        = boxsize if isinstance(boxsize, Iterable) else [boxsize, boxsize, boxsize]
+        self.boxsize        = None if not self.boxsize[0] else self.boxsize
 
         self.leapinp        = os.path.join(self.workfolder, "leap.inp")
         self.leapout        = os.path.join(self.workfolder, "leap.out")
@@ -57,6 +60,8 @@ class TleapDocker(GeneralDocker):
         if sum(suffixf) <= 0:
             self.logger.critical("None of the mol2, lib, prep files were found!")
             raise RuntimeError("None of the mol2, lib, prep files were found!")
+        if self.boxsize is not None:
+            self.logger.info("Add a box with shape {}".format(self.boxsize))
         
     def check_system_multimolecule(self, mol:MoleculeComplex):
         self.logger.info("Checking system {:s}...".format(mol.name))
@@ -213,6 +218,8 @@ class TleapDocker(GeneralDocker):
         self.load_mol(f, mol) 
         if mol.check_exist("mol2"):
             self.load_head_tail(f, mol) 
+        if self.boxsize is not None:
+            f.write('set %s box {%.2f,%.2f,%.2f} \n' % (mol.residue_name, self.boxsize[0], self.boxsize[1], self.boxsize[2]))
         f.write('{} {} {} {}     \n'.format('savemol2', mol.residue_name, self.outmol2, 1))
         f.write('{} {} {}        \n'.format('saveoff', mol.residue_name, self.outlib))
         f.write('{} {} {}        \n'.format('savepdb', mol.residue_name, self.outpdb))
