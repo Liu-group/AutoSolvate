@@ -1,6 +1,4 @@
-Fang Liu
 2023-09-24
-Emory University
 
 The file, 
 
