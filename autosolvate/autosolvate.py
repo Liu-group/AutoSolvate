@@ -3,6 +3,8 @@ import getopt, sys, os
 from openbabel import openbabel as ob
 import subprocess
 import pkg_resources
+from autosolvate.globs import keywords_avail, available_qm_programs, available_charge_methods
+from autosolvate.resp_classes.resp_factory import resp_factory
 
 
 amber_solv_dict = {'water': [' ','TIP3PBOX '],
@@ -43,7 +45,8 @@ class solventBoxBuilder():
 
     def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, 
             charge_method="resp", slu_spinmult=1, outputFile="", 
-            srun_use=False,gaussianexe=None, gaussiandir=None, amberhome=None, closeness=0.8,
+            srun_use=False, qm_program='gaussian', qm_exe=None, qm_dir=None,
+            amberhome=None, closeness=0.8,
             solvent_off="", solvent_frcmod=""):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
@@ -77,8 +80,9 @@ class solventBoxBuilder():
             self.outputFile = self.solvent + "_solvated"
         self.srun_use=srun_use
         self.charge_method=charge_method
-        self.gaussian_dir = gaussiandir
-        self.gaussian_exe = gaussianexe
+        self.qm_program = qm_program
+        self.qm_exe=qm_exe
+        self.qm_dir = qm_dir
         self.amberhome = amberhome
         self.solvent_off=solvent_off
         self.solvent_frcmod=solvent_frcmod
@@ -86,27 +90,55 @@ class solventBoxBuilder():
         self.inputCheck()
 
     def inputCheck(self):
+        if self.charge_method not in available_charge_methods:
+            print("Error: the requested charge method: {}, is not supported yet".format(self.charge_method)) 
+            exit(1)
         if self.slu_spinmult > 1:
             if self.charge_method != "resp":
                 print("Error: solute spin multiplicity: ", self.slu_spinmult, " charge method: ", self.charge_method)
                 print("Error: atomic charge fitting for open-shell system only works for resp charge method")
                 print("Error: exiting...")
                 exit(1)
+
         if self.charge_method == "resp":
-            if self.gaussian_exe == None:
-                print("WARNING: Gaussian executable name is not specified for RESP charge fitting!")
-                print("WARNING: Using g16 by default. If failed later, please rerun with the option -e specified!")
-                self.gaussian_exe = 'g16'
-            if self.gaussian_dir == None:
-                print("WARNING: Gaussian executable directory is not specified for RESP charge fitting!")
-                print("WARNING: Setting to default path: /opt/packages/gaussian/g16RevC.01/g16/")
-                print("WARNING: If failed later, please rerun with the option -d specified!")
-                self.gaussian_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
-                gspath = os.path.join(self.gaussian_dir, self.gaussian_exe)
-                if not os.path.exists(gspath):
-                    print("Error! Gaussian executable path",gspath)
-                    print("Does not exist! Exiting...")
-                    exit()
+            if self.qm_program not in available_qm_programs:
+               print("Error! Selectd quantum chemistry package for RESP charge fittig is not supported:", qm_program)
+               exit()
+                
+            elif self.qm_program == "gaussian":
+                if self.qm_exe == None:
+                   print("WARNING: Gaussian executable name is not specified for RESP charge fitting!")
+                   print("WARNING: Using g16 by default. If failed later,\
+                          please rerun with the option -e specified!")
+                   self.qm_exe = 'g16'
+                if self.qm_dir == None:
+                    print("WARNING: Gaussian executable directory is not specified for RESP charge fitting!")
+                    print("WARNING: Setting to default path: /opt/packages/gaussian/g16RevC.01/g16/")
+                    print("WARNING: If failed later, please rerun with the option -d specified!")
+                    self.qm_dir = '/opt/packages/gaussian/g16RevC.01/g16/'
+                    gspath = os.path.join(self.qm_dir, self.qm_exe)
+                    if not os.path.exists(gspath):
+                        print("Error! Gaussian executable path",gspath)
+                        print("Does not exist! Exiting...")
+                        exit()
+
+            elif self.qm_program == "gamess":
+                if self.qm_exe == None:
+                   print("WARNING: Gamess executable name is not specified for RESP charge fitting!")
+                   print("WARNING: Using rungms by default. If failed later,\
+                          please rerun with the option -e specified!")
+                   self.qm_exe = 'rungms'
+                if self.qm_dir == None:
+                    print("WARNING: GAMESS executable directory is not specified for RESP charge fitting!")
+                    print("WARNING: Setting to default path: ")
+                    print("WARNING: If failed later, please rerun with the option -d specified!")
+                    self.qm_dir = '/opt/gamess/'
+                    gamess_path = os.path.join(self.qm_dir, self.qm_exe)
+                    if not os.path.exists(gamess_path):
+                        print("Error! Gamess executable path",gamess_path)
+                        print("Does not exist! Exiting...")
+                        exit()
+            
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
             print("WARNING: Checking AMBERHOME environment variable...")
@@ -206,41 +238,22 @@ class solventBoxBuilder():
         None
         """
         print("Generate frcmod file for the solute")
-        if self.charge_method == "resp":
-            print("First generate the gaussian input file for RESP charge fitting")
-            cmd1 ="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o gcrt.com -fo gcrt -gv 1 -ge solute.gesp  -s 2 -nc "+str(self.slu_netcharge) + " -m " + str(self.slu_spinmult)
-            if self.srun_use:
-                cmd1='srun -n 1 '+cmd1
-            print(cmd1)
-            subprocess.call(cmd1, shell=True)
-            print("Then run Gaussian...")
-            basedir=os.getcwd()
-            if not os.path.isdir('tmp_gaussian'):
-                os.mkdir('tmp_gaussian')
+        print("Remeove CONNECT information from pdb file")
+        self.removeConectFromPDB()
 
-            cmd21="export GAUSS_EXEDIR=" + self.gaussian_dir + "; export GAUSS_SCRDIR="+basedir+"/tmp_gaussian; "
-            #$PROJECT/TMP_GAUSSIAN;" #/expanse/lustre/projects/mit181/eh22/TMP_GAUSSIAN/;" #/scratch/$USER/$SLURM_JOBID ;"
-            cmd22 = self.gaussian_exe + " < gcrt.com > gcrt.out"
-            if self.srun_use:
-                cmd22='srun -n 1 '+cmd22
-            cmd2=cmd21+cmd22
-            print(cmd2)
-            subprocess.call(cmd2, shell=True)
-            if not os.path.isfile('solute.gesp'):
-                print("gaussian failed to generate solute.gesp")
-                sys.stdout.flush()
-                sys.exit()
-            print("Gaussian ESP calculation done")
-        if self.charge_method == "bcc":
-           self.removeConectFromPDB()
-        print("Then write out mol2")
         if self.charge_method == "resp":
-            cmd3="$AMBERHOME/bin/antechamber -i solute.gesp -fi gesp -o solute.mol2 -fo mol2 -c resp -eq 2 -rn SLU"
-        elif self.charge_method == "bcc":
-            cmd3="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
-        if self.srun_use:
-                 cmd3='srun -n 1 '+cmd3
-        subprocess.call(cmd3, shell=True)
+           myresp = resp_factory(pdbfile="solute.xyz.pdb", charge=self.slu_netcharge,
+                                 spinmult=self.slu_spinmult, qm_program=self.qm_program,
+                                 qm_exe=self.qm_exe, qm_dir=self.qm_dir)
+           myresp.run()
+
+        if self.charge_method == "bcc":
+           print("AnteChamber: Generate mol2 with bcc charge.")
+           cmd3="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
+           if self.srun_use:
+                    cmd3='srun -n 1 '+cmd3
+           subprocess.call(cmd3, shell=True)
+
         print("Finally generate frcmod with parmchk2")
         cmd4 ="$AMBERHOME/bin/parmchk2 -i solute.mol2 -f mol2 -o solute.frcmod"
         if self.srun_use:
@@ -323,7 +336,7 @@ class solventBoxBuilder():
             cmd='srun -n 1 '+cmd
         subprocess.call(cmd, shell=True)
         if not os.path.isfile('solute.pdb'):
-            print("gaussian failed to generate solute.pdb") 
+            print("tleap failed to generate solute.pdb") 
             sys.stdout.flush()
             sys.exit()
 
@@ -618,8 +631,9 @@ def startboxgen(argumentList):
          -g, --chargemethod  name of charge fitting method (bcc, resp)
          -b, --cubesize  size of solvent cube in angstroms
          -r, --srunuse  option to run inside a slurm job
-         -e, --gaussianexe  name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
-         -d, --gaussiandir  path to the Gaussian package
+         -q, --qmprogram name of the quantum chemistry program (gaussian, gamess, terachem)
+         -e, --qmexe  name of the quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
+         -d, --qmdir  path to the quantum chemistry package
          -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
          -t, --closeness  Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
          -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
@@ -632,8 +646,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "hm:s:o:c:b:g:u:re:d:a:t:l:p:"
-    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod"]
+    options = "hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:"
+    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutexyz=""
     solvent='water'
@@ -644,8 +658,9 @@ def startboxgen(argumentList):
     outputFile=""
     srun_use=False
     amberhome=None
-    gaussianexe=None
-    gaussiandir=None
+    qmprogram="gaussian"
+    qmexe=None
+    qmdir=None
     closeness=0.8
     solvent_off=""
     solvent_frcmod=""
@@ -661,9 +676,10 @@ def startboxgen(argumentList):
             print('  -u, --spinmultiplicity     spin multiplicity of solute')
             print('  -g, --chargemethod         name of charge fitting method (bcc, resp)')
             print('  -b, --cubesize             size of solvent cube in angstroms')
-            print('  -r, --srunuse            option to run inside a slurm job')
-            print('  -e, --gaussianexe          name of the Gaussian quantum chemistry package executable')
-            print('  -d, --gaussiandir          path to the Gaussian package')
+            print('  -r, --srunuse              option to run inside a slurm job')
+            print('  -q, --qmprogram            name of the quantum chemistry program')
+            print('  -e, --qmexe                name of the quantum chemistry package executable')
+            print('  -d, --qmdir                path to the quantum chemistry package')
             print('  -a, --amberhome            path to the AMBER molecular dynamics package root directory')
             print('  -t, --closeness            Solute-solvent closeness setting')
             print('  -l, --solventoff           path to the custom solvent .off library file')
@@ -694,12 +710,15 @@ def startboxgen(argumentList):
         elif currentArgument in ("-r", "--srunuse"):
             print("usign srun")
             srun_use=True
-        elif currentArgument in ("-e","--gaussianexe"):
-            print("Gaussian executable name:", currentValue)
-            gaussianexe = currentValue
-        elif currentArgument in ("-d","--gaussiandir"):
-            print("Gaussian package directory:", currentValue)
-            gaussiandir = currentValue
+        elif currentArgument in ("-q","--qmprogram"):
+            print("Quantum chemistry program name:", currentValue)
+            qmprogram = currentValue
+        elif currentArgument in ("-e","--qmexe"):
+            print("Quantum chemistry package executable name:", currentValue)
+            qmexe = currentValue
+        elif currentArgument in ("-d","--qmdir"):
+            print("Quantum chemistry package directory:", currentValue)
+            qmdir = currentValue
         elif currentArgument in ("-a","--amberhome"):
             print("Amber home directory:", currentValue)
             amberhome = currentValue
@@ -727,10 +746,12 @@ def startboxgen(argumentList):
         print(solutexyz," cannot be opened with openbabel.\n Exiting...")
         exit()
      
-    builder = solventBoxBuilder(solutexyz, solvent=solvent, slu_netcharge=slu_netcharge, cube_size=cube_size, charge_method=charge_method, 
+    builder = solventBoxBuilder(solutexyz, solvent=solvent, slu_netcharge=slu_netcharge,
+                                cube_size=cube_size, charge_method=charge_method, 
                                 slu_spinmult=slu_spinmult, outputFile=outputFile, srun_use=srun_use, 
-                                gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, 
-                                closeness=closeness, solvent_off=solvent_off, solvent_frcmod=solvent_frcmod)
+                                qm_program=qmprogram, qm_exe=qmexe, qm_dir=qmdir,
+                                amberhome=amberhome, closeness=closeness, 
+                                solvent_off=solvent_off, solvent_frcmod=solvent_frcmod)
     builder.build()
 
 if __name__ == '__main__':
