@@ -399,6 +399,8 @@ Now that we have gone through the details of one example, the second example wil
 ``autosolvate boxgen -m naphthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3``
   * must designate charge and multiplicity for the radical system
   * must use resp for open-shell system
+  * By default, this command will use Gaussian as the backend quantum chemistry package to perform the RESP charge fitting. However, you can also use the open-source package, GAMESS-US, and the backend, by adding the keyword `-q gamess`. 
+  * If your operating systems does not know where Gaussian or GAMESS is installed, you will receive error messages complaining the lack of these executables. In that case, you can add the keyword `-d /your/path/to/GAMESS/or/Gaussian/executable` 
 ``autosolvate mdrun -f nap_radical_chcl3 -q 1 -u 2 -d``
   * must designate charge and multiplicity for the radical system
   * make sure to track the output filename from boxgen as the input filename
