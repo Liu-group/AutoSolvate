@@ -1,4 +1,9 @@
 version: 2
 
-conda:
-  environment: devtools/conda-envs/test_env.yaml
+build:
+  tools:
+    python: "3.8"
+
+sphinx:
+  builder: html
+  configuration: docs/conf.py
