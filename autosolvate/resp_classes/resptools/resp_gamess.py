@@ -13,7 +13,7 @@ class RespGAMESS(RespABC):
         print("*"*40)
         print("Run GAMESS to generate RESP charge and mol2 file".center(40," ") )
         print("*"*40)
-        self.srun_use = True # GAMESS script usually requires srun_use
+        self.srun_use = kwargs["srun_use"] if "srun_use" in kwargs else True # GAMESS script usually requires srun_use
         RespABC.__init__(self, **kwargs)
         self.potential = None
 

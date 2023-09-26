@@ -244,7 +244,7 @@ class solventBoxBuilder():
         if self.charge_method == "resp":
            myresp = resp_factory(pdbfile="solute.xyz.pdb", charge=self.slu_netcharge,
                                  spinmult=self.slu_spinmult, qm_program=self.qm_program,
-                                 qm_exe=self.qm_exe, qm_dir=self.qm_dir)
+                                 qm_exe=self.qm_exe, qm_dir=self.qm_dir,srun_use=self.srun_use)
            myresp.run()
 
         if self.charge_method == "bcc":
