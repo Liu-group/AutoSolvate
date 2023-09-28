@@ -14,6 +14,9 @@ class RespGAMESS(RespABC):
         print("Run GAMESS to generate RESP charge and mol2 file".center(40," ") )
         print("*"*40)
         self.srun_use = kwargs["srun_use"] if "srun_use" in kwargs else True # GAMESS script usually requires srun_use
+        self.nnodes = kwargs["nnodes"] if "nnodes" in kwargs else 1 # Gamess need
+        self.ncpus = kwargs["ncpus"] if "ncpus" in kwargs else 1
+        self.version = kwargs["gamessversion"] if "gamessversion" in kwargs else "01"
         RespABC.__init__(self, **kwargs)
         self.potential = None
 
@@ -282,8 +285,12 @@ class RespGAMESS(RespABC):
         gamess_dat = self.molname + "_gamess.dat"
         
         
-        cmd = os.path.join(self.qm_dir, self.qm_exe) + " " + gamess_inp \
-              + " > " + gamess_log
+        cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
+            + gamess_inp + " " \
+            + self.version + " " \
+            + str(self.nnodes * self.ncpus) + " " \
+            + str(self.ncpus) + " " \
+            + " > " + gamess_log
 
         if self.srun_use:
             cmd='srun -n 1 '+cmd

@@ -47,7 +47,7 @@ class solventBoxBuilder():
             charge_method="resp", slu_spinmult=1, outputFile="", 
             srun_use=False, qm_program='gaussian', qm_exe=None, qm_dir=None,
             amberhome=None, closeness=0.8,
-            solvent_off="", solvent_frcmod=""):
+            solvent_off="", solvent_frcmod="",rundir=""):
         self.xyz = xyzfile
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
@@ -84,6 +84,7 @@ class solventBoxBuilder():
         self.qm_exe=qm_exe
         self.qm_dir = qm_dir
         self.amberhome = amberhome
+        self.rundir = rundir
         self.solvent_off=solvent_off
         self.solvent_frcmod=solvent_frcmod
         self.is_custom_solvent = False
@@ -205,7 +206,7 @@ class solventBoxBuilder():
         obConversion = ob.OBConversion()
         obConversion.SetInAndOutFormats("xyz", "pdb")
         obmol = self.solute.OBMol
-        obConversion.WriteFile(obmol,'solute.xyz.pdb')
+        obConversion.WriteFile(obmol,os.path.join(self.rundir,'solute.xyz.pdb'))
         # Change the residue name from the default UNL to SLU
         pdb1 = open('solute.xyz.pdb').readlines()
         pdb2 = open('solute.xyz.pdb','w')
@@ -244,7 +245,7 @@ class solventBoxBuilder():
         if self.charge_method == "resp":
            myresp = resp_factory(pdbfile="solute.xyz.pdb", charge=self.slu_netcharge,
                                  spinmult=self.slu_spinmult, qm_program=self.qm_program,
-                                 qm_exe=self.qm_exe, qm_dir=self.qm_dir,srun_use=self.srun_use)
+                                 qm_exe=self.qm_exe, qm_dir=self.qm_dir,srun_use=self.srun_use,rundir=self.rundir)
            myresp.run()
 
         if self.charge_method == "bcc":
@@ -646,8 +647,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:"
-    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod"]
+    options = "hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:D:"
+    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutexyz=""
     solvent='water'
@@ -664,6 +665,7 @@ def startboxgen(argumentList):
     closeness=0.8
     solvent_off=""
     solvent_frcmod=""
+    rundir = ""
     #print(arguments)
     #print(values)
     for currentArgument, currentValue in arguments:
@@ -683,6 +685,7 @@ def startboxgen(argumentList):
             print('  -a, --amberhome            path to the AMBER molecular dynamics package root directory')
             print('  -t, --closeness            Solute-solvent closeness setting')
             print('  -l, --solventoff           path to the custom solvent .off library file')
+            print('  -D, --rundir               running directory where temporary files are stored')
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
             print('  -h, --help                 short usage description')
             exit()
@@ -731,6 +734,9 @@ def startboxgen(argumentList):
         elif currentArgument in ("-p", "--solventfrcmod"):
             print("Custom solvent .frcmmod file path:", currentValue)
             solvent_frcmod = currentValue
+        elif currentArgument in ('-D, --rundir '):
+            print("Directory for Temporary files:",currentValue)
+            rundir = currentValue
 
     if solutexyz == "":
         print("Error! Solute xyzfile must be provided!\nExiting...")
@@ -751,7 +757,7 @@ def startboxgen(argumentList):
                                 slu_spinmult=slu_spinmult, outputFile=outputFile, srun_use=srun_use, 
                                 qm_program=qmprogram, qm_exe=qmexe, qm_dir=qmdir,
                                 amberhome=amberhome, closeness=closeness, 
-                                solvent_off=solvent_off, solvent_frcmod=solvent_frcmod)
+                                solvent_off=solvent_off, solvent_frcmod=solvent_frcmod,rundir=rundir)
     builder.build()
 
 if __name__ == '__main__':
