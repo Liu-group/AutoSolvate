@@ -290,6 +290,11 @@ class RespGAMESS(RespABC):
             + self.version + " " \
             + str(self.nnodes * self.ncpus) + " " \
             + str(self.ncpus) + " " \
+            + 'null' + " " \
+            + 'null' + " " \
+            + str(self.rundir) + " " \
+            + str(self.rundir) + " " \
+            + str(os.path.abspath(self.qm_dir)) \
             + " > " + gamess_log
 
         if self.srun_use:
