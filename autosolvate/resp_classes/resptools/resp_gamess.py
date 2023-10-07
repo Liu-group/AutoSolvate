@@ -290,8 +290,8 @@ class RespGAMESS(RespABC):
             + self.version + " " \
             + str(self.nnodes * self.ncpus) + " " \
             + str(self.ncpus) + " " \
-            + 'null' + " " \
-            + 'null' + " " \
+            + "0" + " " \
+            + "0" + " " \
             + str(self.rundir) + " " \
             + str(self.rundir) + " " \
             + str(os.path.abspath(self.qm_dir)) \
