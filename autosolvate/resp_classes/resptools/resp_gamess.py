@@ -182,7 +182,7 @@ class RespGAMESS(RespABC):
         
         # Read in file contents.
         log_lines = self.readFile(os.path.join(self.resp_scr_dir, self.molname + '_gamess.log'))
-        dat_lines = self.readFile(os.path.join(self.resp_scr_dir, self.molname + '_gamess.dat'))
+        dat_lines = self.readFile(self.molname + '_gamess.dat')
     
         # Determine number of atoms.
         natoms = self.molecule.NumAtoms()
@@ -315,7 +315,7 @@ class RespGAMESS(RespABC):
              lineid = self.findLineStartWith(gamess_log_content, " ddikick.x: exited gracefully.")
         except:
              raise Exception("GAMESS ESP calcualtion failed."
-                             + " Please check the log file: {log}".format(gamess_log)
+                             + " Please check the log file: {gamess_log}".format(gamess_log)
                              + " for details")
         line_dat = lineid + self.findLineContains(gamess_log_content[lineid:], gamess_dat)
         dat_path = gamess_log_content[line_dat].split(" ")[-1].strip('\n')
