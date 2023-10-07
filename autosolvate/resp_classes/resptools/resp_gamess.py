@@ -286,7 +286,7 @@ class RespGAMESS(RespABC):
         
         
         cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
-            + gamess_inp + " " \
+            + os.path.abspath(os.path.join(self.resp_scr_dir,gamess_inp)) + " " \
             + self.version + " " \
             + str(self.nnodes * self.ncpus) + " " \
             + str(self.ncpus) + " " \
@@ -295,7 +295,7 @@ class RespGAMESS(RespABC):
             + str(self.rundir) + " " \
             + str(self.rundir) + " " \
             + str(os.path.abspath(self.qm_dir)) \
-            + " > " + gamess_log
+            + " > " + os.path.abspath(os.path.join(self.resp_scr_dir,gamess_log))
 
         if self.srun_use:
             cmd='srun -n 1 '+cmd
@@ -309,7 +309,7 @@ class RespGAMESS(RespABC):
 
 
         print("Copy back GAMESS .dat file from SCR")
-        gamess_log_content = self.readFile(gamess_log)
+        gamess_log_content = self.readFile(os.path.abspath(os.path.join(self.resp_scr_dir,gamess_log)))
         
         try:
              lineid = self.findLineStartWith(gamess_log_content, " ddikick.x: exited gracefully.")
