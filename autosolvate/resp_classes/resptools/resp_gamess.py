@@ -181,8 +181,8 @@ class RespGAMESS(RespABC):
         print("Reading GAMESS output from %s..." % self.resp_scr_dir)
         
         # Read in file contents.
-        log_lines = self.readFile(os.path.join(self.resp_scr_dir, self.molname + '_gamess.log'))
-        dat_lines = self.readFile(self.molname + '_gamess.dat')
+        log_lines = self.readFile(os.path.join(os.path.abspath(self.resp_scr_dir), self.molname + '_gamess.log'))
+        dat_lines = self.readFile(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + '_gamess.dat'))
     
         # Determine number of atoms.
         natoms = self.molecule.NumAtoms()
@@ -280,22 +280,22 @@ class RespGAMESS(RespABC):
         print("Running GAMESS. This may take a while...".center(40," "))
         print("-"*40)
 
-        gamess_inp = self.molname + "_gamess.inp"
-        gamess_log = self.molname + "_gamess.log"
-        gamess_dat = self.molname + "_gamess.dat"
+        gamess_inp = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.inp"))
+        gamess_log = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.log"))
+        gamess_dat = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.dat"))
         
         
         cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
-            + os.path.abspath(os.path.join(self.resp_scr_dir,gamess_inp)) + " " \
+            + gamess_inp + " " \
             + self.version + " " \
             + str(self.nnodes * self.ncpus) + " " \
             + str(self.ncpus) + " " \
             + "0" + " " \
             + "0" + " " \
-            + str(self.rundir) + " " \
-            + str(self.rundir) + " " \
+            + str(os.path.abspath(self.resp_scr_dir)) + " " \
+            + str(os.path.abspath(self.resp_scr_dir)) + " " \
             + str(os.path.abspath(self.qm_dir)) \
-            + " > " + os.path.abspath(os.path.join(self.resp_scr_dir,gamess_log))
+            + " > " + gamess_log
 
         if self.srun_use:
             cmd='srun -n 1 '+cmd
@@ -309,23 +309,23 @@ class RespGAMESS(RespABC):
 
 
         print("Copy back GAMESS .dat file from SCR")
-        gamess_log_content = self.readFile(os.path.abspath(os.path.join(self.resp_scr_dir,gamess_log)))
+        gamess_log_content = self.readFile(gamess_log)
         
         try:
              lineid = self.findLineStartWith(gamess_log_content, " ddikick.x: exited gracefully.")
         except:
              raise Exception("GAMESS ESP calcualtion failed."
-                             + " Please check the log file: {gamess_log}".format(gamess_log)
+                             + f" Please check the log file: {gamess_log}"
                              + " for details")
         line_dat = lineid + self.findLineContains(gamess_log_content[lineid:], gamess_dat)
         dat_path = gamess_log_content[line_dat].split(" ")[-1].strip('\n')
        
         line_node = self.findLineStartWith(gamess_log_content, "This job is running on host")
         node_name = gamess_log_content[line_node].split(" ")[-1].strip('\n')
-        
-        cmd = "scp " + node_name + ":" + dat_path + " ./"
-        print(cmd)
-        subprocess.call(cmd, shell=True)
+        if self.srun_use:
+            cmd = "scp " + node_name + ":" + dat_path + " " + os.path.abspath(self.resp_scr_dir)
+            print(cmd)
+            subprocess.call(cmd, shell=True)
         
         
 
