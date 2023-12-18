@@ -1,16 +1,15 @@
 import pubchempy as pcp
-from openbabel import pybel
 
-class solute_prep():
+class solute_from_PubChem():
     r"""
-    Solute molecule construction.
+    Solute molecule construction using PubChem API.
     
     Parameters
     ----------
     Name : str, Required
-        Given IUPAC name, simplified molecular-input line-entry system (SMILES) form 
-        can be accessed by first set_SMILES(), and then get_SMILES(). Molecule's XYZ 
-        file is generated using get_XYZ() function. 
+        Given solute's IUPAC name, solute's information is obtained from PubChem API. 
+        1) Simplified molecular-input line-entry system (SMILES) form can be accessed 
+        by get_SMILES(). 2) Solute's charge is retreived using get_charge().
     
     Returns
     -------
@@ -24,7 +23,7 @@ class solute_prep():
         self.sml = 'NONE'
         self.ff = 'mmff94'
         self.s = 50
-        self.path = ''
+        self.charge = 0
 
     def set_force_field(self, forcefield = 'mmff94'):
         r"""
@@ -43,13 +42,29 @@ class solute_prep():
         """
         self.ff = forcefield
     
+    def get_force_field(self):
+        r"""
+        Return the force field used in 3D coordinate generation.
+        
+        Parameters
+        ----------
+            NONE
+
+        Returns
+        -------
+            Force field: str, force field used in the 3D coordinates 
+            construction
+        
+        """
+        return self.ff
+    
     def set_steps(self, steps = '50'):
         r"""
         Set steps used in 3-D coordinates construction.
         
         Parameters
         ----------
-        steps: int, Optional, default: '50'
+            steps: int, Optional, default: '50'
         
         Returns
         -------
@@ -58,32 +73,33 @@ class solute_prep():
         """
         self.s = steps
     
-    def set_path(self, path = ''):
+    def get_steps(self):
         r"""
-        Set file path to save solute's xyz file.
+        Return steps used in 3-D coordinates construction. 
         
         Parameters
         ----------
-        path: str, Optional, default: ''
+            NONE
         
         Returns
         -------
-            NONE
+            Steps: int, steps used in 3-D coordniates 
+            construction.
         
         """
-        self.path = path
+        return self.s
 
     def set_SMILES(self):
         r"""
-        Update SMILES form of the solute molecule.
+        Update SMILES form of the solute molecule using PubChem API.
 
         Parameters
         ----------
-        None
+            NONE
         
         Returns
         -------
-        Integer: 1 for sucessful completition; 0 for imcompletition.
+            Integer: 1 for sucessful completition; 0 for imcompletition.
         
         """
         try:
@@ -102,38 +118,48 @@ class solute_prep():
 
         Parameters
         ----------
-        None
+            NONE
         
         Returns
         -------
-        SMILES: str
+            SMILES: str
         
         """
         return self.sml
 
-    def get_XYZ(self):
+    def set_charge(self):
         r"""
-        Save XYZ file of the solute molecule.
+        Update charge of the molecule using PubChem API
+    
+        Parameters
+        ----------
+            NONE
 
+        Returns 
+        -------
+            Integer: 1 for sucessful completition; 0 for imcompletition.
+
+        """
+        try:
+            cID = pcp.get_cids(self.name)
+            molecule = pcp.Compound.from_cid(cID)
+            self.charge =  molecule.charge
+            return 1  
+        except:
+            print(f'Cannot find {self.name} in PubChem data base, please provide IUPAC name')
+            return 0
+
+    def get_charge(self):
+        r"""
+        Return solute's charge
+    
         Parameters
         ----------
         None
-        
-        Returns
+
+        Returns 
         -------
-        Integer: 1 for sucessful completition; Otherwise, it is for imcompletition.
-        
+        charge: int
+
         """
-        try:
-            mol = pybel.readstring("smi", self.sml)
-            try:
-                mol.make3D(forcefield=self.ff, steps=self.s)
-                mol.write('xyz', self.path + "mol.xyz", overwrite=True)
-                print(f'XYZ file successfully saved to {self.path}')
-                return 1
-            except:
-                print(f'Error, could not convert {self.sml} into 3D structure with forcefield {self.ff} with steps {self.s}.\nTry a different parameter setup.')
-                return 0
-        except:
-            print('Error, invalid SMILES input, please try again.')
-            return 2
+        return self.charge
