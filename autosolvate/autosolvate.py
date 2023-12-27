@@ -251,6 +251,8 @@ class solventBoxBuilder():
         if self.charge_method == "bcc":
            print("AnteChamber: Generate mol2 with bcc charge.")
            cmd3="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
+           cmd3 += " -nc " + str(self.slu_netcharge) + " -m " + str(self.slu_spinmult)
+           print(cmd3)
            if self.srun_use:
                     cmd3='srun -n 1 '+cmd3
            subprocess.call(cmd3, shell=True)

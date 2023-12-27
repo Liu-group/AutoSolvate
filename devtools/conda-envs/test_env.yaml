@@ -32,5 +32,6 @@ dependencies:
   - pip:
     - imolecule
     - pillow
+    - pubchempy
   #  - codecov
 
