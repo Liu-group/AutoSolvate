@@ -1,29 +1,106 @@
 import pubchempy as pcp
+from openbabel import pybel
+import os
 
-class solute_from_PubChem():
+class PubChemAPI():
     r"""
     Solute molecule construction using PubChem API.
     
     Parameters
     ----------
-    Name : str, Required
-        Given solute's IUPAC name, solute's information is obtained from PubChem API. 
-        1) Simplified molecular-input line-entry system (SMILES) form can be accessed 
-        by get_SMILES(). 2) Solute's charge is retreived using get_charge().
-    
+        Name : str, Required
+            Given solute's IUPAC name, solute's information is obtained from PubChem API. 
+        
+            Simplified molecular-input line-entry system (SMILES) form and charge can
+            be retreived using get_info().
+
+        FilePath : str, Optional, default: local directory
+            Solute's XYZ file generated using openbabel is saved to given file path.
+
     Returns
     -------
-    Integer: 1 for sucessful completition; Otherwise problem occured while running.
+        Integer: 1 for sucessful completition; Otherwise problem occured while running.
     
     """
 
-
-    def __init__(self, name = None):
+    def __init__(self, name, filePath = os.getcwd()):
         self.name = name
+        self.cID = ''
+        self.mol = None
         self.sml = 'NONE'
+        self.charge = 0
         self.ff = 'mmff94'
         self.s = 50
-        self.charge = 0
+        self.filePath = filePath
+        self.export = os.path.join(self.filePath, 'mol.xyz')
+
+    def set_up_mol(self):
+        r"""
+        Set up molecule information using PubChem API.
+        
+        Parameters
+        ----------
+            NONE
+
+        Returns
+        -------
+            Integer: 1 for sucessful completition; Otherwise problem occured while running.
+        
+        """
+        try:
+            self.cID = pcp.get_cids(self.name)
+            try:
+                self.mol = pcp.Compound.from_cid(self.cID)
+                return 1
+            except:
+                print(f'Error, PubChem API could not access information about given compound ID {self.cID} \
+                      from the molecule database')
+                return 0
+        except:
+            print(f'Error, {self.name} corresponding compound ID cannot be obtained from PubChem API.')
+            return 0
+
+
+    def set_SMILES(self):
+        r"""
+        Update SMILES form of the solute molecule using PubChem API.
+
+        Parameters
+        ----------
+            NONE
+        
+        Returns
+        -------
+            Integer: 1 for sucessful completition; 0 for imcompletition.
+        
+        """
+        try:
+            self.sml = self.mol.canonical_smiles
+            return 1
+        except:
+            print(f'Error, solute molecule is not correctly set up, make sure set_up_mol() is called before.')
+            return 0
+    
+    def set_charge(self):
+        r"""
+        Update charge of the molecule using PubChem API
+    
+        Parameters
+        ----------
+            NONE
+
+        Returns 
+        -------
+            Integer: 1 for sucessful completition; 0 for imcompletition.
+
+        """
+        try:
+            self.charge =  self.mol.charge
+            return 1  
+        except:
+            print(f'Error, solute molecule is not correctly set up, make sure set_up_mol() is called \
+                  before.')
+            return 0
 
     def set_force_field(self, forcefield = 'mmff94'):
         r"""
@@ -31,9 +108,9 @@ class solute_from_PubChem():
         
         Parameters
         ----------
-        forcefield: str, Optional, default: 'mmff94'
+            Force field: str, Optional, default: 'mmff94'
 
-        Available forcefield: 'mmff94', 'uff', 'ghemical'
+            Available force field: 'mmff94', 'uff', 'ghemical'
         
         Returns
         -------
@@ -83,15 +160,44 @@ class solute_from_PubChem():
         
         Returns
         -------
-            Steps: int, steps used in 3-D coordniates 
-            construction.
+            Steps: int, steps used in 3-D coordniates construction.
         
         """
         return self.s
-
-    def set_SMILES(self):
+    
+    def set_path(self, path = os.getcwd()):
         r"""
-        Update SMILES form of the solute molecule using PubChem API.
+        Set file path to save solute's xyz file.
+        
+        Parameters
+        ----------
+            path: str, Optional, default: local directory
+        
+        Returns
+        -------
+            NONE
+        
+        """
+        self.filePath = path
+    
+    def get_path(self):
+        r"""
+        Return file path where solute's xyz file is saved.
+        
+        Parameters
+        ----------
+            NONE
+        
+        Returns
+        -------
+            File path: str
+        
+        """
+        return self.filePath
+    
+    def get_XYZ(self):
+        r"""
+        Save XYZ file of the solute molecule.
 
         Parameters
         ----------
@@ -99,22 +205,28 @@ class solute_from_PubChem():
         
         Returns
         -------
-            Integer: 1 for sucessful completition; 0 for imcompletition.
+            Integer: 1 for sucessful completition; Otherwise, it is for imcompletition.
         
         """
         try:
-            self.sml = pcp.get_properties('CanonicalSMILES', self.name,'name')[0]['CanonicalSMILES']
-            return 1
+            mol = pybel.readstring("smi", self.sml)
+            try:
+                mol.make3D(forcefield=self.ff, steps=self.s)
+                mol.write('xyz', self.export, overwrite=True)
+                print(f'XYZ file successfully saved as {self.export}')
+                return 1
+            except:
+                print(f'Error, could not convert {self.sml} into 3D structure with forcefield {self.ff} \
+                      with steps {self.s}.\nTry a different parameter setup using set_force_field() and \
+                        set_steps().')
+                return 0
         except:
-            if self.name == 'NONE':
-                print('Error, solute IUPAC name is not provided, please provide IUPAC name')
-            else:
-                print(f'Error, cannot find {self.name} in PubChem data base, please provide correct IUPAC name')
+            print(f'Error, invalid SMILES input {self.sml}, make sure set_up_mol() is called before.')
             return 0
-        
-    def get_SMILES(self):
+    
+    def get_info(self):
         r"""
-        Retreive SMILES form of the solute molecule.
+        Provide information for given solute
 
         Parameters
         ----------
@@ -122,44 +234,11 @@ class solute_from_PubChem():
         
         Returns
         -------
-            SMILES: str
+            (IUPAC Name: str, SMILES: str, Charge: int, XYZ File Path: str) : Tuple
         
         """
-        return self.sml
-
-    def set_charge(self):
-        r"""
-        Update charge of the molecule using PubChem API
-    
-        Parameters
-        ----------
-            NONE
-
-        Returns 
-        -------
-            Integer: 1 for sucessful completition; 0 for imcompletition.
-
-        """
-        try:
-            cID = pcp.get_cids(self.name)
-            molecule = pcp.Compound.from_cid(cID)
-            self.charge =  molecule.charge
-            return 1  
-        except:
-            print(f'Cannot find {self.name} in PubChem data base, please provide IUPAC name')
-            return 0
-
-    def get_charge(self):
-        r"""
-        Return solute's charge
-    
-        Parameters
-        ----------
-        None
-
-        Returns 
-        -------
-        charge: int
-
-        """
-        return self.charge
+        if self.set_up_mol() and self.set_SMILES() and self.set_charge() and self.get_XYZ():
+            return (self.name, self.sml, self.charge, self.export)
+        else:
+            print('Unsuccessful running, please check the error messages above.')
+            return
