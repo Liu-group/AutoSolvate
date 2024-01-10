@@ -5,6 +5,8 @@ import subprocess
 import pkg_resources
 from autosolvate.globs import keywords_avail, available_qm_programs, available_charge_methods
 from autosolvate.resp_classes.resp_factory import resp_factory
+from autosolvate.pubchem_api import PubChemAPI
+from autosolvate.solute_info import Solute
 
 
 amber_solv_dict = {'water': [' ','TIP3PBOX '],
@@ -251,8 +253,6 @@ class solventBoxBuilder():
         if self.charge_method == "bcc":
            print("AnteChamber: Generate mol2 with bcc charge.")
            cmd3="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
-           cmd3 += " -nc " + str(self.slu_netcharge) + " -m " + str(self.slu_spinmult)
-           print(cmd3)
            if self.srun_use:
                     cmd3='srun -n 1 '+cmd3
            subprocess.call(cmd3, shell=True)
@@ -626,6 +626,7 @@ def startboxgen(argumentList):
        related to structure and force field parameter generation.
 
        Command line option definitions
+         -n, --solute initialize suggestion for box parameter for a given solute
          -m, --main  solute xyz file
          -s, --solvent  name of solvent (water, methanol, chloroform, nma)
          -o, --output  prefix of the output file names
@@ -640,7 +641,7 @@ def startboxgen(argumentList):
          -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
          -t, --closeness  Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
          -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
-         -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate.
+         -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate. 
          -h, --help  short usage description
 
     Returns
@@ -649,9 +650,10 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:D:"
-    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","runningdirectory"]
+    options = "n:hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:D:"
+    long_options = ["solute", "help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
+    solute = ""
     solutexyz=""
     solvent='water'
     slu_netcharge=0
@@ -673,6 +675,7 @@ def startboxgen(argumentList):
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
+            print('  -n, --solute               initialize suggested parameter for given solute')
             print('  -m, --main                 solute xyz file')
             print('  -s, --solvent              name of solvent')
             print('  -o, --output               prefix of the output file names')
@@ -691,6 +694,17 @@ def startboxgen(argumentList):
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
             print('  -h, --help                 short usage description')
             exit()
+        elif currentArgument in ("-n", "--name"):
+            print("Solute:", currentValue)
+            solute=str(currentValue)
+            sol=PubChemAPI(solute)
+            info=sol.getinfo()
+            solutexyz=str(info[3])
+            slu_netcharge = info[2]
+            solS=Solute(info[0], info[1], info[2], info[3])
+            cube_size = solS.get_box_length()
+            slu_spinmult = solS.get_spin_multiplicity()
+            charge_method = solS.get_methods()[0]
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
             solutexyz=str(currentValue)     
