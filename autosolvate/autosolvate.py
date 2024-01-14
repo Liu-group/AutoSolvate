@@ -253,6 +253,8 @@ class solventBoxBuilder():
         if self.charge_method == "bcc":
            print("AnteChamber: Generate mol2 with bcc charge.")
            cmd3="$AMBERHOME/bin/antechamber -i solute.xyz.pdb -fi pdb -o solute.mol2 -fo mol2 -c bcc -eq 2 -rn SLU"
+           cmd3 += " -nc " + str(self.slu_netcharge) + " -m " + str(self.slu_spinmult)
+           print(cmd3)
            if self.srun_use:
                     cmd3='srun -n 1 '+cmd3
            subprocess.call(cmd3, shell=True)
@@ -626,7 +628,7 @@ def startboxgen(argumentList):
        related to structure and force field parameter generation.
 
        Command line option definitions
-         -n, --solute initialize suggestion for box parameter for a given solute
+         -n, --solutename initialize suggestion for box parameter for a given solute's name
          -m, --main  solute xyz file
          -s, --solvent  name of solvent (water, methanol, chloroform, nma)
          -o, --output  prefix of the output file names
@@ -653,7 +655,7 @@ def startboxgen(argumentList):
     options = "n:hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:D:"
     long_options = ["solute", "help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
-    solute = ""
+    solutename = ""
     solutexyz=""
     solvent='water'
     slu_netcharge=0
@@ -675,7 +677,7 @@ def startboxgen(argumentList):
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
-            print('  -n, --solute               initialize suggested parameter for given solute')
+            print('  -n, --solutename               initialize suggested parameter for given solute')
             print('  -m, --main                 solute xyz file')
             print('  -s, --solvent              name of solvent')
             print('  -o, --output               prefix of the output file names')
@@ -694,10 +696,10 @@ def startboxgen(argumentList):
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
             print('  -h, --help                 short usage description')
             exit()
-        elif currentArgument in ("-n", "--name"):
+        elif currentArgument in ("-n", "--solutename"):
             print("Solute:", currentValue)
-            solute=str(currentValue)
-            sol=PubChemAPI(solute)
+            solutename=str(currentValue)
+            sol=PubChemAPI(solutename)
             info=sol.getinfo()
             solutexyz=str(info[3])
             slu_netcharge = info[2]
