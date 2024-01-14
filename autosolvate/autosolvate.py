@@ -653,7 +653,7 @@ def startboxgen(argumentList):
     """
     #print(argumentList)
     options = "n:hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:D:"
-    long_options = ["solute", "help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","runningdirectory"]
+    long_options = ["solutename", "help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
     solutexyz=""
