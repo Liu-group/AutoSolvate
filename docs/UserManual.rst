@@ -42,7 +42,16 @@ Available job parameters are listed in the following Table.
      - int
      - 54
      - L >=20
-
+   * - Temperature
+     - Temperature in Kelvin to equilibrate in MM or QM/MM calculation.
+     - int
+     - 300
+     - T > 0
+   * - Pressure
+     - Pressure in bar to equilibrate during MM NPT step
+     - int
+     - 1
+     - P > 0
 
 
 
