@@ -13,7 +13,7 @@ Available job parameters are listed in the following Table.
      - Default Value
    * - Row 1, column 1
      -
-     -`git <https://git-scm.com/>`_
+     - `git <https://git-scm.com/>`_
      - Row 1, column 3
    * - Row 2, column 1
      - Row 2, column 2
