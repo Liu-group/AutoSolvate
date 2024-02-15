@@ -42,6 +42,11 @@ Available job parameters are listed in the following Table.
      - int
      - 54
      - L >=20
+   * - Dry Run
+     - Only generate the commands to run MD programs without executing.
+     - Bool
+     - False
+     - NA
    * - Temperature
      - Temperature in Kelvin to equilibrate in MM or QM/MM calculation.
      - int
@@ -61,14 +66,14 @@ Available job parameters are listed in the following Table.
      - Number of steps to increase the kinetic energy of the system, allowing the simulation to reach an equilibrium state and sample different conformations. Setting to 0 skips the MM heating step.
      - int
      - 10000
-     - n > 0
+     - n >= 0
    * - MM NPT pressure equilibration steps
-     - Number of MM NPT steps, setting to 0 skips the MM NPT step.
+     - Number of steps to adjust the volume of the simulation box to maintain constant pressure while allowing the system to reach thermodynamic equilibrium. Setting to 0 skips the MM NPT step.
      - int
      - 300000
-     - n > 0
+     - n >= 0
    * - MM NVE production run steps
-     - Number of MM NVE steps, setting to 0 skips the MM NVE step.
+     - Number of steps to evolve the system under constant particle number (N), volume (V), and energy (E) freely without any external constraints. Setting to 0 skips the MM NVE step.
      - int
      - 0
-     - n > 0
+     - n >= 0
