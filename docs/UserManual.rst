@@ -23,17 +23,17 @@ Available job parameters are listed in the following Table.
      - 'water'
      - NA
    * - Charge Method
-     - Method that determines partial atomic charges. Available methods: 'bcc', 'resp'. Use 'resp' (quantum mechanical calculation needed) or 'bcc' to estimate partial charges
+     - Method that determines partial atomic charges. Available methods: 'bcc', 'resp'. Use 'resp' (quantum mechanical calculation needed) or 'bcc' to estimate partial charges.
      - str
      - 'resp'
      - 'resp' only for open-shell system
    * - Solute Charge
-     - Net charge of solute, the solvent box will be neutralized with Cl- and Na+ ions
+     - Net charge of solute, the solvent box will be neutralized with Cl- and Na+ ions.
      - int
      - 0
      - NA
    * - Solute Spin Multiplicity
-     - Spin multiplicity of solute
+     - Spin multiplicity of solute.
      - int
      - 1
      - S >= 1
