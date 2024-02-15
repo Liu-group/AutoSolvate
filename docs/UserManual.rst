@@ -58,22 +58,27 @@ Available job parameters are listed in the following Table.
      - 1
      - P > 0
    * - MM minimization steps
-     - Number of MM minimization steps.
+     - Number of MM steps to minimize the potential energy of the system. Applicable to QM/MM calculation.
      - int
      - 2000
      - n > 0
    * - MM heat up steps
-     - Number of steps to increase the kinetic energy of the system, allowing the simulation to reach an equilibrium state and sample different conformations. Setting to 0 skips the MM heating step.
+     - Number of steps to increase the kinetic energy of the system, allowing the simulation to reach an equilibrium state and sample different conformations. Setting it to 0 skips the heating step. Applicable to QM/MM calculation.
      - int
      - 10000
      - n >= 0
    * - MM NPT pressure equilibration steps
-     - Number of steps to adjust the volume of the simulation box to maintain constant pressure while allowing the system to reach thermodynamic equilibrium. Setting to 0 skips the MM NPT step.
+     - Number of steps to adjust the volume of the simulation box to maintain constant pressure while allowing the system to reach thermodynamic equilibrium. Setting it to 0 skips the NPT step. Applicable to QM/MM calculation.
      - int
      - 300000
      - n >= 0
    * - MM NVE production run steps
-     - Number of steps to evolve the system under constant particle number (N), volume (V), and energy (E) freely without any external constraints. Setting to 0 skips the MM NVE step.
+     - Number of steps to evolve the system under constant particle number (N), volume (V), and energy (E) freely without any external constraints. Setting it to 0 skips the NVE step. Applicable to QM/MM calculation.
      - int
      - 0
      - n >= 0
+   * - QM method
+     - Treating with high-level quantum mechanical accuracy. Available method: 'b3lyp', 'hf','case','dftb'.
+     - str
+     - b3lyp
+     - NA
