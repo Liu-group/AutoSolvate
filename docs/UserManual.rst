@@ -1,5 +1,5 @@
-AutoSolvate Parameter Definition
-=================================
+Web-AutoSolvate Sudo-Parameter Definition
+=========================================
 
 Available job parameters are listed in the following Table.
 
@@ -17,6 +17,11 @@ Available job parameters are listed in the following Table.
      - str
      - 'water'
      - NA
+   * - Charge Method
+     - Method that determines partial atomic charges. Available methods: 'bcc', 'resp'. 
+     - str
+     - 'resp'
+     - 'resp' only for open-shell system
 
 
 
