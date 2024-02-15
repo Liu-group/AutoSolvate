@@ -3,7 +3,7 @@ Web-AutoSolvate Sudo-Parameter Definition
 
 Available job parameters are listed in the following Table.
 
-.. list-table:: General Parameter
+.. list-table:: .. General Parameter
    :widths: 25 50 10 25 25
    :header-rows: 1
 
