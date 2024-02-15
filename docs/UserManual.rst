@@ -12,6 +12,11 @@ Available job parameters are listed in the following Table.
      - Type
      - Default Value
      - Valid Range
+   * - Solute
+     - The molecule or group of molecules of interest, specifically structural and dynamic behavior over time in a solvent. The file path to solute xyz file is accepted.
+     - str
+     - ""
+     - Not given
    * - Solvent
      - The substance used to mimic the environment surrounding a solute molecule in molecular interactions and dynamics studies. Available solvents:'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
      - str
@@ -37,6 +42,7 @@ Available job parameters are listed in the following Table.
      - int
      - 54
      - L >=20
+
 
 
 
