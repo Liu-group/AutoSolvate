@@ -82,3 +82,18 @@ Available job parameters are listed in the following Table.
      - str
      - b3lyp
      - NA
+   * - Start Frame
+     - First frame at which to start extracting from the trajectory the microsolvated clusters.
+     - int
+     - 0
+     - n > 0
+   * - Interval
+     - Interval in frames at which to extract microsolvated clusters from the trajectory.
+     - int
+     - 100
+     - n > 0
+   * - Sell thickness
+     - Solvent shell size for microsolvated clusters in Angstrom, upper limit for minimum solute-solvent distance.
+     - int
+     - 4
+     - n > 0
