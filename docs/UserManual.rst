@@ -13,12 +13,12 @@ Available job parameters are listed in the following Table.
      - Default Value
      - Valid Range
    * - Solute
-     - The molecule or group of molecules of interest, specifically structural and dynamic behavior over time in a solvent. The file path to solute xyz file is accepted.
+     - The molecule or group of molecules of interest. The file path to solute xyz file is accepted.
      - str
      - ""
      - Not given
    * - Solvent
-     - The substance used to mimic the environment surrounding a solute molecule in molecular interactions and dynamics studies. Available solvents:'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
+     - The substance used to mimic the environment surrounding a solute molecule. Available solvents:'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
      - str
      - 'water'
      - NA
@@ -48,11 +48,27 @@ Available job parameters are listed in the following Table.
      - 300
      - T > 0
    * - Pressure
-     - Pressure in bar to equilibrate during MM NPT step
+     - Pressure in bar to equilibrate during MM NPT step.
      - int
      - 1
      - P > 0
-
-
-
-`git <https://git-scm.com/>`_
+   * - MM minimization steps
+     - Number of MM minimization steps.
+     - int
+     - 2000
+     - n > 0
+   * - MM heat up steps
+     - Number of steps to increase the kinetic energy of the system, allowing the simulation to reach an equilibrium state and sample different conformations. Setting to 0 skips the MM heating step.
+     - int
+     - 10000
+     - n > 0
+   * - MM NPT pressure equilibration steps
+     - Number of MM NPT steps, setting to 0 skips the MM NPT step.
+     - int
+     - 300000
+     - n > 0
+   * - MM NVE production run steps
+     - Number of MM NVE steps, setting to 0 skips the MM NVE step.
+     - int
+     - 0
+     - n > 0
