@@ -7,24 +7,24 @@ Available job parameters for the web interface are listed in the following Table
    :widths: 10 10 10 10 10
    :header-rows: 1
 
-   * - Parameter
-     - Description
-     - Type
-     - Default Value
-     - Valid Range
-   * - Solute
+   * - **Parameter**
+     - **Description**
+     - **Type**
+     - **Default Value**
+     - **Valid Range**
+   * - |Solute
      - |The molecule or group of molecules of interest. 
        |The file path to solute xyz file is accepted.
-     - str
-     - ""
-     - Not given
+     - |str
+     - |""
+     - |Not given
    * - Solvent
      - |The substance used to mimic the environment 
        |surrounding a solute molecule. Available solvents:
        |'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
-     - str
-     - 'water'
-     - NA
+     - |str
+     - |'water'
+     - |NA
    * - Charge Method
      - Method that determines partial atomic charges. Available methods: 'bcc', 'resp'. Use 'resp' (quantum mechanical calculation needed) or 'bcc' to estimate partial charges.
      - str
