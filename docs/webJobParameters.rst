@@ -13,12 +13,15 @@ Available job parameters for the web interface are listed in the following Table
      - Default Value
      - Valid Range
    * - Solute
-     - The molecule or group of molecules of interest. The file path to solute xyz file is accepted.
+     - |The molecule or group of molecules of interest. 
+       |The file path to solute xyz file is accepted.
      - str
      - ""
      - Not given
    * - Solvent
-     - The substance used to mimic the environment surrounding a solute molecule. Available solvents:'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
+     - |The substance used to mimic the environment 
+       |surrounding a solute molecule. Available solvents:
+       |'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
      - str
      - 'water'
      - NA
