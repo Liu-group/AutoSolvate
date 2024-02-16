@@ -1,7 +1,7 @@
-Web-AutoSolvate Sudo-Parameter Definition
-=========================================
+AutoSolvateWeb Job Parameters
+=============================
 
-Available job parameters are listed in the following Table.
+Available job parameters for the web interface are listed in the f llowing Table.
 
 .. list-table:: **General Parameter**
    :widths: 25 50 10 25 25
