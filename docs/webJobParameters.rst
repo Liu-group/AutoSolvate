@@ -3,7 +3,7 @@ AutoSolvateWeb Job Parameters
 
 Available job parameters for the web interface are listed in the following Table.
 
-.. csv-table:: **General Parameter**
+.. list-table:: **General Parameter**
    :widths: auto
    :header-rows: 1
    :class: longtable
