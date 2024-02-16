@@ -1,10 +1,10 @@
 AutoSolvateWeb Job Parameters
 =============================
 
-Available job parameters for the web interface are listed in the f llowing Table.
+Available job parameters for the web interface are listed in the following Table.
 
 .. list-table:: **General Parameter**
-   :widths: 25 50 10 25 25
+   :widths: 25 25 10 25 25
    :header-rows: 1
 
    * - Parameter
@@ -78,7 +78,7 @@ Available job parameters for the web interface are listed in the f llowing Table
      - 0
      - n >= 0
    * - QM method
-     - Treating with high-level quantum mechanical accuracy. Available method: 'b3lyp', 'hf','case','dftb'.
+     - Treating with high-level quantum mechanical accuracy. Available method: 'b3lyp', 'hf', 'case', 'dftb'.
      - str
      - b3lyp
      - NA
