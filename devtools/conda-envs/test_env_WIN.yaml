@@ -21,6 +21,9 @@ dependencies:
     # MDtraj
   - mdtraj
 
+    # rdkit
+  - rdkit
+
     # Documentation
   - sphinx
   - sphinx_rtd_theme
