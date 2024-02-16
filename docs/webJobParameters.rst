@@ -4,7 +4,7 @@ AutoSolvateWeb Job Parameters
 Available job parameters for the web interface are listed in the following Table.
 
 .. list-table:: **General Parameter**
-   :widths: 10 10 10 10 10
+   :widths: 10 10 10 5 5
    :header-rows: 1
    :class: longtable
 
