@@ -32,7 +32,7 @@ class PubChemAPI():
         self.ff = 'mmff94'
         self.s = 50
         self.filePath = filePath
-        self.export = os.path.join(self.filePath, 'mol.xyz')
+        self.export = os.path.join(self.filePath, 'tempFile')
 
     def set_up_mol(self):
         r"""
