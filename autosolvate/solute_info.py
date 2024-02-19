@@ -277,29 +277,3 @@ class Solute():
             print('Error, incorrect spin multiplicity calculated.')
             return
 
-    def get_all_info(self):
-        r"""
-        Return all available information about the given solute
-
-        Parameters
-        ----------
-            NONE
-        
-        Returns
-        -------
-            A list includes 'Solute Charge', 'Solute Spin Multiplicity', 'Cube Size', 'Charge Method', 'XYZ', 'SMILE String': list
-        
-        """
-        charge = self.charge
-        spin_multiplicity = self.get_spin_multiplicity()
-        box_len = self.get_box_length()
-        method = self.get_methods()
-        coord = self.get_coordinates()
-        sml = self.sml  
-        all_info = [charge, spin_multiplicity, box_len, method, coord, sml]
-        info_name = ['Solute Charge', 'Solute Spin Multiplicity', 'Cube Size', 'Charge Method', 'XYZ', 'SMILE String']
-        for i in range(len(all_info)):
-            if all_info[i] == None:
-                raise Exception(f'{info_name[i]} is incorret, please see above error messages.')
-            else:
-                return all_info
