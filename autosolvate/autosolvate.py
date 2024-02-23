@@ -628,7 +628,7 @@ def startboxgen(argumentList):
        related to structure and force field parameter generation.
 
        Command line option definitions
-         -n, --solutename  IUPAC name for solute
+         -n, --solutename initialize suggestion for box parameter for a given solute's name
          -m, --main  solute xyz file
          -s, --solvent  name of solvent (water, methanol, chloroform, nma)
          -o, --output  prefix of the output file names
@@ -644,7 +644,6 @@ def startboxgen(argumentList):
          -t, --closeness  Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
          -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
          -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate. 
-         -v, --validation  option to run validation step
          -h, --help  short usage description
 
     Returns
@@ -653,8 +652,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "h:n:m:s:o:c:b:g:u:rq:e:d:a:t:l:p:v:D:"
-    long_options = ["help", "solutename", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","validation", "runningdirectory"]
+    options = "n:hm:s:o:c:b:g:u:rq:e:d:a:t:l:p:D:"
+    long_options = ["solutename", "help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
     solutexyz=""
@@ -678,8 +677,7 @@ def startboxgen(argumentList):
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
-            print('  -n, --solutename           IUPAC name for solute')
-            print('  -v, --validation           verify validity of input parameters')
+            print('  -n, --solutename               initialize suggested parameter for given solute')
             print('  -m, --main                 solute xyz file')
             print('  -s, --solvent              name of solvent')
             print('  -o, --output               prefix of the output file names')
@@ -696,21 +694,19 @@ def startboxgen(argumentList):
             print('  -l, --solventoff           path to the custom solvent .off library file')
             print('  -D, --rundir               running directory where temporary files are stored')
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
-            print('  -v, --validation           option to run validation step')
             print('  -h, --help                 short usage description')
-            exit()
             exit()
         elif currentArgument in ("-n", "--solutename"):
             print("Solute:", currentValue)
             solutename=str(currentValue)
             sol=PubChemAPI(solutename)
             info=sol.getinfo()
+            solutexyz=str(info[3])
+            slu_netcharge = info[2]
             solS=Solute(info[0], info[1], info[2], info[3])
-            print("Suggested xyz structure from PubChem is located at: ", solutexyz=str(info[3]))
-            print("Suggested solute net charge is ", info[2])
-            print("Suggested solute spin multiplicity is ", solS.get_spin_multiplicity())
-            print("Suggested charge method is/are", solS.get_methods())
-            print("Suggested solvent box length is ", solS.get_box_length())
+            cube_size = solS.get_box_length()
+            slu_spinmult = solS.get_spin_multiplicity()
+            charge_method = solS.get_methods()[0]
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
             solutexyz=str(currentValue)     
@@ -756,18 +752,6 @@ def startboxgen(argumentList):
         elif currentArgument in ("-p", "--solventfrcmod"):
             print("Custom solvent .frcmmod file path:", currentValue)
             solvent_frcmod = currentValue
-        elif currentArgument in ("-v", "--validation"):
-            sol=PubChemAPI(solutename)
-            info=sol.getinfo()
-            solS=Solute(info[0], info[1], info[2], info[3])
-            if slu_netcharge != info[2]:
-                raise Exception("Incorrect solute net charge given, please double check your value or use suggestion function enabled by -n or --solutename")
-            if slu_spinmult != solS.get_spin_multiplicity():
-                raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
-            if charge_method not in solS.get_methods():
-                raise Exception("Incorrect charge method given, please double check your value or use suggestion function enabled by -n or --solutename")
-            if cube_size < solS.get_box_length():
-                raise Exception("Solvent box is too small, please increase box length.")
         elif currentArgument in ('-D, --rundir '):
             print("Directory for Temporary files:",currentValue)
             rundir = currentValue
