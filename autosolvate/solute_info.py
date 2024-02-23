@@ -276,3 +276,4 @@ class Solute():
         else:
             print('Error, incorrect spin multiplicity calculated.')
             return
+

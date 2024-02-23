@@ -24,7 +24,10 @@ class PubChemAPI():
     """
 
     def __init__(self, name, filePath = os.getcwd()):
-        self.name = name
+        try:
+            self.name = name
+        except:
+            raise Exception("Solute IUPAC name is not given")
         self.cID = ''
         self.mol = None
         self.sml = 'NONE'

@@ -1,24 +1,25 @@
 AutoSolvateWeb Job Parameters
 =============================
 
-Available job parameters for the web interface are listed in the f llowing Table.
+Available job parameters for the web interface are listed in the following Table.
 
 .. list-table:: **General Parameter**
-   :widths: 25 50 10 25 25
+   :widths: auto
    :header-rows: 1
+   :class: longtable
 
-   * - Parameter
-     - Description
-     - Type
-     - Default Value
-     - Valid Range
+   * - **Parameter**
+     - **Description**
+     - **Type**
+     - **Default Value**
+     - **Valid Range**
    * - Solute
      - The molecule or group of molecules of interest. The file path to solute xyz file is accepted.
      - str
      - ""
      - Not given
    * - Solvent
-     - The substance used to mimic the environment surrounding a solute molecule. Available solvents:'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
+     - The substance used to mimic the environment surrounding a solute molecule. Available solvents: 'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'.
      - str
      - 'water'
      - NA
@@ -78,7 +79,7 @@ Available job parameters for the web interface are listed in the f llowing Table
      - 0
      - n >= 0
    * - QM method
-     - Treating with high-level quantum mechanical accuracy. Available method: 'b3lyp', 'hf','case','dftb'.
+     - Treating with high-level quantum mechanical accuracy. Available method: 'b3lyp', 'hf', 'case', 'dftb'.
      - str
      - b3lyp
      - NA
