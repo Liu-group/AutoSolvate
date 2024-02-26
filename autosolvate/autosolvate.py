@@ -678,7 +678,7 @@ def startboxgen(argumentList):
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
-            print('  -n, --solutename           initialize suggested parameter for given solute')
+            print('  -n, --solutename           initialize suggested parameter for the given solute')
             print('  -v, --validation           verify validity of input parameters')
             print('  -m, --main                 solute xyz file')
             print('  -s, --solvent              name of solvent')
@@ -696,7 +696,7 @@ def startboxgen(argumentList):
             print('  -l, --solventoff           path to the custom solvent .off library file')
             print('  -D, --rundir               running directory where temporary files are stored')
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
-            print('  -v, --validation           option to run validation step')
+            print('  -v, --validation           option to run validation step for the given solute')
             print('  -h, --help                 short usage description')
             exit()
         elif currentArgument in ("-n", "--solutename"):
