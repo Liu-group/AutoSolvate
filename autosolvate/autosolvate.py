@@ -1,7 +1,7 @@
 from openbabel import pybel
 import getopt, sys, os
 from openbabel import openbabel as ob
-import subprocess
+import subprocess 
 import pkg_resources
 from autosolvate.globs import keywords_avail, available_qm_programs, available_charge_methods
 from autosolvate.resp_classes.resp_factory import resp_factory
