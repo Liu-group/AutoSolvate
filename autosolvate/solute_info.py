@@ -102,8 +102,8 @@ class Solute():
             Distance: int
 
         """
-        right = np.where(column == column.max())
-        left = np.where(column == column.min())
+        right = np.where(column == column.max())[0][0]
+        left = np.where(column == column.min())[0][0]
 
         dis = self.distance_3D(column[left], column1[left], column2[left], column[right], column1[right], \
                                column2[right])
