@@ -663,6 +663,8 @@ def startboxgen(argumentList):
     cube_size=54
     charge_method="bcc"
     slu_spinmult=1
+    mult_given = slu_spinmult % 2
+    mult_suggest = 0
     outputFile=""
     srun_use=False
     amberhome=None
@@ -759,11 +761,13 @@ def startboxgen(argumentList):
             sol=PubChemAPI(currentArgument)
             info=sol.get_info()
             solS=Solute(info[0], info[1], info[2], info[3])
-            mult_suggest = solS.get_spin_multiplicity() % 2
-            mult_given = slu_spinmult % 2
-            if slu_netcharge != info[2]:
-                raise Exception("Incorrect solute net charge given, please double check your value or use suggestion function enabled by -n or --solutename")
-            if mult_suggest != mult_given:
+            
+            if slu_netcharge == 0:
+                mult_suggest = solS.get_spin_multiplicity() % 2
+            else:
+                mult_suggest = abs(slu_netcharge) + 1
+        
+            if slu_spinmult == 0 or mult_suggest != mult_given:
                 raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
             if charge_method not in solS.get_methods():
                 raise Exception("Incorrect charge method given, please double check your value or use suggestion function enabled by -n or --solutename")
