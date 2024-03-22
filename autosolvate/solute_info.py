@@ -164,7 +164,7 @@ class Solute():
                     print(e)
                     return 0
                 
-            self.spin_multiplicity = 2 * unpaired_electrons + 1
+            self.spin_multiplicity = unpaired_electrons + 1
             return 1
         except:
             print(f'Error, incorrect SMILES input {self.sml}')
