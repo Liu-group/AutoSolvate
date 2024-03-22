@@ -88,7 +88,7 @@ Available job parameters for the web interface are listed in the following Table
      - int
      - 250
      - n >= 0
-  * - QM/MM NVE production run steps
+   * - QM/MM NVE production run steps
      - Number of steps to evolve the system under constant particle number (N), volume (V), and energy (E) freely without any external constraints. Time step: 0.5 fs/step. Setting it to 0 skips the NVE step. 
      - int
      - 0
