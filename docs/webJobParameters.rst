@@ -34,7 +34,7 @@ Available job parameters for the web interface are listed in the following Table
      - 0
      - NA
    * - Solute Spin Multiplicity
-     - Spin multiplicity of solute. Defined as 2S+1, where S is the total spin quantum number of the molecule. A practical guide about calculating S for molecules is available [here](https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Electronic_Structure_of_Atoms_and_Molecules/Evaluating_Spin_Multiplicity).
+     - Spin multiplicity of solute. Defined as 2S+1, where S is the total spin quantum number of the molecule.
      - int
      - 1
      - S >= 1
