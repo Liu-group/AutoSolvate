@@ -757,13 +757,15 @@ def startboxgen(argumentList):
                 slu_spinmult = solS.get_spin_multiplicity()
                 charge_method = solS.get_methods()[0]
             else:
+                solS = Solute("", "", slu_netcharge, solutexyz)
                 mol = next(pybel.readfile("xyz", solutexyz))
                 unpaired_electrons = sum(atom.atomicnum for atom in mol.atoms) % 2
                 slu_spinmult = unpaired_electrons + 1
                 if slu_spinmult > 1: charge_method = 'resp'
+                cube_size = solS.get_box_length()
         elif currentArgument in ("-v", "--validation"):
             solS = Solute("", "", slu_netcharge, solutexyz)
-            mult_suggest = abs(slu_netcharge) + 1
+            mult_suggest = (abs(slu_netcharge) + 1) % 2
             mult_given = slu_spinmult % 2
             if slu_spinmult == 0 or mult_suggest != mult_given:
                 raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
