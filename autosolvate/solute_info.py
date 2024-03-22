@@ -164,8 +164,7 @@ class Solute():
                     print(e)
                     return 0
                 
-            total_angular_momentum = (unpaired_electrons / 2) * ((unpaired_electrons / 2) + 1)
-            self.spin_multiplicity = 2 * total_angular_momentum + 1
+            self.spin_multiplicity = 2 * unpaired_electrons + 1
             return 1
         except:
             print(f'Error, incorrect SMILES input {self.sml}')
