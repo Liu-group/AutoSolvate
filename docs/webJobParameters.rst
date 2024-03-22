@@ -34,17 +34,17 @@ Available job parameters for the web interface are listed in the following Table
      - 0
      - NA
    * - Solute Spin Multiplicity
-     - Spin multiplicity of solute.
+     - Spin multiplicity of solute. Defined as 2S+1, where S is the total spin quantum number of the molecule.
      - int
      - 1
      - S >= 1
    * - Solute Cube Size
-     - Size of the solvent box for Molecular Mechanics (Angstrom).
+     - Size of the solvent box for molecular dynamics simulations (in Angstrom).
      - int
      - 54
      - L >=20
    * - Dry Run
-     - Only generate the commands to run MD programs without executing.
+     - Only generate the input files and batch job scripts to run MD programs without executing.
      - Bool
      - False
      - NA
@@ -59,22 +59,37 @@ Available job parameters for the web interface are listed in the following Table
      - 1
      - P > 0
    * - MM minimization steps
-     - Number of MM steps to minimize the potential energy of the system. Applicable to QM/MM calculation.
+     - Number of steps to minimize the MM potential energy of the system.
      - int
      - 2000
      - n > 0
    * - MM heat up steps
-     - Number of steps to increase the kinetic energy of the system, allowing the simulation to reach an equilibrium state and sample different conformations. Setting it to 0 skips the heating step. Applicable to QM/MM calculation.
+     - Number of steps to gradually increase the system's temperature with Langevin dynamics, allowing the simulation to reach a target temperature. Time step: 2 fs/step. Langevin dynamics collision constant: gamma_ln=2.0. Setting it to 0 skips the heating step. 
      - int
      - 10000
      - n >= 0
    * - MM NPT pressure equilibration steps
-     - Number of steps to adjust the volume of the simulation box to maintain constant pressure while allowing the system to reach thermodynamic equilibrium. Setting it to 0 skips the NPT step. Applicable to QM/MM calculation.
+     - Number of steps to adjust the volume of the simulation box to reach a target constant pressure. Time step: 2 fs/step. Setting it to 0 skips the NPT step.
      - int
      - 300000
      - n >= 0
    * - MM NVE production run steps
-     - Number of steps to evolve the system under constant particle number (N), volume (V), and energy (E) freely without any external constraints. Setting it to 0 skips the NVE step. Applicable to QM/MM calculation.
+     - Number of steps to evolve the system under constant particle number (N), volume (V), and energy (E) freely without any external constraints. Time step: 2 fs/step. Setting it to 0 skips the NVE step. 
+     - int
+     - 0
+     - n >= 0
+   * - QM/MM minimization steps
+     - Number of steps to minimize the QM/MM potential energy of the system.
+     - int
+     - 250
+     - n > 0
+   * - QM/MM heat up steps
+     - Number of steps to gradually increase the system's temperature with Langevin dynamics, allowing the simulation to reach a target temperature. Time step: 0.5 fs/step. Langevin dynamics collision constant: gamma_ln=5.0. Setting it to 0 skips the heating step. 
+     - int
+     - 250
+     - n >= 0
+  * - QM/MM NVE production run steps
+     - Number of steps to evolve the system under constant particle number (N), volume (V), and energy (E) freely without any external constraints. Time step: 0.5 fs/step. Setting it to 0 skips the NVE step. 
      - int
      - 0
      - n >= 0
