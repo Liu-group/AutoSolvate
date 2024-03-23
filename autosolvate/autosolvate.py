@@ -653,8 +653,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "h:m:s:o:c:b:g:u:rq:e:d:a:t:l:p:n:v:D:"
-    long_options = ["help", "solutename", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","validation", "runningdirectory"]
+    options = "h:m:s:o:c:b:g:u:r:q:e:d:a:t:l:p:n:v:D:"
+    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "solutename", "validation", "runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
     solutexyz=""
@@ -675,8 +675,6 @@ def startboxgen(argumentList):
     solvent_off=""
     solvent_frcmod=""
     rundir = ""
-    #print(arguments)
-    #print(values)
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
@@ -764,8 +762,11 @@ def startboxgen(argumentList):
                 if slu_spinmult > 1: charge_method = 'resp'
                 cube_size = solS.get_box_length()
         elif currentArgument in ("-v", "--validation"):
+            print('Validating...')
             solS = Solute("", "", slu_netcharge, solutexyz)
-            mult_suggest = (abs(slu_netcharge) + 1) % 2
+            mol = next(pybel.readfile("xyz", solutexyz))
+            total_electrons = sum(atom.atomicnum for atom in mol.atoms)
+            mult_suggest = (total_electrons + abs(slu_netcharge)) % 2 + 1
             mult_given = slu_spinmult % 2
             if slu_spinmult == 0 or mult_suggest != mult_given:
                 raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
@@ -773,6 +774,7 @@ def startboxgen(argumentList):
                 raise Exception("Incorrect charge method given, please double check your value or use suggestion function enabled by -n or --solutename")
             if cube_size < solS.get_box_length():
                 raise Exception("Solvent box is too small, please increase box length.")
+            print('Passed')
         elif currentArgument in ('-D, --rundir '):
             print("Directory for Temporary files:",currentValue)
             rundir = currentValue
