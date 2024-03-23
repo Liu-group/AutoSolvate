@@ -763,8 +763,6 @@ def startboxgen(argumentList):
             solvent_frcmod = currentValue
         elif currentArgument in ("-v", "--validation"):
             print('Validating...')
-            print ("Charge:", slu_netcharge)
-            print ("Spinmultiplicity:", slu_spinmult)
             solS = Solute("", "", slu_netcharge, solutexyz)
             mol = next(pybel.readfile("xyz", solutexyz))
             total_electrons = sum(atom.atomicnum for atom in mol.atoms)
