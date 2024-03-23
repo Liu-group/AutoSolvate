@@ -653,8 +653,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "h:m:s:o:c:b:g:u:r:q:e:d:a:t:l:p:n:v:D:"
-    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "solutename", "validation", "runningdirectory"]
+    options = "h:m:n:s:o:c:b:g:u:r:q:e:d:a:t:l:p:v:D:"
+    long_options = ["help", "main","solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "validation", "runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
     solutexyz=""
@@ -700,7 +700,25 @@ def startboxgen(argumentList):
             exit()
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
-            solutexyz=str(currentValue)     
+            solutexyz=str(currentValue) 
+        elif currentArgument in ("-n", "--solutename"):
+            if solutexyz == "":
+                solutename=str(currentValue)
+                sol=PubChemAPI(solutename)
+                info=sol.get_info()
+                solutexyz=str(info[3])
+                slu_netcharge = info[2]
+                solS=Solute(info[0], info[1], info[2], info[3])
+                cube_size = solS.get_box_length()
+                slu_spinmult = solS.get_spin_multiplicity()
+                charge_method = solS.get_methods()[0]
+            else:
+                solS = Solute("", "", slu_netcharge, solutexyz)
+                mol = next(pybel.readfile("xyz", solutexyz))
+                total_electrons = sum(atom.atomicnum for atom in mol.atoms)
+                slu_spinmult = (total_electrons - slu_netcharge) % 2 + 1
+                if slu_spinmult > 1: charge_method = 'resp'
+                cube_size = solS.get_box_length()    
         elif currentArgument in ("-s", "--solvent"):
             print ("Solvent:", currentValue)
             solvent=str(currentValue)
@@ -743,30 +761,14 @@ def startboxgen(argumentList):
         elif currentArgument in ("-p", "--solventfrcmod"):
             print("Custom solvent .frcmmod file path:", currentValue)
             solvent_frcmod = currentValue
-        elif currentArgument in ("-n", "--solutename"):
-            if solutexyz == "":
-                solutename=str(currentValue)
-                sol=PubChemAPI(solutename)
-                info=sol.get_info()
-                solutexyz=str(info[3])
-                slu_netcharge = info[2]
-                solS=Solute(info[0], info[1], info[2], info[3])
-                cube_size = solS.get_box_length()
-                slu_spinmult = solS.get_spin_multiplicity()
-                charge_method = solS.get_methods()[0]
-            else:
-                solS = Solute("", "", slu_netcharge, solutexyz)
-                mol = next(pybel.readfile("xyz", solutexyz))
-                unpaired_electrons = sum(atom.atomicnum for atom in mol.atoms) % 2
-                slu_spinmult = unpaired_electrons + 1
-                if slu_spinmult > 1: charge_method = 'resp'
-                cube_size = solS.get_box_length()
         elif currentArgument in ("-v", "--validation"):
             print('Validating...')
+            print ("Charge:", slu_netcharge)
+            print ("Spinmultiplicity:", slu_spinmult)
             solS = Solute("", "", slu_netcharge, solutexyz)
             mol = next(pybel.readfile("xyz", solutexyz))
             total_electrons = sum(atom.atomicnum for atom in mol.atoms)
-            mult_suggest = (total_electrons + abs(slu_netcharge)) % 2 + 1
+            mult_suggest = ((total_electrons - slu_netcharge) % 2 + 1) % 2
             mult_given = slu_spinmult % 2
             if slu_spinmult == 0 or mult_suggest != mult_given:
                 raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
