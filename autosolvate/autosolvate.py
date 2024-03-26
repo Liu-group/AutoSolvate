@@ -653,7 +653,7 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "h:m:n:s:o:c:b:g:u:r:q:e:d:a:t:l:p:v:D:"
+    options = "hm:n:s:o:c:b:g:u:rq:e:d:a:t:l:p:vD:"
     long_options = ["help", "main","solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "validation", "runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
