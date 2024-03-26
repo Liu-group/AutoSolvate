@@ -653,8 +653,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "h:n:m:s:o:c:b:g:u:rq:e:d:a:t:l:p:v:D:"
-    long_options = ["help", "solutename", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","validation", "runningdirectory"]
+    options = "h:m:n:s:o:c:b:g:u:r:q:e:d:a:t:l:p:v:D:"
+    long_options = ["help", "main","solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "validation", "runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
     solutexyz=""
@@ -663,6 +663,8 @@ def startboxgen(argumentList):
     cube_size=54
     charge_method="bcc"
     slu_spinmult=1
+    mult_given = 0
+    mult_suggest = 0
     outputFile=""
     srun_use=False
     amberhome=None
@@ -673,13 +675,9 @@ def startboxgen(argumentList):
     solvent_off=""
     solvent_frcmod=""
     rundir = ""
-    #print(arguments)
-    #print(values)
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
-            print('  -n, --solutename           initialize suggested parameter for given solute')
-            print('  -v, --validation           verify validity of input parameters')
             print('  -m, --main                 solute xyz file')
             print('  -s, --solvent              name of solvent')
             print('  -o, --output               prefix of the output file names')
@@ -696,23 +694,31 @@ def startboxgen(argumentList):
             print('  -l, --solventoff           path to the custom solvent .off library file')
             print('  -D, --rundir               running directory where temporary files are stored')
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
-            print('  -v, --validation           option to run validation step for given solute')
+            print('  -n, --solutename           initialize suggested parameter for given solute')
+            print('  -v, --validation           option to run validation step for input parameters')
             print('  -h, --help                 short usage description')
             exit()
-        elif currentArgument in ("-n", "--solutename"):
-            print("Solute:", currentValue)
-            solutename=str(currentValue)
-            sol=PubChemAPI(solutename)
-            info=sol.get_info()
-            solutexyz=str(info[3])
-            slu_netcharge = info[2]
-            solS=Solute(info[0], info[1], info[2], info[3])
-            cube_size = solS.get_box_length()
-            slu_spinmult = solS.get_spin_multiplicity()
-            charge_method = solS.get_methods()[0]
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
-            solutexyz=str(currentValue)     
+            solutexyz=str(currentValue) 
+        elif currentArgument in ("-n", "--solutename"):
+            if solutexyz == "":
+                solutename=str(currentValue)
+                sol=PubChemAPI(solutename)
+                info=sol.get_info()
+                solutexyz=str(info[3])
+                slu_netcharge = info[2]
+                solS=Solute(info[0], info[1], info[2], info[3])
+                cube_size = solS.get_box_length()
+                slu_spinmult = solS.get_spin_multiplicity()
+                charge_method = solS.get_methods()[0]
+            else:
+                solS = Solute("", "", slu_netcharge, solutexyz)
+                mol = next(pybel.readfile("xyz", solutexyz))
+                total_electrons = sum(atom.atomicnum for atom in mol.atoms)
+                slu_spinmult = (total_electrons - slu_netcharge) % 2 + 1
+                if slu_spinmult > 1: charge_method = 'resp'
+                cube_size = solS.get_box_length()    
         elif currentArgument in ("-s", "--solvent"):
             print ("Solvent:", currentValue)
             solvent=str(currentValue)
@@ -756,19 +762,19 @@ def startboxgen(argumentList):
             print("Custom solvent .frcmmod file path:", currentValue)
             solvent_frcmod = currentValue
         elif currentArgument in ("-v", "--validation"):
-            sol=PubChemAPI(currentArgument)
-            info=sol.get_info()
-            solS=Solute(info[0], info[1], info[2], info[3])
-            mult_suggest = solS.get_spin_multiplicity() % 2
+            print('Validating...')
+            solS = Solute("", "", slu_netcharge, solutexyz)
+            mol = next(pybel.readfile("xyz", solutexyz))
+            total_electrons = sum(atom.atomicnum for atom in mol.atoms)
+            mult_suggest = ((total_electrons - slu_netcharge) % 2 + 1) % 2
             mult_given = slu_spinmult % 2
-            if slu_netcharge != info[2]:
-                raise Exception("Incorrect solute net charge given, please double check your value or use suggestion function enabled by -n or --solutename")
-            if mult_suggest != mult_given:
+            if slu_spinmult == 0 or mult_suggest != mult_given:
                 raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
-            if charge_method not in solS.get_methods():
+            if slu_spinmult > 1 and charge_method != 'resp':
                 raise Exception("Incorrect charge method given, please double check your value or use suggestion function enabled by -n or --solutename")
             if cube_size < solS.get_box_length():
                 raise Exception("Solvent box is too small, please increase box length.")
+            print('Passed')
         elif currentArgument in ('-D, --rundir '):
             print("Directory for Temporary files:",currentValue)
             rundir = currentValue
