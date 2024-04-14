@@ -24,9 +24,6 @@ dependencies:
     # MDtraj
   - mdtraj
 
-    # rdkit
-  - rdkit
-
     # Documentation
   - sphinx
   - sphinx_rtd_theme
@@ -35,6 +32,11 @@ dependencies:
   - pip:
     - imolecule
     - pillow
-    - pubchempy
+    - rdkit
+    - ase
+    - mendeleev
+    - git+https://github.com/hjkgrp/molSimplify.git
+    - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
+    - git+https://github.com/SangniXun/pyvdwsurface_moreelements.git
   #  - codecov
 

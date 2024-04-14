@@ -21,9 +21,6 @@ dependencies:
     # MDtraj
   - mdtraj
 
-    # rdkit
-  - rdkit
-
     # Documentation
   - sphinx
   - sphinx_rtd_theme
@@ -32,6 +29,5 @@ dependencies:
   - pip:
     - imolecule
     - pillow
-    - pubchempy
   #  - codecov
 

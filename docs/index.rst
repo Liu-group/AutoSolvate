@@ -38,7 +38,6 @@ Quickstart
    tutorialGUI
    advancedTutorial
    api
-   webJobParameters
    citation
 
 

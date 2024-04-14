@@ -22,7 +22,7 @@ However, if you are curious about the dependencies of AutoSolvate, please take a
 
 However, to use all functionalities of AutoSolvate, one needs to install a few other packages not included in AutoSolvate installation:
 
-#. If you want to solvate open-shell molecules (spin-multiplicity > 1), RESP charge fitting is needed, which uses `Gaussian <https://gaussian.com/>`_ or `GAMESS-US <https://www.msg.chem.iastate.edu/gamess/>`_. `Gaussian <https://gaussian.com/>`_ is a commercial quantum chemistry package, so you need to purchase and install separately. `GAMESS-US <https://www.msg.chem.iastate.edu/gamess/>`_ is an open-source software, and you obtain it at no costs from its official website.
+#. If you want to solvate open-shell molecules (spin-multiplicity > 1), RESP charge fitting is needed, which uses `Gaussian <https://gaussian.com/>`_. `Gaussian <https://gaussian.com/>`_ is a commercial quantum chemistry package, so you need to purchase and install separately. 
 
 #. If you'd like to use AutoSolvate to directly drive QM/MM calculations, you need to install TeraChem. `TeraChem <http://www.petachem.com/>`_ is a commercial quantum chemistry package, so you need to purchase and install separately. 
 

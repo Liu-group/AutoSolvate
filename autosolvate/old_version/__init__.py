@@ -8,6 +8,7 @@ from .autosolvate import *
 from .generatetrajs import *
 from .clustergen import *
 from .multicomponent import *
+from .terachem_docker import *
 
 # Handle versioneer
 from ._version import get_versions
