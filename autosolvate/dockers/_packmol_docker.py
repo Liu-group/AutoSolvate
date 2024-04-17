@@ -43,8 +43,7 @@ class PackmolDocker(GeneralDocker):
         solutes = mol.solutes
         solvents = mol.solvents
         if len(solutes) == 0:
-            self.logger.critical("The input system does not contain any solutes!")
-            raise ValueError("The input system does not contain any solutes!")
+            self.logger.warning("The input system does not contain any solutes!")
         elif len(solutes) > 1:
             self.logger.warning("The input system contains more than one kind of solutes! Position of solutes will be randomly generated!")
         if len(solvents) == 0:
@@ -59,17 +58,17 @@ class PackmolDocker(GeneralDocker):
                 self.logger.info("\t PDB: {}".format(slu.pdb))
                 self.logger.info("\t charge: {}".format(slu.charge))
                 self.logger.info("\t multiplicity: {}".format(slu.multiplicity))
-                self.logger.info("\t solute count: ".format(slu.number))
+                self.logger.info("\t solute count: {}".format(slu.number))
             elif isinstance(slu, MoleculeComplex):
                 self.logger.info("Solute: {}".format(slu.name))
                 self.logger.info("\t PDB: {}".format(slu.pdb))
                 self.logger.info("\t charge: {}".format(slu.netcharge))
                 self.logger.info("\t multiplicity: {}".format(slu.multiplicity))
-                self.logger.info("\t solute count: ".format(slu.number))
+                self.logger.info("\t solute count: {}".format(slu.number))
             if slu.number > 1:
                 self.logger.warning("The solute {} has more than one molecule, the position of solvents will be randomly generated!".format(slu.name))
         for slv in solvents:
-            if not isinstance(slu, Molecule) and not isinstance(slu, MoleculeComplex):
+            if not isinstance(slv, Molecule) and not isinstance(slv, MoleculeComplex):
                 if isinstance(slv, SolventBox):
                     self.logger.critical("The solvent should also be a molecule, not a pre-built solvent box!")
                     raise TypeError("The solvent should also be a molecule, not a pre-built solvent box!")
@@ -79,7 +78,7 @@ class PackmolDocker(GeneralDocker):
             self.logger.info("\t PDB: {}".format(slv.pdb))
             self.logger.info("\t charge: {}".format(slv.charge))
             self.logger.info("\t multiplicity: {}".format(slv.multiplicity))
-            self.logger.info("\t solvent count: ".format(slv.number))
+            self.logger.info("\t solvent count: {}".format(slv.number))
 
     def predict_output(self, mol: SolvatedSystem) -> None:
         inpname = os.path.join(self.workfolder, "{}_packmol.inp".format(mol.name))
@@ -108,14 +107,17 @@ class PackmolDocker(GeneralDocker):
         2. {com} is actually the rotation angle in degree. 
         '''
         solutes = box.solutes
+        if len(solutes) == 0:
+            doc.write('{}                                        \n'.format('# no solute'))
+            return 
         solute = solutes[0]
         solute: Molecule
         if len(solutes) == 1 and solute.number == 1:
             solute_pos  = box.cubesize / 2.0 
             doc.write('{}                                        \n'.format('# add the solute'))
-            doc.write('{:<15} {:<5}                              \n'.format('structure', solute.pdb))
+            doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
             doc.write('{:<15} {:<5}                              \n'.format('number',    1))
-            doc.write('{:<10} {pos} {pos} {pos} {com} {com} {com}\n'.format('fixed', pos=solute_pos, com='0.'))
+            doc.write('{:<10} {posx} {posy} {posz} {com} {com} {com}\n'.format('fixed', posx=solute_pos[0], posy=solute_pos[1], posz=solute_pos[2], com=0.0))
             doc.write('{:<15}                                    \n'.format('centerofmass'))
             doc.write('{:<15} {:<5}                              \n'.format('resnumbers', '2'))
             doc.write('{:<15}                                    \n'.format('end structure'))
@@ -123,8 +125,9 @@ class PackmolDocker(GeneralDocker):
         else:
             for solute in solutes:
                 doc.write('# add solute {}                           \n'.format(solute.name))
+                doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
                 doc.write('{:<15} {:<5}                              \n'.format('number',solute.number))
-                doc.write('{:<10} {pos} {pos} {pos} {cube}           \n'.format('inside cube', pos="0.", cube=box.cubesize))
+                doc.write('{:<10} {xmin} {ymin} {zmin} {xmax} {ymax} {zmax}\n'.format('inside box', xmin='0.', ymin='0.', zmin='0.', xmax=box.cubesize[0], ymax=box.cubesize[1], zmax=box.cubesize[2]))
                 doc.write('{:<15} {:<5}                              \n'.format('resnumbers', '2'))
                 doc.write('{:<15}                                    \n'.format('end structure'))
                 doc.write('\n')
@@ -135,9 +138,9 @@ class PackmolDocker(GeneralDocker):
         for solvent in solvents:
             solvent: Molecule
             doc.write('{} {}                                    \n'.format('# add solvent', solvent.name))
-            doc.write('{:<15} {:<5}                             \n'.format('structure', solvent.pdb))
+            doc.write('{:<15} {}                                \n'.format('structure', solvent.pdb))
             doc.write('{:<15} {:<5}                             \n'.format('number',    solvent.number))
-            doc.write('{:<10} {pos} {pos} {pos} {boxsize}       \n'.format('inside cube', pos='0.', boxsize=box.cubesize))
+            doc.write('{:<10} {xmin} {ymin} {zmin} {xmax} {ymax} {zmax}\n'.format('inside box', xmin='0.', ymin='0.', zmin='0.', xmax=box.cubesize[0], ymax=box.cubesize[1], zmax=box.cubesize[2]))
             doc.write('{:<15} {:<5}                             \n'.format('resnumbers', '2'))
             doc.write('{:<15}                                   \n'.format('end structure'))
             doc.write('\n')    

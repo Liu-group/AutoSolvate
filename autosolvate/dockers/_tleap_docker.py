@@ -40,26 +40,26 @@ class TleapDocker(GeneralDocker):
     ##### check_system method for different systems
     def check_system_molecule(self, mol:Molecule):
         self.logger.info("Checking system {:s}...".format(mol.name))
-        suffixs = ["mol2", "lib", "prep"]
-        suffixf = [0, 0, 0]
+        suffixs = ["mol2", "lib", "prep", "off"]
+        suffixf = [0, 0, 0, 0]
         for i, suffix in enumerate(suffixs):
             if mol.check_exist(suffix):
-                self.logger.info("System {}: {:s}".format(suffix, getattr(mol, suffix)))
+                self.logger.info("\t System {}: {:s}".format(suffix, getattr(mol, suffix)))
                 suffixf[i] = 1
             else:
-                self.logger.warn("System {} not found".format(suffix, getattr(mol, suffix)))
+                self.logger.info("\t System {} not found".format(suffix, getattr(mol, suffix)))
         if sum(suffixf) > 1:
-            self.logger.warn("More than one structure files were found, parameters may be overwritten.")
+            self.logger.info("More than one structure files were found, parameters may be overwritten.")
         suffix = "frcmod"
         if mol.check_exist("frcmod"):
-            self.logger.info("System {}: {:s}".format(suffix, getattr(mol, suffix)))
+            self.logger.info("\t System {}: {:s}".format(suffix, getattr(mol, suffix)))
         else:
             self.logger.warn("System {} not found".format(suffix, getattr(mol, suffix)))
             self.logger.warn("Tleap may failed to generate AMBER parameter files!")
             self.logger.warn("Please check the tleap output file {}".format(self.leapout))
         if sum(suffixf) <= 0:
-            self.logger.critical("None of the mol2, lib, prep files were found!")
-            raise RuntimeError("None of the mol2, lib, prep files were found!")
+            self.logger.critical("None of the {} files were found!".format(suffixs))
+            raise RuntimeError("None of the {} files were found!".format(suffixs))
         if self.boxsize is not None:
             self.logger.info("Add a box with shape {}".format(self.boxsize))
         
@@ -79,6 +79,12 @@ class TleapDocker(GeneralDocker):
         
     def check_system_solvatedsystem(self, mol:SolvatedSystem):
         self.logger.info("Checking system {:s}...".format(mol.name))
+        if isinstance(mol.cubesize, float):
+            self.logger.info("Cube size: {:.2f}".format(mol.cubesize))
+            self.boxsize = [mol.cubesize, mol.cubesize, mol.cubesize]
+        elif isinstance(mol.cubesize, Iterable):
+            self.logger.info("Box size: {:.2f} {:.2f} {:.2f}".format(*mol.cubesize))
+            self.boxsize = mol.cubesize
         self.logger.info("Solutes in this system: {}".format([slu.name for slu in mol.solutes]))
         for slu in mol.solutes:
             slu:System
@@ -87,7 +93,7 @@ class TleapDocker(GeneralDocker):
             if isinstance(slu, Molecule):
                 self.check_system_molecule(slu)
             elif isinstance(slu, MoleculeComplex):
-                self.check_system_multimolecule(mol)
+                self.check_system_multimolecule(slu)
         for slv in mol.solvents:
             self.logger.info("Checking solvent {:s}...".format(slv.name))
             if isinstance(slv, SolventBox):
@@ -106,15 +112,9 @@ class TleapDocker(GeneralDocker):
                     self.logger.critical("Solvent frcmod not found: {}".format(slv.frcmod))
                     raise RuntimeError("Solvent frcmod not found: {}".format(slv.frcmod))
             elif isinstance(slv, Molecule): 
-                self.logger.info("Custom solvent detected. Will use Packmol to generate solvent box.")
-                self.logger.info("Checking solvent {:s}...".format(slv.name))
+                self.logger.info("Custom solvent detected")
                 self.logger.info("Number of {}: {}".format(slv.name, slv.number))
-                for ext in ["mol2", "lib", "frcmod"]:
-                    if slv.check_exist(ext):
-                        self.logger.info("Solvent {}: {:s}".format(ext, getattr(slv, ext)))
-                    else:
-                        self.logger.critical("Solvent {} not found".format(ext, getattr(slv, ext)))
-                        raise RuntimeError("Solvent {} not found".format(ext, getattr(slv, ext)))
+                self.check_system_molecule(slv)
                 if not mol.check_exist("pdb"):
                     self.logger.critical("PDB file not found for this solvated system!")
                     self.logger.critical("Please use Packmol to generate a PDB file for this system before running tleap!")
@@ -163,24 +163,25 @@ class TleapDocker(GeneralDocker):
         '''
         if isinstance(mol, Molecule):
             if mol.check_exist("frcmod"): 
-                doc.write('{:<20}  {:<20}       \n'.format('loadamberparams', mol.frcmod))       
+                doc.write('{:<20}  {}       \n'.format('loadamberparams', mol.frcmod))       
             if mol.check_exist("lib"): 
-                doc.write('{:<20}  {:<20}       \n'.format('loadoff', mol.lib)) 
+                doc.write('{:<20}  {}       \n'.format('loadoff', mol.lib)) 
+            if mol.check_exist("off"):
+                doc.write('{:<20}  {}       \n'.format('loadoff', mol.off))
             if mol.check_exist("prep"): 
-                doc.write('{:<20}  {:<20}       \n'.format('loadamberprep', mol.prep))
+                doc.write('{:<20}  {}       \n'.format('loadamberprep', mol.prep))
             if mol.check_exist("mol2"):  
-                doc.write('{:<5} {:<15} {:<20}  \n'.format(mol.residue_name, '= loadmol2', mol.mol2))
+                doc.write('{:<5} {:<15} {}  \n'.format(mol.residue_name, '= loadmol2', mol.mol2))
             if check: 
-                doc.write('{:<20}  {:<20}       \n'.format('check', mol.residue_name))
+                doc.write('{:<20}  {}       \n'.format('check', mol.residue_name))
         elif isinstance(mol, MoleculeComplex):
             for m in mol.newmolecules:
                 m:Molecule
                 if m.check_exist("frcmod"): 
-                    doc.write('{:<20}  {:<20}       \n'.format('loadamberparams', m.frcmod))
+                    doc.write('{:<20}  {}       \n'.format('loadamberparams', m.frcmod))
                 if m.check_exist("lib"): 
-                    doc.write('{:<20}  {:<20}       \n'.format('loadoff', m.lib))
-            doc.write('{:<5} {:<15} {:<20}          \n'.format(mol.residue_name, '= loadpdb', mol.pdb))
-            # doc.write('{:<5} {:<15} {:<20}          \n'.format(mol.residue_name, '= loadmol2', mol.mol2))
+                    doc.write('{:<20}  {}       \n'.format('loadoff', m.lib))
+            doc.write('{:<5} {:<15} {}          \n'.format(mol.residue_name, '= loadpdb', mol.pdb))
   
     def load_solvent_box(self,
                         doc:           TextIO,
@@ -188,13 +189,13 @@ class TleapDocker(GeneralDocker):
                         check:         bool = False
     ) -> None:
         if mol.check_exist("off"):
-            doc.write('{:<5} {:<15}  \n'.format("loadoff", mol.off))
+            doc.write('{:<5} {}  \n'.format("loadoff", mol.off))
         if mol.check_exist("lib"):
-            doc.write('{:<5} {:<15}  \n'.format("loadoff", mol.lib))
+            doc.write('{:<5} {}  \n'.format("loadoff", mol.lib))
         if mol.check_exist("frcmod"):
-            doc.write('{:<5} {:<15}  \n'.format("loadamberparams", mol.frcmod))
+            doc.write('{:<5} {}  \n'.format("loadamberparams", mol.frcmod))
         if check:
-            doc.write('{:<5} {:<15}  \n'.format("check", mol.name))
+            doc.write('{:<5} {}  \n'.format("check", mol.name))
 
     def load_head_tail(self, doc:TextIO, mol:Molecule) -> None:
         head, tail = getHeadTail(mol.mol2)
@@ -241,7 +242,7 @@ class TleapDocker(GeneralDocker):
             'solvatebox',
             slu.residue_name, 
             slv.box_name, 
-            slu_pos,
+            slu_pos[0],
             "iso",
             mol.closeness,))
         if mol.netcharge != 0:
@@ -259,14 +260,14 @@ class TleapDocker(GeneralDocker):
         for slu in mol.solutes:
             self.load_mol(f, slu)
         for slv in mol.solvents:
-            self.load_solvent_box(f, slv)
+            self.load_mol(f, slv)
         mol_tleap_name = "SYS"
         f.write('{} = {} {}      \n'.format(mol_tleap_name, "loadpdb", mol.pdb))
         if mol.netcharge != 0:
             ion = "Cl-" if mol.netcharge > 0 else "Na+"
             f.write('{} {} {} {} \n'.format('addions', mol_tleap_name, ion, 0))
         pbcbox_size = mol.cubesize + 2
-        f.write("set SYS box {%.2f,%.2f,%.2f}\n" % (pbcbox_size, pbcbox_size, pbcbox_size))
+        f.write("set SYS box {%.2f,%.2f,%.2f}\n" % (pbcbox_size[0], pbcbox_size[1], pbcbox_size[2]))
         f.write('check {}        \n'.format(mol_tleap_name))
         f.write('{} {} {}        \n'.format('savepdb', mol_tleap_name, self.outpdb))
         f.write('{} {} {} {}     \n'.format('saveamberparm', mol_tleap_name, self.outprmtop, self.outinpcrd)) 
@@ -297,7 +298,7 @@ class TleapDocker(GeneralDocker):
             for line in content.splitlines():
                 if line.find("FATAL") != -1:
                     eline = line
-            raise AssertionError("Error in running tleap. " + line)
+            raise AssertionError("Error in running tleap. " + eline)
 
     def check_output(self, mol:System):
         success = True

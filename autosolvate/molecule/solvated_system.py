@@ -44,7 +44,10 @@ class SolvatedSystem(System):
         self.folder         = os.path.abspath(folder)
         self.solute         = solute
         self.solvent        = solvent
-        self.cubesize       = cubesize
+        if isinstance(cubesize, int) or isinstance(cubesize, float):
+            self.cubesize       = np.array([float(cubesize), float(cubesize), float(cubesize)])
+        else:
+            self.cubesize       = np.array(cubesize)
         self.closeness      = closeness
         self.solute_number  = solute_number
         self.solvent_number = solvent_number
@@ -90,7 +93,10 @@ class SolvatedSystem(System):
         @TODO 
         check solute 
         '''
-        if isinstance(self.solute, Molecule) or isinstance(self.solute, MoleculeComplex):
+        if self.solute is None:
+            logger.warn("No solute is given! This system only have solvent.")
+            return 
+        elif isinstance(self.solute, Molecule) or isinstance(self.solute, MoleculeComplex):
             logger.info("Use solute: {}".format(self.solute.name))
             if isinstance(self.solute_number, int) and self.solute_number > 0:
                 logger.info("Number of solute {} : {}".format(self.solute.name, self.solute_number))
@@ -120,14 +126,17 @@ class SolvatedSystem(System):
             raise ValueError("Solute is invalid")
     
         if len(self.solutes) > 1:
-            logger.warn("More than one solute is given. The relative position between solute molecules will be randomly generated")
-            logger.warn("If you want to specify the relative position, please generate a molecule using a single xyz/pdb file contains all fragments.")
+            logger.warn("More than one solute molecule is given. The relative position between solute molecules will be randomly generated")
+            logger.warn("If you want to keep the relative position, please prepare a molecule using a single xyz/pdb file contains all fragments.")
         
     def check_solvent(self) -> None:
         '''
         @TODO 
         check solvent 
         '''
+        if self.solvent is None:
+            logger.critical("No solvent is given!")
+            raise ValueError("No solvent is given!")
         if isinstance(self.solvent, list) and len(self.solvent) == 1:
             self.solvent = self.solvent[0]
         if isinstance(self.solvent, SolventBox):
@@ -169,7 +178,8 @@ class SolvatedSystem(System):
             logger.error("Solvent {} is invalid".format(self.solvent))
             raise ValueError("Solvent is invalid")
         
-        if len(self.solutes) > 1 or max([solute.number for solute in self.solutes]) > 1:
+        max_solute_number = max([solute.number for solute in self.solutes]) if len(self.solutes) > 0 else 0
+        if len(self.solutes) > 1 or max_solute_number > 1:
             for solvent in self.solvents:
                 if isinstance(solvent, SolventBox):
                     logger.critical("Cannot use pre-built solvent box with more than one solute molecule.")
@@ -230,7 +240,7 @@ class SolvatedSystem(System):
         
     def set_solute_number(self, solute:System, number: int = 0) -> None:
         if not self.has_solute(solute):
-            logger.warn("Solute {} does not exist. Do not set the number.".format(solute.name))
+            logger.warn("Solute {} does not exist. Can't set the number.".format(solute.name))
             return
         if number > 0:
             solute.number = number
@@ -240,7 +250,7 @@ class SolvatedSystem(System):
 
     def set_solvent_number(self, solvent:System, number: int = 0) -> None:
         if not self.has_solvent(solvent):
-            logger.warn("Solvent {} does not exist. Do not set the number.".format(solvent.name))
+            logger.warn("Solvent {} does not exist. Can't set the number.".format(solvent.name))
             return
         if number > 0:
             if isinstance(solvent, SolventBox):
