@@ -64,6 +64,8 @@ class MoleculeComplex(System):
         self.netcharge          = 0     # net charge of the system
         self.multiplicity       = 1     # multiplicity of the system
 
+        self.aminoacidresidues  = AMINO_ACID_RESIDUES
+
         if reorder_pdb:
             reorderPDB(self.pdb, self.pdb)
         self.build_molecules()
