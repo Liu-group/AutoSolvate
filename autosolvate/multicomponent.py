@@ -13,6 +13,8 @@
 #--------------------------------------------------------------------------------------------------#
 import getopt, sys, os
 import subprocess
+from typing import List, Tuple, Iterable
+
 from .molecule import *
 from .dockers import *
 from .utils import *
@@ -166,8 +168,70 @@ class MulticomponentSolventBoxBuilder():
             self.custom_solvation[1].run(self.system)
 
 
+class MixtureBuilder():
+    def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc"):
+        self.solutes = []
+        self.solvents = []
+        self.folder = folder
+        self.boxsize = [cube_size, cube_size, cube_size]
+        self.closeness = closeness
+        self.charge_method = charge_method
+        self.single_molecule_pipeline = [
+            AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
+            ParmchkDocker(workfolder=self.folder),
+            TleapDocker(workfolder = self.folder)
+        ]
+        self.complex_pipeline = [TleapDocker(workfolder=self.folder)]
+        self.custom_solvation = [
+            PackmolDocker(workfolder = self.folder),
+            TleapDocker(workfolder = self.folder)
+        ]
 
+    def add_solute(self, xyzfile:str, name="", residue_name="SLU", charge=0, spinmult=1, number = 1, **kwargs):
+        molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
 
+        if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
+            molecule.mol2 = kwargs["mol2"]
+        if "frcmod" in kwargs and os.path.isfile(kwargs["frcmod"]):
+            molecule.frcmod = kwargs["frcmod"]
+        if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
+            molecule.lib = kwargs["lib"]
+        molecule.update()
+
+        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") and not molecule.check_exist("lib")):
+            for docker in self.single_molecule_pipeline:
+                docker.run(molecule)
+        molecule.number = number
+        self.solutes.append(molecule)
+    
+    def add_solvent(self, xyzfile:str, name="", residue_name="SLU", charge=0, spinmult=1, number = 1, **kwargs):
+        molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
+
+        if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
+            molecule.mol2 = kwargs["mol2"]
+        if "frcmod" in kwargs and os.path.isfile(kwargs["frcmod"]):
+            molecule.frcmod = kwargs["frcmod"]
+        if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
+            molecule.lib = kwargs["lib"]
+        molecule.update()
+
+        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") and not molecule.check_exist("lib")):
+            for docker in self.single_molecule_pipeline:
+                docker.run(molecule)
+        molecule.number = number
+        self.solvents.append(molecule)
+
+    def build(self):
+        system_name = "-".join([m.name for m in self.solutes + self.solvents])
+        solute_numbers = [m.number for m in self.solutes]
+        solvent_numbers = [m.number for m in self.solvents]
+        system = SolvatedSystem(system_name, solute = self.solutes, solvent = self.solvents,
+                                cubesize=self.boxsize, closeness=self.closeness, 
+                                solute_number = solute_numbers, solvent_number = solvent_numbers,
+                                folder = self.folder)
+        for docker in self.custom_solvation:
+            docker.run(system)
+            
 
 if __name__ == "__main__":
     inst = MulticomponentParamsBuilder("PAHs.pdb", deletefiles=True)
