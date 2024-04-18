@@ -33,7 +33,7 @@ def calculateSolvnumber(solvPrefix,volume):  ###Volume should be m3
 class solventBoxBuilderMetal(object):
     def __init__(self, pdb_prefix, totalcharge, 
                  solvent , solvent_frcmod, solvent_off,
-                 slv_count,
+                 slv_count, 
                  cube_size , closeness,  outputFile, amberhome):
         self.pdb_prefix = pdb_prefix
         self.solvent = solvent
@@ -411,7 +411,7 @@ class solventBoxBuilderMetal(object):
             ofile.close()
     
     def tleap(self):
-        cmd = 'tleap -f ' + 'leap_add_solventbox.cmd'
+        cmd = self.amberhome + 'tleap -f ' + 'leap_add_solventbox.cmd'
         subprocess.call(cmd,shell=True)
         
     def build(self):
@@ -441,7 +441,7 @@ def startboxgen(argumentList):
     cube_size = 54
     closeness = "automated"
     outputFile = ""
-    amberhome = '$AMBERHOME'
+    amberhome = '$AMBERHOME/bin'
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate_metal boxgen [OPTIONS]')

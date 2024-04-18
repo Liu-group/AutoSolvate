@@ -451,7 +451,7 @@ class genFF():
         os.chdir(self.folder)
 
         print('******************** start to generate inputs for MCPB.py -s 1 ********************')
-        step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
+        step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
                        mode=self.mode,chargefile=self.chargefile,round='1',software=self.software)
         step1.build()
         print('******************** Finish generating inputs for MCPB.py -s 1 ********************')
@@ -481,7 +481,7 @@ class genFF():
                 raise TypeError('can not find ' + self.filename + '_small_opt.chk')
 
         if checkfreq == 'converged':
-            step5=autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
+            step5=autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
                         mode=self.mode,chargefile=self.chargefile,round='2',software=self.software)
             step5.build()
         #    print('nnnnnnnnnnnnnn')
@@ -499,7 +499,7 @@ class genFF():
         if checkmk == 'converged':
             if self.software != 'orca':
                 step6 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
-                mode=self.mode,chargefile=self.chargefile,round='3',software=self.software)
+                mode=self.mode,chargefile=self.chargefile,round='3',software=self.software,amberhome=self.amberhome)
                 step6.build()
             else:
                 if self.opt == 'Y':
@@ -543,14 +543,14 @@ class genFF():
             sys.exit()
         if os.path.exists('resp2.chg'):
             step7 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
-                        mode=self.mode,chargefile=self.chargefile,round='4',software=self.software)
+                        mode=self.mode,chargefile=self.chargefile,round='4',software=self.software,amberhome=self.amberhome)
             step7.build()
         else:
             print('Erorr: can not find resp2.chg')
             sys.exit()
         if os.path.exists(self.filename + '_dry.prmtop'):
             step8 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
-                        mode=self.mode,chargefile=self.chargefile,round='5',software=self.software)
+                        mode=self.mode,chargefile=self.chargefile,round='5',software=self.software,amberhome=self.amberhome)
             step8.build()
         else:
             print('Erorr: can not find ' + self.filename + '_dry.prmtop')
