@@ -8,12 +8,12 @@ from ..utils import *
 from ._general_docker import GeneralDocker
 
 
-
 class TleapDocker(GeneralDocker):
 
-    _ff14SB         = 'leaprc.protein.ff14SB'       #Source leaprc file for ff14SB protein force field
-    _gaff           = 'leaprc.gaff'                 #Source leaprc file for gaff force field
-    _water_tip3p    = 'leaprc.water.tip3p'
+    _ff14SB         = 'leaprc.protein.ff14SB'       # Source leaprc file for ff14SB protein force field
+    _gaff           = 'leaprc.gaff'                 # Source leaprc file for gaff force field
+    _water_tip3p    = 'leaprc.water.tip3p'          # Source leaprc file for tip3p water model
+    _ionslm_126_opc = "frcmod.ionslm_126_opc"        #Source frcmod file for ionslm_126_opc force field
 
     def __init__(self, 
                  workfolder:            str = WORKING_DIR,
@@ -47,16 +47,16 @@ class TleapDocker(GeneralDocker):
                 self.logger.info("\t System {}: {:s}".format(suffix, getattr(mol, suffix)))
                 suffixf[i] = 1
             else:
-                self.logger.info("\t System {} not found".format(suffix, getattr(mol, suffix)))
+                self.logger.debug("\t System {} not found".format(suffix, getattr(mol, suffix)))
         if sum(suffixf) > 1:
             self.logger.info("More than one structure files were found, parameters may be overwritten.")
         suffix = "frcmod"
         if mol.check_exist("frcmod"):
             self.logger.info("\t System {}: {:s}".format(suffix, getattr(mol, suffix)))
         else:
-            self.logger.warn("System {} not found".format(suffix, getattr(mol, suffix)))
-            self.logger.warn("Tleap may failed to generate AMBER parameter files!")
-            self.logger.warn("Please check the tleap output file {}".format(self.leapout))
+            self.logger.warning("System {} not found".format(suffix, getattr(mol, suffix)))
+            self.logger.warning("Tleap may failed to generate AMBER parameter files!")
+            self.logger.warning("Please check the tleap output file {}".format(self.leapout))
         if sum(suffixf) <= 0:
             self.logger.critical("None of the {} files were found!".format(suffixs))
             raise RuntimeError("None of the {} files were found!".format(suffixs))
@@ -128,6 +128,11 @@ class TleapDocker(GeneralDocker):
             self.check_system_multimolecule(mol)
         elif isinstance(mol, SolvatedSystem):
             self.check_system_solvatedsystem(mol)
+        elif isinstance(mol, TransitionMetalComplex):
+            self.check_system_molecule(mol)             # TMC shares the same check as single Molecule
+        else:
+            self.logger.critical("Unknown system type!" + str(type(mol)))
+            raise TypeError("Unknown system type!" + str(type(mol)))
 
     ##### predict_output
     def get_output_name(self, mol:System, fmt:str):
@@ -136,15 +141,15 @@ class TleapDocker(GeneralDocker):
     def predict_output(self, mol:System):
         for fmt in ["pdb", "lib", "mol2", "prmtop", "inpcrd"]:
             outname = self.get_output_name(mol, fmt)
-            self.logger.info("The {} file will be generated at {}".format(fmt, outname))
+            self.logger.debug("The {} file will be generated at {}".format(fmt, outname))
             if os.path.exists(outname):
-                self.logger.warn("Found a existing file with the same name: {}".format(outname))
-                self.logger.warn("This file will be Overwritten!".format(outname))
+                self.logger.info("Found a existing file with the same name: {}".format(outname))
+                self.logger.info("This file will be Overwritten!".format(outname))
             setattr(self, "out"+fmt, outname)
         self.leapinp = os.path.join(self.workfolder, "leap_{}.cmd".format(mol.name))
-        self.logger.info("The tleap input file will be generated at {}".format(self.leapinp))
+        self.logger.debug("The tleap input file will be generated at {}".format(self.leapinp))
         self.leapout = os.path.join(self.workfolder, "leap_{}.log".format(mol.name))
-        self.logger.info("The tleap output file will be generated at {}".format(self.leapout))
+        self.logger.debug("The tleap output file will be generated at {}".format(self.leapout))
     
     ##### generate_input method for different systems
     def load_forcefield(self, doc: TextIO) -> None:
@@ -182,6 +187,12 @@ class TleapDocker(GeneralDocker):
                 if m.check_exist("lib"): 
                     doc.write('{:<20}  {}       \n'.format('loadoff', m.lib))
             doc.write('{:<5} {:<15} {}          \n'.format(mol.residue_name, '= loadpdb', mol.pdb))
+        elif isinstance(mol, TransitionMetalComplex):
+            mol.write_tleap_load_command(doc)
+            if mol.check_exist("pdb"):
+                doc.write('{:<5} {:<15} {}          \n'.format(mol.residue_name, '= loadpdb', mol.pdb))
+                mol.write_tleap_add_bond_command(doc, mol.pdb, mol.residue_name)
+
   
     def load_solvent_box(self,
                         doc:           TextIO,
@@ -203,6 +214,17 @@ class TleapDocker(GeneralDocker):
             return 
         doc.write('{} {} {} {}.{}.{} \n'.format("set", mol.residue_name, "head", mol.residue_name, 1, head))
         doc.write('{} {} {} {}.{}.{} \n'.format("set", mol.residue_name, "tail", mol.residue_name, 1, tail))
+
+
+    def write_tleap_in_transition_metal_complex(self, mol:TransitionMetalComplex) -> None:
+        self.logger.info("Tleap input file: {}".format(self.leapinp))
+        f = open(self.leapinp, 'w')
+        self.load_forcefield(f)
+        self.load_mol(f, mol)
+        mol.write_tleap_add_bond_command(f)
+        f.write('{} {} {} {}     \n'.format('saveamberparm', mol.residue_name, self.outprmtop, self.outinpcrd)) 
+        f.write('{}              \n'.format('quit'))
+        f.close()
 
     def write_tleap_in_molecule(self, mol:Molecule) -> None:
         r'''
@@ -263,11 +285,14 @@ class TleapDocker(GeneralDocker):
             self.load_mol(f, slv)
         mol_tleap_name = "SYS"
         f.write('{} = {} {}      \n'.format(mol_tleap_name, "loadpdb", mol.pdb))
+        for slu in mol.solutes:
+            if isinstance(slu, TransitionMetalComplex):
+                slu.write_tleap_add_bond_command(f, mol.pdb, mol_tleap_name)
         if mol.netcharge != 0:
             ion = "Cl-" if mol.netcharge > 0 else "Na+"
             f.write('{} {} {} {} \n'.format('addions', mol_tleap_name, ion, 0))
         pbcbox_size = mol.cubesize + 2
-        f.write("set SYS box {%.2f,%.2f,%.2f}\n" % (pbcbox_size[0], pbcbox_size[1], pbcbox_size[2]))
+        f.write("set %s box {%.2f,%.2f,%.2f}\n" % (mol_tleap_name, pbcbox_size[0], pbcbox_size[1], pbcbox_size[2]))
         f.write('check {}        \n'.format(mol_tleap_name))
         f.write('{} {} {}        \n'.format('savepdb', mol_tleap_name, self.outpdb))
         f.write('{} {} {} {}     \n'.format('saveamberparm', mol_tleap_name, self.outprmtop, self.outinpcrd)) 

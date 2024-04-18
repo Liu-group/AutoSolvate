@@ -45,15 +45,12 @@ class PackmolDocker(GeneralDocker):
         if len(solutes) == 0:
             self.logger.warning("The input system does not contain any solutes!")
         elif len(solutes) > 1:
-            self.logger.warning("The input system contains more than one kind of solutes! Position of solutes will be randomly generated!")
+            self.logger.info("The input system contains more than one kind of solutes. Position of solutes will be randomly generated.")
         if len(solvents) == 0:
             self.logger.critical("The input system does not contain any solvents!")
             raise ValueError("The input system does not contain any solvents!")
         for slu in solutes:
-            if not isinstance(slu, Molecule) and not isinstance(slu, MoleculeComplex):
-                self.logger.critical("The input system contains non-Molecule instance!")
-                raise TypeError("The input system contains non-Molecule instance!")
-            if isinstance(slu, Molecule):
+            if isinstance(slu, (Molecule, TransitionMetalComplex)):
                 self.logger.info("Solute: {}".format(slu.name))
                 self.logger.info("\t PDB: {}".format(slu.pdb))
                 self.logger.info("\t charge: {}".format(slu.charge))
@@ -66,14 +63,11 @@ class PackmolDocker(GeneralDocker):
                 self.logger.info("\t multiplicity: {}".format(slu.multiplicity))
                 self.logger.info("\t solute count: {}".format(slu.number))
             if slu.number > 1:
-                self.logger.warning("The solute {} has more than one molecule, the position of solvents will be randomly generated!".format(slu.name))
+                self.logger.info("The solute {} has more than one molecule, the position of solvents will be randomly generated.".format(slu.name))
         for slv in solvents:
-            if not isinstance(slv, Molecule) and not isinstance(slv, MoleculeComplex):
-                if isinstance(slv, SolventBox):
-                    self.logger.critical("The solvent should also be a molecule, not a pre-built solvent box!")
-                    raise TypeError("The solvent should also be a molecule, not a pre-built solvent box!")
-                self.logger.critical("The input system contains non-Molecule instance!")
-                raise TypeError("The input system contains non-Molecule instance!")
+            if isinstance(slv, SolventBox):
+                self.logger.critical("The solvent should also be a molecule, not a pre-built solvent box!")
+                raise TypeError("The solvent should also be a molecule, not a pre-built solvent box!")
             self.logger.info("Solvent: {}".format(slv.name))
             self.logger.info("\t PDB: {}".format(slv.pdb))
             self.logger.info("\t charge: {}".format(slv.charge))
@@ -87,8 +81,8 @@ class PackmolDocker(GeneralDocker):
         for name, fmt in zip([inpname, outname, outpdb], ["packmol input", "packmol output", "pdb"]):
             self.logger.info("The {} file will be generated at {}".format(fmt, name))
             if os.path.exists(name):
-                self.logger.warn("Found a existing file with the same name: {}".format(name))
-                self.logger.warn("This file will be Overwritten!".format(name))
+                self.logger.info("Found a existing file with the same name: {}".format(name))
+                self.logger.info("This file will be Overwritten!".format(name))
         self.packmolinp = inpname
         self.packmolout = outname
         self.outpdb     = outpdb
