@@ -1,4 +1,4 @@
-name: autosolvate
+name: autosolvate_merge
 channels:
   - conda-forge
 dependencies:
@@ -30,12 +30,12 @@ dependencies:
 
     # Pip-only installs
   - pip:
+    - Cython
     - imolecule
     - pillow
     - rdkit
     - ase
     - mendeleev
-    - git+https://github.com/hjkgrp/molSimplify.git
     - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
     - git+https://github.com/SangniXun/pyvdwsurface_moreelements.git
   #  - codecov
