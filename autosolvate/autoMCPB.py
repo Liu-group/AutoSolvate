@@ -732,10 +732,12 @@ class AutoMCPB():
             cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
             if self.software in ['orca','ORCA','Orca']:
                 with open(self.filename + '_MCPB.in','r') as source_file:
-                    content = source_file.read()
-                    modified_content = content.replace('orca', 'gms')
+                    data = source_file.readlines()
                 with open(self.filename + '_MCPB_orca.in','w') as target_file:
-                    target_file.write(modified_content)
+                    target_file.write('software_version gms\n')
+                    for line in data:
+                        if 'software_version orca' not in line:
+                            target_file.write(line)
                 cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB_orca.in -s ' + self.round
             with open('MCPB_1.log', 'w') as output_file:
                 subprocess.call(cmd,shell=True,stdout=output_file, stderr=subprocess.STDOUT)
