@@ -4,6 +4,7 @@ import numpy as np
 from glob import glob
 import sys
 import getopt
+import collections
 from . import GAMESS_input_gen
 
 metalbasisset = ['LANL2DZ','SBKJC']

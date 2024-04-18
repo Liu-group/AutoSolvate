@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 from typing import List, Tuple, Dict, Optional, Union, TextIO
 
-import mdtraj as md
+#import mdtraj as md
 
 from ..molecule import *
 from ._general_docker import GeneralDocker

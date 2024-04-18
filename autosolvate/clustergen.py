@@ -1,6 +1,6 @@
 import getopt, sys, os
 import subprocess
-import mdtraj as md
+#import mdtraj as md
 import numpy as np
 
 def formatXyz(mdtrajxyz,outfile):
