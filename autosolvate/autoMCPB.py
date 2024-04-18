@@ -839,7 +839,7 @@ class AutoMCPB():
         missingbond = open('missingbonds.txt','w')
         topology_file = self.filename + '_dry.prmtop'
         cpptraj_command = 'bondinfo'
-        process = subprocess.Popen(['cpptraj','-p',topology_file], 
+        process = subprocess.Popen([self.amberhome + 'cpptraj','-p',topology_file], 
                         stdin=subprocess.PIPE, 
                         stdout=subprocess.PIPE, 
                         stderr=subprocess.PIPE, 
@@ -874,7 +874,7 @@ class AutoMCPB():
                     cpptrajin.write('run\n')
                     cpptrajin.write('quit\n')
         
-                cmd = 'cpptraj -p ' + self.filename + '_dry.prmtop -c ' + self.filename +  '_solv.inpcrd -i fixatord.in > fixatord.out'
+                cmd = self.amberhome + 'cpptraj -p ' + self.filename + '_dry.prmtop -c ' + self.filename +  '_solv.inpcrd -i fixatord.in > fixatord.out'
                 subprocess.call(cmd,shell=True)
 
         bonded_pairs_in_prmtop = []
