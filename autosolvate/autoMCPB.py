@@ -442,8 +442,8 @@ class AutoMCPB():
                                     atom_count = 0
                                     with open(ligandname +'___.pdb','r') as f:
                                         for line in f:
-                                            if line.split()[0] in ['ATOM','HETATM']:
-                                                if len(line) > 15:
+                                            if line.startswith('ATOM'):
+                                                if len(line) > 10:
                                                     atom_count += 1
                                     fake_charge = charge / atom_count
                                     with open(ligandname +'_fake.chg','w') as f:
