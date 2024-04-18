@@ -118,7 +118,7 @@ class AutoMCPB():
 
     
     """
-    def __init__(self, filename, metal_charge, chargefile,mode,spinmult,round,software): #liglist='', denticity='',ligcons='',atomsinfo='',ligand_charge='',metal_name=''):
+    def __init__(self, filename, metal_charge, chargefile,mode,spinmult,round,software,amberhome): #liglist='', denticity='',ligcons='',atomsinfo='',ligand_charge='',metal_name=''):
         self.metal_charge = metal_charge
         self.filename = filename
         self.xyzfile = filename + '.xyz'
@@ -127,6 +127,7 @@ class AutoMCPB():
         self.spinmult = spinmult
         self.round = round
         self.software = software
+        self.amberhome = amberhome
 
     def coordinates_reader_xyz(self):
         r"""
@@ -419,7 +420,7 @@ class AutoMCPB():
                     new_newline = newline[:12] + str.upper(metalname).ljust(4) + newline[16:76] + str.upper(metalname).rjust(2) + '\n'
                     outf.write(new_newline )
         with open('genmetalmol2.py','w') as f:
-            cmd = '$AMBERHOME/bin/'+'metalpdb2mol2.py -i ' + metalname + '.pdb'+ ' -o ' + metalname + '.mol2' + ' -c ' + str(self.metal_charge)
+            cmd =self.amberhome +'metalpdb2mol2.py -i ' + metalname + '.pdb'+ ' -o ' + metalname + '.mol2' + ' -c ' + str(self.metal_charge)
             subprocess.call(cmd, shell=True,stdout=f, stderr=subprocess.STDOUT)
     
     def generate_mol2_by_auto(self):
@@ -429,7 +430,7 @@ class AutoMCPB():
             ligand_charge_dic = self.ligand_charge_dic
             charge = ligand_charge_dic[ligandname]
             if len(ligand) > 1:
-                cmd = '$AMBERHOME/bin/'+'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c bcc -pf y -nc ' + str(charge) + ' -m 2'
+                cmd = self.amberhome+'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c bcc -pf y -nc ' + str(charge) + ' -m 2'
                 with open(ligandname + '_antechamber_generate_mol2.log', 'w') as f:
                     subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
                 if os.path.exists(ligandname + '_antechamber_generate_mol2.log'):
@@ -449,12 +450,12 @@ class AutoMCPB():
                                     with open(ligandname +'_fake.chg','w') as f:
                                         for i in range(atom_count):
                                             f.write("%.4f" % fake_charge + ' ')
-                                    cmd = '$AMBERHOME/bin/'+'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c rc -cf ' + ligandname +'_fake.chg'
+                                    cmd = self.amberhome +'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c rc -cf ' + ligandname +'_fake.chg'
                                     with open(ligandname + '_antechamber_generate_fake_charge_mol2.log', 'w') as f:
                                         subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
                                     
             elif len(ligand) == 1:
-                cmd = '$AMBERHOME/bin/'+'metalpdb2mol2.py -i ' + ligandname + '___.pdb'+ ' -o ' + ligandname + '.mol2' + ' -c ' + str(charge)
+                cmd = self.amberhome+'metalpdb2mol2.py -i ' + ligandname + '___.pdb'+ ' -o ' + ligandname + '.mol2' + ' -c ' + str(charge)
                 with open(ligandname + '_metalpdb2mol2_generate_mol2.log', 'w') as f:
                     subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
                         
@@ -496,13 +497,13 @@ class AutoMCPB():
             charge = ligand_charge_dic[ligandname]
             length = ligand_length_dic[ligandname]
             if length > 1:
-                cmd = '$AMBERHOME/bin/'+'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c bcc -pf y -nc ' + str(charge) + ' -m 2'
+                cmd = self.amberhome+'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c bcc -pf y -nc ' + str(charge) + ' -m 2'
                 with open(ligandname + '_antechamber_generate_mol2.log', 'w') as f:
                     subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
                 
             
             elif length == 1:
-                cmd = '$AMBERHOME/bin/'+'metalpdb2mol2.py -i ' + ligandname + '___.pdb'+ ' -o ' + ligandname + '.mol2' + ' -c ' + str(charge)
+                cmd = self.amberhome+'metalpdb2mol2.py -i ' + ligandname + '___.pdb'+ ' -o ' + ligandname + '.mol2' + ' -c ' + str(charge)
                 with open(ligandname + '_metalpdb2mol2_generate_mol2.log', 'w') as f:
                     subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
         self.ligand_charge_dic = ligand_charge_dic
@@ -521,7 +522,7 @@ class AutoMCPB():
         """
         for ligandname in self.ligand_charge_dic:
             if os.path.exists(ligandname + '.mol2'):
-                cmd = '$AMBERHOME/bin/'+ 'parmchk2 -i ' + ligandname + '.mol2' + ' -o ' + ligandname +'.frcmod' +' -f mol2'
+                cmd = self.amberhome + 'parmchk2 -i ' + ligandname + '.mol2' + ' -o ' + ligandname +'.frcmod' +' -f mol2'
                 subprocess.call(cmd,shell=True)
                 self.modifiy_pdb(ligandname +'___.pdb',ligandname + '.mol2',ligandname  +'_temp.pdb')
                 cmd = 'cat '+ ligandname  + '_temp.pdb  | grep ' + ligandname + ' > ' + ligandname  + '.pdb'  
@@ -549,7 +550,7 @@ class AutoMCPB():
             cmd = cmd + ' ' + ligandname + '.pdb '
         cmd = cmd + '> ' + temppdb
         subprocess.call(cmd,shell=True)
-        cmd = '$AMBERHOME/bin/'+ 'pdb4amber -i ' + temppdb + ' -o ' +  self.filename + '_final.pdb'
+        cmd =self.amberhome + 'pdb4amber -i ' + temppdb + ' -o ' +  self.filename + '_final.pdb'
         with open(ligandname + '_pdb4amber.log', 'w') as f:
             subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
 
@@ -729,7 +730,7 @@ class AutoMCPB():
     
     def run_MCPB_1(self):
         if self.round in ['1']:
-            cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
+            cmd =self.amberhome +'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
             if self.software in ['orca','ORCA','Orca']:
                 with open(self.filename + '_MCPB.in','r') as source_file:
                     data = source_file.readlines()
@@ -738,7 +739,7 @@ class AutoMCPB():
                     for line in data:
                         if 'software_version orca' not in line:
                             target_file.write(line)
-                cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB_orca.in -s ' + self.round
+                cmd = self.amberhome +'MCPB.py -i ' + self.filename + '_MCPB_orca.in -s ' + self.round
             with open('MCPB_1.log', 'w') as output_file:
                 subprocess.call(cmd,shell=True,stdout=output_file, stderr=subprocess.STDOUT)
             
@@ -750,7 +751,7 @@ class AutoMCPB():
             print('checking the file generated by QM calculation:\n')
             if self.software in ['g09','gau','g03']:
                 with open('MCPB_2.log','w') as f:
-                    cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
+                    cmd = self.amberhome +'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
                     subprocess.call(cmd,shell=True,stdout=f,stderr=subprocess.STDOUT)
             elif self.software in ['gms','GAMESS','GMS']:
                 for resultfile in [self.filename + '_small_fc.log',self.filename + '_small_opt.log',self.filename + '_large_mk.log']:
@@ -759,7 +760,7 @@ class AutoMCPB():
                     else:
                         print('Error', resultfile  + ' is not generated by the first round of MCPB.py \n' )
                         sys.exit()
-                cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
+                cmd = self.amberhome + 'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
                 subprocess.call(cmd,shell=True)
             elif self.software in ['orca','ORCA','Orca']:
                 for resultfile in [self.filename + '_small_fc.orcaout',self.filename + '_small_opt.orca'+'_trj.xyz',
@@ -784,7 +785,7 @@ class AutoMCPB():
                  #   print(resultfile  + ' is generated by the secondary round of MCPB.py' )
                 else:
                     print('Error', resultfile  + ' is not generated by the secondary round of MCPB.py')
-            cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
+            cmd =self.amberhome +'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
             if self.software in ['orca','ORCA','Orca']:
                 cmd = 'MCPB_orca ' + self.filename + '_MCPB.in ' + self.round
             with open('MCPB_3.log', 'w') as output_file:
@@ -821,7 +822,7 @@ class AutoMCPB():
                     print(resultfile  + ' is generated by the secondary round of MCPB.py \n' )
                 else:
                     print('Error', resultfile  + ' is not generated by the secondary round of MCPB.py \n' )
-            cmd = '$AMBERHOME/bin/'+'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
+            cmd = self.amberhome +'MCPB.py -i ' + self.filename + '_MCPB.in -s ' + self.round
             if self.software in ['orca','ORCA','Orca']:
                 cmd = 'MCPB_orca ' + self.filename + '_MCPB.in ' + self.round
             with open('MCPB_4.log', 'w') as output_file:
@@ -829,7 +830,7 @@ class AutoMCPB():
             inp = self.filename + '_tleap.in'
             outfile = self.filename + '_tleap_check.in'
             self.check_tleapin(inp,outfile)
-            cmd = '$AMBERHOME/bin/tleap -f ' + outfile + ' > ' + outfile.split('.in')[0] + '.out'
+            cmd =self.amberhome +'tleap -f ' + outfile + ' > ' + outfile.split('.in')[0] + '.out'
             with open('tleap_MCPB.log','w') as output_file: 
                 subprocess.call(cmd,shell=True,stdout=output_file, stderr=subprocess.STDOUT)
 
@@ -1063,8 +1064,8 @@ class AutoMCPB():
             self.checkingFF()
 
 def startautoMCPB(argumentList):
-    options = "hn:c:u:m:f:s:x:"
-    long_options = ["help",'filename=','metal_charge=','spin=','mode=','chargefile=','round=','software=']
+    options = "hn:c:u:m:f:s:x:A:"
+    long_options = ["help",'filename=','metal_charge=','spin=','mode=','chargefile=','round=','software=','amberhome=']
     arguments, values = getopt.getopt(argumentList,options,long_options)
     filename = None
     metal_charge = None
@@ -1073,6 +1074,7 @@ def startautoMCPB(argumentList):
     chargefile = None
     software = 'gms'
     round = '1'
+    amberhome = '$AMBERHOME/bin/'
    # print(arguments)
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-h", "--help"):
@@ -1088,6 +1090,7 @@ def startautoMCPB(argumentList):
                                         FG1 -1 # ligand name charge 
                 -s, --round             round of MCPB.py
                 -x, --software            g09,g16 or gms
+                -A, --amberhome         path of AmberTools bin 
                 '''
             print(message)
             sys.exit()
@@ -1107,10 +1110,12 @@ def startautoMCPB(argumentList):
             round = str(currentValue)
         elif currentArgument in ('-x','--software'):
             software = str(currentValue)
+        elif currentArgument in ('-A','--amberhome'):
+            amberhome = str(currentValue)
 
 
     builder = AutoMCPB(filename=filename,metal_charge=metal_charge, spinmult=spinmult,
-                       mode=mode,chargefile=chargefile,round=round,software=software)
+                       mode=mode,chargefile=chargefile,round=round,software=software,amberhome=amberhome)
 
     builder.build()
 
