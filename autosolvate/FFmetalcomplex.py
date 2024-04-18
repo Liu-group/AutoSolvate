@@ -12,7 +12,7 @@ support_basisset = ['6-31G','6-31G*','LANL2DZ','6-31GS']
 
 
 class genFF():
-    def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,
+    def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,folder,
                  mode,spinmult,software,basisset,method,cubesize,closeness,
                  totalcharge,nprocs,QMexe,amberhome,solvent_off,solvent_frcmod,opt,gamessexe):
         self.metal_charge = metal_charge
@@ -36,6 +36,7 @@ class genFF():
         self.cubesize = cubesize
         self.closeness = closeness
         self.slv_count = slv_count
+        self.folder = folder
 
     
     def inputCheck(self):
@@ -298,7 +299,6 @@ class genFF():
                       #  sys.exit()        
                 else:
                     raise TypeError('Error, can not find',optout, 'to get optimized coordinates for Freq calculation')
-                    sys.exit()
             elif check == 'converged':
                 print('Freq calculation is finished, start to run QM charge calculation')
         
@@ -443,6 +443,13 @@ class genFF():
                         print('Erorr: cant find',mkinp)
                 
     def build(self):
+        print (self.folder)
+        os.makedirs(self.folder, exist_ok=True)
+        os.system('cp ' + self.xyzfile + ' ' + self.folder)
+        cwd = os.getcwd()
+        print(cwd)
+        os.chdir(self.folder)
+
         print('******************** start to generate inputs for MCPB.py -s 1 ********************')
         step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
                        mode=self.mode,chargefile=self.chargefile,round='1',software=self.software)
@@ -548,10 +555,12 @@ class genFF():
         else:
             print('Erorr: can not find ' + self.filename + '_dry.prmtop')
         
-        #step9 = boxgen_metal.solventBoxBuilderMetal(pdb_prefix=self.filename,totalcharge=self.totalcharge,solvent=self.solvent,
-                                            #  solvent_frcmod=self.solvent_frcmod, solvent_off=self.solvent_off,closeness=self.closeness,
-                                          #   outputFile='',amberhome=self.amberhome,cube_size=self.cubesize,slv_count=self.slv_count)
-     #   step9.build()
+        step9 = boxgen_metal.solventBoxBuilderMetal(pdb_prefix=self.filename,totalcharge=self.totalcharge,solvent=self.solvent,
+                                              solvent_frcmod=self.solvent_frcmod, solvent_off=self.solvent_off,closeness=self.closeness,
+                                             outputFile='',amberhome=self.amberhome,cube_size=self.cubesize,slv_count=self.slv_count)
+        step9.build()
+        os.chdir(cwd)
+"""
         pdb_prefix = self.filename
         solvent = self.solvent
         output = ''
@@ -591,10 +600,11 @@ class genFF():
             result = subprocess.run(cmd, capture_output=True, text=True)
         if result.stderr:
             print( result.stderr)
+"""
 
 def startFFgen(argumentList):
-    options = 'hm:c:u:v:f:x:k:r:G:n:l:p:s:A:Q:W:e:b:t:'
-    long_options = ["help",'filename=','metal_charge=','spin=','mode=',
+    options = 'hm:c:u:v:f:x:k:r:G:n:l:p:s:A:Q:W:e:b:t:z:'
+    long_options = ["help",'filename=','metal_charge=','spin=','mode=', 'folder=',
                     'chargefile=','totalcharge=','software=','nprocs=','method=','cubesize=','closeness='
                     'qmexe=','basisset=','solventoff=','solventfrcmod=','amberhome=','opt=','gamessexe=','solvent=']
     arguments, values = getopt.getopt(argumentList,options,long_options)
@@ -619,6 +629,7 @@ def startFFgen(argumentList):
     closeness = 'automated'
     cubesize = 54
     slv_count = 210*8
+    folder = './'
     
 
     for currentArgument, currentValue in arguments:
@@ -648,6 +659,7 @@ def startFFgen(argumentList):
                 -e  --solvent           name of solvent (water, methanol, chloroform, nma, ch3cn)
                 -b  --cubesize          size of solvent cube in angstroms
                 -t  --closeness         Solute-solvent closeness setting
+                -z  --folder            the path of outputfiles, default: the current folder './'
 
 
                 '''
@@ -691,8 +703,10 @@ def startFFgen(argumentList):
             cubesize = str(currentValue)
         elif currentArgument in ('-t','-closeness'):
             closeness = str(currentValue)
+        elif currentArgument in ('-z','-folder'):
+            folder = str(currentValue)
 
-    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,gamessexe=gamessexe,closeness=closeness,
+    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,gamessexe=gamessexe,closeness=closeness,folder = folder,
                     mode=mode,chargefile=chargefile,software=software,solvent_frcmod=solvent_frcmod,amberhome=amberhome,cubesize=cubesize,
                     totalcharge=totalcharge,nprocs=nprocs,QMexe=QMexe,method=method,solvent_off=solvent_off,opt=opt,solvent=solvent,slv_count=slv_count)
  #   print(arguments)
