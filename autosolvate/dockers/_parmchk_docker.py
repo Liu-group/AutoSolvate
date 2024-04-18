@@ -61,8 +61,8 @@ class ParmchkDocker(GeneralDocker):
         self.logger.info("The {} file will be generated at {}".format(self.out_format, outname))
         self.outfile = outname
         if os.path.exists(outname):
-            self.logger.warn("Found a existing file with the same name: {}".format(outname))
-            self.logger.warn("This file will be Overwritten!".format(outname))
+            self.logger.warning("Found a existing file with the same name: {}".format(outname))
+            self.logger.warning("This file will be Overwritten!".format(outname))
         return outname
     
     def check_output(self, mol: System):

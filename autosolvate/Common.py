@@ -2,6 +2,9 @@
 #       is a better way to implement this? : central control of the whole project
 #       1. DRY_RUN: is not working 
 import os 
+import logging
+from logging import DEBUG, INFO, WARN, WARNING, CRITICAL
+logging.basicConfig(level = INFO, force = True, handlers=[])
 
 
 #global variable for the whole project 

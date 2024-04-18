@@ -20,8 +20,8 @@ class GeneralDocker(ABC):
         self.workfolder      = os.path.abspath(workfolder)
         self.exeoutfile      = os.path.abspath(exeoutfile) if isinstance(exeoutfile, str) else exeoutfile
         self.logger                     = logging.getLogger(name = "GeneralDocker")
-        # output_handler                = logging.FileHandler(filename = "log.txt", mode = "a", encoding="utf-8")
-        self.output_handler             = logging.StreamHandler()
+        self.output_handler                = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")
+        # self.output_handler             = logging.StreamHandler()
         self.output_formater            = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
         self.output_handler.setFormatter(self.output_formater)
         if len(self.logger.handlers) == 0:

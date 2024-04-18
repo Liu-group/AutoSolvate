@@ -15,19 +15,6 @@ from ..Common import *
 from .molecule import *
 
 
-from logging import DEBUG, INFO, WARN, WARNING, CRITICAL, ERROR
-logging.basicConfig(level = INFO, force = True, handlers=[])
-
-logger              = logging.getLogger(name = "Molecule")
-# output_handler      = logging.FileHandler(filename = "log.txt", mode = "a", encoding="utf-8")
-output_handler      = logging.StreamHandler()
-output_formater     = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
-output_handler.setFormatter(output_formater)
-if len(logger.handlers) == 0:
-    logger.addHandler(output_handler)
-
-
-
 
 class SolventBox(System):
     # constants
@@ -41,6 +28,24 @@ class SolventBox(System):
             folder:         str = WORKING_DIR,
             amber_solvent:  bool = False,
             ) -> None:
+        """
+        The data class representing a pre-built solvent box.
+
+        Parameters
+        ----------
+        solventbox : str
+            The path to the solvent box file. The solvent box file can be in either .lib or .off format. Ignored if amber_solvent is True.
+        frcmod : str
+            The path to the frcmod file. Ignored if amber_solvent is True.
+        name : str
+            The name of the solvent box. if amber_solvent is True, the name should be one of the following: 'water', 'methanol', 'chloroform', 'nma'.
+        box_name : str
+            The name of the solvent box in the solvent box file.
+        folder : str
+            The path to the folder containing the solvent box file and the frcmod file.
+        amber_solvent : bool
+            A boolean flag indicating whether the solvent box is an AMBER solvent or not. If True, the solventbox and frcmod parameters are ignored.
+        """
         self.name           = process_system_name(name, solventbox, support_input_format=SolventBox._SUPPORT_INPUT_FORMATS, check_exist = False if amber_solvent else True)
         self.folder         = os.path.abspath(folder)
         self.frcmod         = os.path.abspath(frcmod)
@@ -62,6 +67,7 @@ class SolventBox(System):
         else:
             pass
         super(SolventBox, self).__init__(name = self.name)
+        self.logger.name = self.__class__.__name__
 
     def get_box_name(self, fname:str):
         with open(fname, "r") as f:
@@ -80,8 +86,6 @@ class SolventBox(System):
                 break
         return previousname
 
-
-logging.basicConfig(level = ERROR, force = True, handlers=[])
 AMBER_WATER               = SolventBox( name='water',
                                         solventbox='solvents.lib',
                                         box_name='TIP3PBOX',

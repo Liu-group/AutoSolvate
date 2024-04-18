@@ -12,17 +12,7 @@ from dataclasses import dataclass, field, asdict
 
 from ..Common import *
 from ..utils import *
-
-from logging import DEBUG, INFO, WARN, WARNING, CRITICAL
-logging.basicConfig(level = INFO, force = True, handlers=[])
-
-logger              = logging.getLogger(name = "Molecule")
-# output_handler      = logging.FileHandler(filename = "log.txt", mode = "a", encoding="utf-8")
-output_handler      = logging.StreamHandler()
-output_formater     = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
-output_handler.setFormatter(output_formater)
-if len(logger.handlers) == 0:
-    logger.addHandler(output_handler)
+import logging
 
 OBABEL = "obabel"
 
@@ -61,6 +51,14 @@ class System(object):
     gro:            str = field(default=None, init = False)
 
     def __post_init__(self) -> None:
+        self.logger                     = logging.getLogger(name = "System")
+        self.output_handler             = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")
+        # self.output_handler             = logging.StreamHandler()
+        self.output_formater            = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
+        self.output_handler.setFormatter(self.output_formater)
+        if len(self.logger.handlers) == 0:
+            self.logger.addHandler(self.output_handler)
+
         self._FILEATTR_FILEPATH_DICT = asdict(self)
         self._FILEATTR_FILEPATH_DICT.pop("_FILEATTR_FILEPATH_DICT")
         self._FILEATTR_FILEPATH_DICT.pop("name")
@@ -75,29 +73,33 @@ class System(object):
         if not hasattr(self, "folder"):
             self.folder = WORKING_DIR
         self._init_folder()
+        
+
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if not hasattr(self, "_FILEATTR_FILEPATH_DICT"):
             super(System, self).__setattr__(__name, __value)
             return 
-        if isinstance(__value, str):
+        if isinstance(__value, logging.Logger):
+            pass
+        elif isinstance(__value, str):
             if os.path.isfile(__value) and len(__name) <= 6:
                 __value = os.path.abspath(__value)
                 self._FILEATTR_FILEPATH_DICT[__name] = __value
-                logger.info("set the '{:s}' file of system '{:s}' to '{:s}'".format(__name, self.name, __value))
+                self.logger.debug("set the '{:s}' file of system '{:s}' to '{:s}'".format(__name, self.name, __value))
                 if not self.check_extension(__name, __value):
-                    logger.warn("The '{:s}' file of system '{:s}' does not have the correct extension".format(__name, self.name, __value))
+                    self.logger.warning("The '{:s}' file of system '{:s}' does not have the correct extension".format(__name, self.name, __value))
             else:
                 if __name in self._FILEATTR_FILEPATH_DICT:
                     self._FILEATTR_FILEPATH_DICT[__name] = __value
-                    logger.warn("The '{:s}' file of system '{:s}' is set to a non-existent path '{:s}'".format(__name, self.name, __value))
+                    self.logger.warning("The '{:s}' file of system '{:s}' is set to a non-existent path '{:s}'".format(__name, self.name, __value))
                 else:
-                    logger.info("set the '{:s}' attribute of system '{:s}' as {:s}".format(__name, self.name, __value))
+                    self.logger.debug("set the '{:s}' attribute of system '{:s}' as {:s}".format(__name, self.name, __value))
         else:
             if __name in self._FILEATTR_FILEPATH_DICT:
-                logger.warn("set the '{:s}' file of system '{:s}' as a {:s}".format(__name, self.name, type(__value).__name__))
+                self.logger.warning("set the '{:s}' file of system '{:s}' as a {:s}".format(__name, self.name, type(__value).__name__))
             else:
-                logger.info("set the '{:s}' attribute of system '{:s}' as a {:s}".format(__name, self.name, type(__value).__name__))
+                self.logger.debug("set the '{:s}' attribute of system '{:s}' as a {:s}".format(__name, self.name, type(__value).__name__))
         super(System, self).__setattr__(__name, __value)
 
     def check_extension(self, __name, __value:str) -> bool:
@@ -115,15 +117,15 @@ class System(object):
                 ext = ext[1:]
             if not hasattr(self, ext):
                 flag *= False
-                logger.debug("The '{:s}' file of system '{:s}' is not defined".format(ext, self.name))
+                self.logger.debug("The '{:s}' file of system '{:s}' is not defined".format(ext, self.name))
             elif not isinstance(self.__getattribute__(ext), str):
                 flag *= False
-                logger.debug("The '{:s}' attribute of system '{:s}' does noe exist".format(ext, self.name))
+                self.logger.debug("The '{:s}' attribute of system '{:s}' does noe exist".format(ext, self.name))
             elif not os.path.isfile(self.__getattribute__(ext)):
                 flag *= False
-                logger.debug("The '{:s}' file of system '{:s}' does not exist".format(ext, self.name))
+                self.logger.debug("The '{:s}' file of system '{:s}' does not exist".format(ext, self.name))
             else:
-                logger.debug("The '{:s}' file of system '{:s}' is '{:s}'".format(ext, self.name, self.__getattribute__(ext)))
+                self.logger.debug("The '{:s}' file of system '{:s}' is '{:s}'".format(ext, self.name, self.__getattribute__(ext)))
         return bool(flag)
     
     def update(self, overwrite = True) -> None:
@@ -139,18 +141,18 @@ class System(object):
             )
             if os.path.exists(newpath):
                 if os.path.samefile(srcpath, newpath):
-                    logger.debug("The '{:s}' file of system '{:s}' already exists".format(ext, self.name))
+                    self.logger.debug("The '{:s}' file of system '{:s}' already exists".format(ext, self.name))
                 elif overwrite:
                     shutil.copy(srcpath, self.folder)
-                    logger.info("Copied '{:s}' file of system '{:s}' to '{:s}'".format(ext, srcpath, newpath))
-                    logger.info("File {:s} was rewritten".format(newpath))
+                    self.logger.debug("Copied '{:s}' file of system '{:s}' to '{:s}'".format(ext, srcpath, newpath))
+                    self.logger.info("File {:s} was rewritten".format(newpath))
                     self.__setattr__(ext, newpath)
                 else:
-                    logger.info("The '{:s}' file of system '{:s}' already exists at {:s} ".format(ext, self.__getattribute__(ext), newpath))
+                    self.logger.debug("The '{:s}' file of system '{:s}' already exists at {:s} ".format(ext, self.__getattribute__(ext), newpath))
                     self.__setattr__(ext, newpath)
             else:
                 shutil.copy(srcpath, self.folder)
-                logger.info("Copied '{:s}' file of system '{:s}' to '{:s}'".format(ext, srcpath, newpath))
+                self.logger.debug("Copied '{:s}' file of system '{:s}' to '{:s}'".format(ext, srcpath, newpath))
                 self.__setattr__(ext, newpath)
 
     def copy2folder(self, overwrite = True):
@@ -158,19 +160,19 @@ class System(object):
 
     def _init_folder(self) -> None:
         if self.folder == WORKING_DIR: 
-            logger.info("Use the current working directory {:s}".format(self.folder))
+            self.logger.info("Use the current working directory {:s}".format(self.folder))
         elif os.path.exists(self.folder):
-            logger.warn("A folder named {:s} already exists".format(self.folder))
+            self.logger.debug("A folder named {:s} already exists".format(self.folder))
         else:
             os.makedirs(self.folder, exist_ok=False)
-            logger.info("Created folder {:s} for system {:s}".format(self.folder, self.name))
+            self.logger.info("Created folder {:s} for system {:s}".format(self.folder, self.name))
         self.update()
 
     def set_folder(self, newfolder:str, overwrite = True) -> None:
         if not os.path.isdir(newfolder):
             if os.path.exists(newfolder):
                 os.remove(newfolder)
-                logger.warn("A file with name {:s} has been removed".format(newfolder))
+                self.logger.warning("A file with name {:s} has been removed".format(newfolder))
             os.makedirs(newfolder, exist_ok=False)
         self.folder = newfolder
         self.update(overwrite=True)
@@ -188,14 +190,14 @@ class System(object):
             if os.path.exists(newname):
                 if overwrite:
                     os.remove(newname)
-                    logger.info("Removed the existing file {}".format(newname))
+                    self.logger.info("Removed the existing file {}".format(newname))
                     os.rename(v, newname)
-                    logger.info("Rename {}.{} from {} to {}".format(self.name, k, v, newname))
+                    self.logger.info("Rename {}.{} from {} to {}".format(self.name, k, v, newname))
                 else:
-                    logger.info("Skipped the existing file {}".format(newname))
+                    self.logger.info("Skipped the existing file {}".format(newname))
             else:
                 os.rename(v, newname)
-                logger.info("Rename {}.{} from {} to {}".format(self.name, k, v, newname))
+                self.logger.info("Rename {}.{} from {} to {}".format(self.name, k, v, newname))
 
     @property
     def files(self) -> dict:
@@ -224,6 +226,24 @@ class Molecule(System):
             residue_name    = "MOL",
             folder          = WORKING_DIR,
             ) -> None:
+        """
+        The data class for holding all files of a molecule.
+
+        Parameters
+        ----------
+        xyzfile : str
+            The file path of the xyz file of the molecule, can also be a pdb file.
+        charge : int
+            The charge of the molecule.
+        multiplicity : int
+            The multiplicity of the molecule.
+        name : str, optional
+            The name of the molecule, by default "" will be the basename of the xyzfile.
+        residue_name : str, optional
+            The residue name of the molecule, by default "MOL".
+        folder : str, optional
+            The folder to store all files of the molecule, by default is the current working directory.
+        """
 
         self.name           = process_system_name(name, xyzfile, support_input_format=Molecule._SUPPORT_INPUT_FORMATS)
         self.folder         = os.path.abspath(folder)
@@ -234,6 +254,7 @@ class Molecule(System):
         self.number         = 0
         self.read_coordinate(xyzfile)
         super(Molecule, self).__init__(name = self.name)
+        self.logger.name = self.__class__.__name__
         # super(Molecule, self).__post_init__()
 
     def read_coordinate(self, fname:str):
@@ -243,7 +264,7 @@ class Molecule(System):
             if e == ext:
                 continue
             nname = os.path.splitext(fname)[0] + "." + e
-            subprocess.run(f"obabel -i {ext} {fname} -o {e} > {nname}", shell = True)
+            subprocess.run(f"obabel -i {ext} {fname} -o {e} -O {nname} ---errorlevel 0", shell = True)
             setattr(self, e, nname)
 
 

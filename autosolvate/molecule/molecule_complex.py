@@ -17,18 +17,6 @@ from ..Common import *
 from ..utils import *
 from .molecule import *
 
-from logging import DEBUG, INFO, WARN, CRITICAL
-logging.basicConfig(level = INFO, force = True, handlers=[])
-
-logger              = logging.getLogger(name = "MoleculeComplex")
-# output_handler      = logging.FileHandler(filename = "log.txt", mode = "a", encoding="utf-8")
-output_handler      = logging.StreamHandler()
-output_formater     = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
-output_handler.setFormatter(output_formater)
-if len(logger.handlers) == 0:
-    logger.addHandler(output_handler)
-
-
 class MoleculeComplex(System):
 
     _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz']
@@ -42,6 +30,33 @@ class MoleculeComplex(System):
                 folder:         str = ".",
                 reorder_pdb:    bool = False,
                 ):
+        """
+        The data class storing the files for a molecule complex (a pdb file with more than 1 fragment)
+
+        Parameters
+        ----------
+        xyzfile : str
+            The path to the xyz file containing the molecule complex.
+        charges : int
+            The charge of the molecule complex. can be either a int, list, and a dict. \n
+                if int, all fragments will be assigned the same charge. \n
+                if list, the charge for each fragment should be provided in the same order as the fragments in the pdb file. \n
+                if dict, the charge for each fragment should be provided with the fragment residue name as the key and the charge as the value. \n
+        multiplicities : int
+            The multiplicity of the molecule complex. can be either a int, list, and a dict
+                if int, all fragments will be assigned the same multiplicity. \n
+                if list, the multiplicity for each fragment should be provided in the same order as the fragments in the pdb file. \n
+                if dict, the multiplicity for each fragment should be provided with the fragment residue name as the key and the multiplicity as the value. \n
+        name : str
+            The name of the molecule complex. If not provided, the name will be the file name of the xyz file
+        residue_name : str
+            The residue name of the molecule complex. Default is "SYS"
+        folder : str
+            The folder to store the output files. Default is current folder
+        reorder_pdb : bool
+            Whether to reorder the pdb file. Default is False. If true then the atoms with in single fragment will be aggregated together.
+        """
+
         self.name           = process_system_name(name, xyzfile, support_input_format=MoleculeComplex._SUPPORT_INPUT_FORMATS)   
         self.folder         = os.path.abspath(folder)
         self.charges        = charges
@@ -51,6 +66,7 @@ class MoleculeComplex(System):
         self.number         = 0
         self.read_coordinate(xyzfile)
         super(MoleculeComplex, self).__init__(name = self.name)
+        self.logger.name = self.__class__.__name__
 
         self.mol_obmol          = pybel.readfile("pdb", self.pdb).__next__().OBMol
         self.fragresiduenames   = []    # name of each fragment
@@ -163,7 +179,7 @@ class MoleculeComplex(System):
                 self.newresiduenames.append(resname)
                 logger.info(f"Fragment {i} is a new molecule with res name {resname}. Update the term list.")
             else:
-                logger.debug(f"Fragment {i} is a known molecule with res name {resname}. ")
+                self.logger.debug(f"Fragment {i} is a known molecule with res name {resname}. ")
             self.fragmols.append(fragment_obmol)
             self.fragresiduenames.append(resname)
 
