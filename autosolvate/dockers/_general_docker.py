@@ -3,7 +3,6 @@ import os
 import subprocess
 import logging
 from abc import * 
-print(__file__, __package__)
 from ..Common import *
 
 time_execute = 0

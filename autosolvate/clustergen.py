@@ -1,6 +1,8 @@
 import getopt, sys, os
 import subprocess
 #import mdtraj as md
+import pytraj as pt
+import parmed as pmd
 import numpy as np
 
 def formatXyz(mdtrajxyz,outfile):
@@ -14,7 +16,148 @@ def formatXyz(mdtrajxyz,outfile):
         out.write("{0:>2s} {1:>16s} {2:>16s} {3:>16s}\n".format(e,x,y,z))
     out.close()
 
+def write_xyz(filename, elems, coords):
+    r"""
+    Write xyz file from elements and coordinates
 
+    Parameters
+    ----------
+    filename : str
+        Name of the output xyz file
+    elems : list
+        List of elements
+    coords : list
+        List of coordinates
+
+    Returns
+    -------
+    None
+        Writes the xyz file
+    """
+   # refer to the formatxyz function for formatting
+    out = open(filename,'w')
+    out.write(str(len(elems)) + '\n')
+    out.write('\n')
+    for i in range(len(elems)):
+        e = elems[i].strip("0123456789")
+        out.write("{0:>2s} {1:>16f} {2:>16f} {3:>16f}\n".format(e, coords[i][0], coords[i][1], coords[i][2]))
+    out.close()
+
+def clustergen_pytraj(filename='water_solvated.prmtop', trajname='water_solvated-qmmmnvt.netcdf', startframe=0, interval=100, size=4, srun_use=False, spherical=False):
+    r"""
+    Extract microsolvated cluster around center solute
+
+    Parameters
+    ----------
+    filename : str, default: 'water_solvated.prmtop'
+        Filename name of .prmtop files
+    trajname :  str, default: 'water_solvated-qmmmnvt.netcdf'
+        Name of trajectory
+    startframe : int, Optional, default: 0
+        First frame to extract the microsolvated clusters from trajectory
+    interval : int, Optional, default: 100
+        Interval at which to extract microsolvated clusters from trajectory
+    size : float, Optional, default: 4
+        size of solvent shell around center solute in Angstrom
+    spherical : bool, Optional, default: False:
+        switches from default aspherical solvent shell to spherical solvent shell, solvent shell size is not measured from center of mass
+    srun_use : bool, Optional, default: False
+        Run all commands with a srun prefix.
+
+    Returns
+    -------
+    None
+        Result stored as 'filename'-cluster.xyz file
+    """
+    
+    a = pt.load(trajname, top=filename)
+    traj2 = a.xyz
+    if traj2.shape[0] < startframe:
+        print("trajectory too short")
+    solute_n_atom = a.top.mols.__next__().n_atoms
+
+    sluresnames = []
+    pmdtop = a.top.to_parmed()
+    for i in range(solute_n_atom):
+        sluresnames.append(pmdtop.atoms[i].residue.name)
+    sluresnames = list(set(sluresnames))
+
+    center_list = []
+    for atom in pmdtop.atoms:
+        if atom.residue.name in sluresnames:
+            center_list.append(atom.idx)
+    mass_arr = np.array([atom.mass for atom in pmdtop.atoms if atom.residue.name in sluresnames])
+    mass_arr /= mass_arr.sum()
+    print(sluresnames, center_list)
+
+    molecules = []
+    for residue in pmdtop.residues:
+        molecules.append(residue.atoms)
+
+    unit_cell_list = pmdtop.box[:3]
+
+    for iframe in range(startframe, traj2.shape[0], interval):
+        center_xyz = traj2[iframe, np.array(center_list), :]
+        center_xyz = np.average(center_xyz, axis=0)
+        # unit_cell_list = a.unitcell_lengths[0]
+        tshape = traj2.shape
+        unit_cell_list3 = np.repeat(unit_cell_list[np.newaxis, :], tshape[1], axis=0)
+        shift = -center_xyz + unit_cell_list3 / 2.
+        traj3 = np.remainder(traj2[iframe, :, :] + shift, unit_cell_list3)
+        
+        # center of mass for this frame
+        com = traj3[center_list].T.dot(mass_arr)
+
+        dist_molecules = np.empty(len(molecules))
+        select_molecules = []
+        size_molecules = []
+        use_molecules = 0
+
+        for i in range(len(molecules)):
+            select_true = False
+            dist_atom = 10000
+            for atom in molecules[i]:
+                if spherical:
+                    dist4 = np.linalg.norm(traj3[atom.idx, :] - com)
+                    if dist4 < dist_atom:
+                        dist_atom = dist4 
+                else: # aspherical
+                    for center_idx in center_list:
+                        dist4 = np.linalg.norm(traj3[atom.idx, :] - traj3[center_idx, :])
+                        if dist4 < dist_atom:
+                            dist_atom = dist4
+            
+            dist_molecules[i] = dist_atom
+        
+        if iframe == startframe:
+            print('select solvent molecules')
+        dist_use = np.sort(dist_molecules)
+        ncutout = np.argwhere(dist_use > size)[0][0]
+        ncutout = ncutout + 1
+
+        if iframe == startframe:
+            print("for first frame selected", ncutout, 'solvent molecules')
+        
+        select_mol = np.sort(np.argsort(dist_molecules)[:ncutout])
+        
+        if iframe == startframe:
+            print('saving xyz')
+        
+        select_list = []
+        for i in select_mol:
+            for atom in molecules[i]:
+                select_list.append(atom.idx)
+        select_list.sort()
+        
+        #print("select atoms", select_list)
+        
+        select_xyz = traj3[select_list, :]
+        select_atoms = [pmdtop.atoms[i] for i in select_list]
+        select_elems = [atom.name for atom in select_atoms]
+        xyzname = filename.replace(".prmtop", "") + '-cutoutn-' + str(iframe) + '.xyz'
+        write_xyz(xyzname, select_elems, select_xyz)
+        print(xyzname)
+    
 
 def clustergen(filename='water_solvated.prmtop', trajname='water_solvated-qmmmnvt.netcdf', startframe=0, interval=100, size=4, srun_use=False, spherical=False):
     r"""
@@ -179,7 +322,8 @@ def startclustergen(argumentList):
             print("switched to spherical solvent shell")
             spherical=True
 
-    clustergen(filename=filename, trajname=trajname, startframe=startframe, interval=interval, size=size, spherical=spherical, srun_use=srun_use)
+    # clustergen(filename=filename, trajname=trajname, startframe=startframe, interval=interval, size=size, spherical=spherical, srun_use=srun_use)
+    clustergen_pytraj(filename=filename, trajname=trajname, startframe=startframe, interval=interval, size=size, spherical=spherical, srun_use=srun_use)
 
 if __name__ == '__main__':
     argumentList = sys.argv[1:]

@@ -84,6 +84,8 @@ class TransitionMetalComplex(System):
         super(TransitionMetalComplex, self).__init__(name = self.name)
         self.logger.name = self.__class__.__name__
 
+        if isinstance(metal_residue_names, str):
+            metal_residue_names = [metal_residue_names, ]
         self.metal_residue_names = metal_residue_names
         self.legand_residue_names = []
         self.metal_legand_bonds = []

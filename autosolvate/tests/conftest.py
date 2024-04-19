@@ -27,7 +27,10 @@ def _copy_inputs(request):
     tmpdirstr = str(tmpdir)
     os.makedirs(os.path.join(tmpdirstr, "inputs"), exist_ok=True)
     for inputfile in inputfiles:
-        shutil.copy(os.path.join(inputpath, inputfile), os.path.join(tmpdirstr, "inputs"))
+        if os.path.isdir(os.path.join(inputpath, inputfile)):
+            shutil.copytree(os.path.join(inputpath, inputfile), os.path.join(tmpdirstr, "inputs", inputfile))
+        else:
+            shutil.copy(os.path.join(inputpath, inputfile), os.path.join(tmpdirstr, "inputs"))
     
 @pytest.fixture(autouse=True, scope = "session")
 def _activate_autosolvate():

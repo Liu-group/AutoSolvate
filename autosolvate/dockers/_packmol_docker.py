@@ -109,7 +109,10 @@ class PackmolDocker(GeneralDocker):
         if len(solutes) == 1 and solute.number == 1:
             solute_pos  = box.cubesize / 2.0 
             doc.write('{}                                        \n'.format('# add the solute'))
-            doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
+            # doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
+            if not os.path.exists(os.path.join(self.workfolder, os.path.basename(solute.pdb))):
+                shutil.copy(solute.pdb, os.path.join(self.workfolder, os.path.basename(solute.pdb)))
+            doc.write('{:<15} {}                                 \n'.format('structure', os.path.basename(solute.pdb)))
             doc.write('{:<15} {:<5}                              \n'.format('number',    1))
             doc.write('{:<10} {posx} {posy} {posz} {com} {com} {com}\n'.format('fixed', posx=solute_pos[0], posy=solute_pos[1], posz=solute_pos[2], com=0.0))
             doc.write('{:<15}                                    \n'.format('centerofmass'))
@@ -119,7 +122,10 @@ class PackmolDocker(GeneralDocker):
         else:
             for solute in solutes:
                 doc.write('# add solute {}                           \n'.format(solute.name))
-                doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
+                # doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
+                if not os.path.exists(os.path.join(self.workfolder, os.path.basename(solute.pdb))):
+                    shutil.copy(solute.pdb, os.path.join(self.workfolder, os.path.basename(solute.pdb)))
+                doc.write('{:<15} {}                                 \n'.format('structure', os.path.basename(solute.pdb)))
                 doc.write('{:<15} {:<5}                              \n'.format('number',solute.number))
                 doc.write('{:<10} {xmin} {ymin} {zmin} {xmax} {ymax} {zmax}\n'.format('inside box', xmin='0.', ymin='0.', zmin='0.', xmax=box.cubesize[0], ymax=box.cubesize[1], zmax=box.cubesize[2]))
                 doc.write('{:<15} {:<5}                              \n'.format('resnumbers', '2'))
@@ -132,7 +138,10 @@ class PackmolDocker(GeneralDocker):
         for solvent in solvents:
             solvent: Molecule
             doc.write('{} {}                                    \n'.format('# add solvent', solvent.name))
-            doc.write('{:<15} {}                                \n'.format('structure', solvent.pdb))
+            # doc.write('{:<15} {}                                \n'.format('structure', solvent.pdb))
+            if not os.path.exists(os.path.join(self.workfolder, os.path.basename(solvent.pdb))):
+                shutil.copy(solvent.pdb, os.path.join(self.workfolder, os.path.basename(solvent.pdb)))
+            doc.write('{:<15} {}                                \n'.format('structure', os.path.basename(solvent.pdb)))
             doc.write('{:<15} {:<5}                             \n'.format('number',    solvent.number))
             doc.write('{:<10} {xmin} {ymin} {zmin} {xmax} {ymax} {zmax}\n'.format('inside box', xmin='0.', ymin='0.', zmin='0.', xmax=box.cubesize[0], ymax=box.cubesize[1], zmax=box.cubesize[2]))
             doc.write('{:<15} {:<5}                             \n'.format('resnumbers', '2'))
@@ -158,6 +167,19 @@ class PackmolDocker(GeneralDocker):
     def generate_cmd(self) -> str:
         cmd = "{} < {} > {}".format(self.executable, self.packmolinp, self.packmolout)
         return cmd
+    
+    # execute of packmol is a little different with other softwares. the path of input file cannot be very long
+    def execute(self, cmd: str) -> None:
+        cwd = os.getcwd()
+        os.chdir(self.workfolder)
+        tmp_packmolinp = os.path.basename(self.packmolinp)
+        tmp_packmolout = os.path.basename(self.packmolout)
+        cmd = "{} < {} > {}".format(self.executable, tmp_packmolinp, tmp_packmolout)
+        self.logger.info("Running packmol ...")
+        self.logger.info("Packmol command: {}".format(cmd))
+        subprocess.run(cmd, shell=True)
+        os.chdir(cwd)
+
     
     # check if the output file is generated        
     def check_output(self):
@@ -200,8 +222,6 @@ class PackmolDocker(GeneralDocker):
         self.predict_output(mol)
         self.generate_input(mol)
         cmd = self.generate_cmd()
-        self.logger.info("Running packmol ...")
-        self.logger.info("Packmol command: {}".format(cmd))
         self.execute(cmd)
         self.check_output()
         self.process_output(mol)

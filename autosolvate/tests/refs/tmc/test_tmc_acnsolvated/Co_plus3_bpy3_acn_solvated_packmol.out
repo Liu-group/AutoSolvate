@@ -1,0 +1,176 @@
+
+################################################################################
+
+ PACKMOL - Packing optimization for the automated generation of
+ starting configurations for molecular dynamics simulations.
+ 
+                                                              Version 20.010 
+
+################################################################################
+
+  Packmol must be run with: packmol < inputfile.inp 
+
+  Userguide at: http://m3g.iqm.unicamp.br/packmol 
+
+  Reading input file... (Control-C aborts)
+  Seed for random number generator:      1234567
+  Output file: /home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/Co_plus3_bpy3_acn_solvated.pdb
+  Reading coordinate file: /home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/Co_plus3_dry.pdb
+  Reading coordinate file: /home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/ch3cn.pdb
+  Number of independent structures:            2
+  The structures are: 
+  Structure            1 :/home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/Co_plus3_dry.pdb(          61  atoms)
+  Structure            2 :/home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/ch3cn.pdb(           6  atoms)
+  Maximum number of GENCAN loops for all molecule packing:          400
+  Total number of restrictions:            2
+  Distance tolerance:    2.0000000000000000     
+  Residue numbering set for structure            1 :           2
+  Swap chains of molecules of structure            1 : F
+  Residue numbering set for structure            2 :           2
+  Swap chains of molecules of structure            2 : F
+  Number of molecules of type            1 :            1
+  Number of molecules of type            2 :          400
+  Total number of atoms:         2461
+  Molecule /home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/Co_plus3_dry.pdb(           1 ) will be fixed.
+  Total number of molecules:          401
+  Number of fixed molecules:            1
+  Number of free molecules:          400
+  Number of variables:         2400
+  Total number of fixed atoms:           61
+  Maximum internal distance of type            1 :    3.1644331245896149     
+  All atoms must be within these coordinates: 
+   x: [   -998.15221426677272      ,    1001.8477857332273       ] 
+   y: [   -996.79999999999995      ,    1003.2000000000000       ] 
+   z: [   -998.03150357995230      ,    1001.9684964200477       ] 
+  If the system is larger than this, increase the sidemax parameter. 
+
+################################################################################
+
+  Building initial approximation ... 
+
+################################################################################
+
+  Adjusting initial point to fit the constraints 
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            2
+
+  Packing:|0                                                             100%|
+          |*************************************************
+
+  Restraint-only function value:    9.2723927472694208E-003
+  Maximum violation of the restraints:    9.1330975091023468E-003
+
+--------------------------------------------------------------------------------
+
+  Rescaling maximum and minimum coordinates... 
+  Computing size of patches... 
+  Add fixed molecules to permanent arrays... 
+  Reseting center of mass... 
+
+--------------------------------------------------------------------------------
+
+  Setting initial trial coordinates ... 
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            2
+  Adjusting random positions to fit the constraints. 
+  Packing:|0                                                             100%|
+          |*******
+  Restraint-only function value:    1.0629777886091473E-004
+  Maximum violation of the restraints:    1.0044836021788717E-004
+
+################################################################################
+
+  Objective function at initial point:    14922.223387401105     
+
+################################################################################
+
+  Packing molecules of type:            2
+
+################################################################################
+
+
+--------------------------------------------------------------------------------
+
+  Starting GENCAN loop:            0
+  Scaling radii by:    1.1000000000000001     
+
+  Packing:|0                                                             100%|
+          |******************************************************************|
+          |******************************************************************|
+
+  Function value from last GENCAN loop: f = .33447E+01
+  Best function value before: f = .14922E+05
+  Improvement from best function value:    99.98 %
+  Improvement from last loop:    99.98 %
+  Maximum violation of target distance:     0.000000
+  Maximum violation of the constraints: .58485E+00
+  All-type function value: .33447E+01
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+  Starting GENCAN loop:            1
+  Scaling radii by:    1.1000000000000001     
+
+  Packing:|0                                                             100%|
+          |******************************************************************|
+          |****************************
+
+  Function value from last GENCAN loop: f = .28852E-01
+  Best function value before: f = .33447E+01
+  Improvement from best function value:    99.14 %
+  Improvement from last loop:    99.14 %
+  Maximum violation of target distance:     0.000000
+  Maximum violation of the constraints: .64620E-02
+  Current structure written to file: /home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/Co_plus3_bpy3_acn_solvated.pdb
+--------------------------------------------------------------------------------
+  Packing solved for molecules of type           2
+  Objective function value:    2.8851531428015015E-002
+  Maximum violation of target distance:    0.0000000000000000     
+  Max. constraint violation:    6.4620351186514633E-003
+--------------------------------------------------------------------------------
+
+################################################################################
+
+  Packing all molecules together 
+
+################################################################################
+
+
+  Initial approximation is a solution. Nothing to do. 
+
+  Solution written to file: /home/fren5/AutoSolvae-update/AutoSolvate/test_acnsolvated/Co_plus3_bpy3_acn_solvated.pdb
+
+################################################################################
+
+                                 Success! 
+              Final objective function value: .25169E+00
+              Maximum violation of target distance:   0.000000
+              Maximum violation of the constraints: .64620E-02
+
+--------------------------------------------------------------------------------
+
+              Please cite this work if Packmol was useful: 
+
+           L. Martinez, R. Andrade, E. G. Birgin, J. M. Martinez, 
+         PACKMOL: A package for building initial configurations for
+                   molecular dynamics simulations. 
+          Journal of Computational Chemistry, 30:2157-2164,2009.
+
+################################################################################
+
+   Running time:   0.780049026      seconds. 
+
+--------------------------------------------------------------------------------
+
+

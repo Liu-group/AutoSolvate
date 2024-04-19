@@ -1,0 +1,12 @@
+@<TRIPOS>MOLECULE
+CO1
+    1     0     1     0     0
+SMALL
+RESP Charge
+ 
+ 
+@<TRIPOS>ATOM
+      1 CO         -0.0010    0.0160   -0.0000 M1        1 CO1      0.006041
+@<TRIPOS>BOND
+@<TRIPOS>SUBSTRUCTURE
+     1 CO1         1 TEMP              0 ****  ****    0 ROOT
