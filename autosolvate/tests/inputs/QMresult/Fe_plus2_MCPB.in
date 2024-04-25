@@ -1,0 +1,13 @@
+software_version orca
+original_pdb Fe_plus2_final.pdb
+group_name Fe_plus2
+cutoff 2.8
+ion_ids 1
+add_bonded_pairs 1-2 1-13 1-22 1-33 1-42 1-53 
+ion_mol2files FE.mol2
+naa_mol2files  LG0.mol2 LG1.mol2 LG2.mol2
+frcmod_files  LG0.frcmod LG1.frcmod LG2.frcmod
+force_field  ff14SB
+gaff 1
+lgmodel_spin 1
+smmodel_spin 1
