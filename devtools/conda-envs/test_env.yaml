@@ -1,4 +1,4 @@
-name: autosolvate_merge
+name: autosolvate
 channels:
   - conda-forge
 dependencies:
@@ -6,6 +6,7 @@ dependencies:
   - python=3.8
   - pip
   - setuptools
+  - cython
 
     # Testing
   - pytest
@@ -14,6 +15,9 @@ dependencies:
     
     # Openbabel
   - openbabel=3.1.1
+    
+    # molsimplify:
+  - molsimplify=1.7.3
 
     # Molecule visualization
   - nglview
@@ -30,7 +34,7 @@ dependencies:
 
     # Pip-only installs
   - pip:
-    - Cython
+  #  - Cython
     - imolecule
     - pillow
     - rdkit
@@ -38,5 +42,6 @@ dependencies:
     - mendeleev
     - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
     - git+https://github.com/SangniXun/pyvdwsurface_moreelements.git
+
   #  - codecov
 
