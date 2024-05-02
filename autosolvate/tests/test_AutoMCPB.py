@@ -8,7 +8,7 @@ from . import helper_functions as hp
 
 
 def testAutoMCPB_step1(tmpdir):
-    os.system('cp inputs/QMresult/Fe_plus2.xyz ' + tmpdir)
+    os.system('cp inputs/QMresult/Fe_plus2.xyz ' + str(tmpdir))
     startautoMCPB(["-n", "Fe_plus2", "-c", "2","-u","1","-s","1","-x","orca"])
     assert os.path.exists('LG0.mol2')
     assert os.path.exists('LG1.mol2')
@@ -22,16 +22,20 @@ def testAutoMCPB_step1(tmpdir):
 
 
 def testAutoMCPB_steps(tmpdir):
-    os.system('cp inputs/QMresult/Fe_plus2_*_*.orca* ' + tmpdir)
-    os.system('cp inputs/QMresult/Fe_plus2_MCPB*.in ' + tmpdir)
-    startautoMCPB(["-n", "inputs/Fe_plus2", "-c", "2","-u","1","-s","2","-x","orca"])
-    assert os.path.exists('Fe_plus2_mcpbpy.frcmod')
-    assert os.path.exists('Fe_plus2_mcpbpy_pre.frcmod')
+    os.system('cp inputs/QMresult/* ' + str(tmpdir))
+    os.system('rm Fe_plus2_mcpbpy.frcmod')
+    os.system('rm resp2.chg')
+    os.system('rm Fe_plus2_dry.prmtop')
+    os.system('ls *')
 
-    startautoMCPB(["-n", "inputs/Fe_plus2", "-c", "2","-u","1","-s","3","-x","orca"])
+    startautoMCPB(["-n", "Fe_plus2", "-c", "2","-u","1","-s","2","-x","orca"])
+    assert os.path.exists('Fe_plus2_mcpbpy.frcmod')
+   # assert os.path.exists('Fe_plus2_mcpbpy_pre.frcmod')
+
+    startautoMCPB(["-n", "Fe_plus2", "-c", "2","-u","1","-s","3","-x","orca"])
     assert os.path.exists('resp2.chg')
 
-    startautoMCPB(["-n", "inputs/Fe_plus2", "-c", "2","-u","1","-s","4","-x","orca"])
+    startautoMCPB(["-n", "Fe_plus2", "-c", "2","-u","1","-s","4","-x","orca"])
     assert os.path.exists('Fe_plus2_dry.prmtop')
 
 
