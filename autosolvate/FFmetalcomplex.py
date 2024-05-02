@@ -101,7 +101,7 @@ class genFF():
                 int(self.totalcharge)
                 print('The totalcharge is assigned as',self.totalcharge)
             except ValueError:
-                print('Error: Invalid input for the number of procs')
+                print('Error: Invalid input for the number of totalcharge')
                 sys.exit()
         
         if self.opt not in  ["Y","N"]:

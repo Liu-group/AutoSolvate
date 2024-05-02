@@ -76,7 +76,7 @@ class solventBoxBuilderMetal(object):
         if self.outputFile == "":
             self.outputFile = self.pdb_prefix + "_solvated"
         
-        if self.totalcharge in ['default','Default']:
+        if self.totalcharge.upper() in ['DEFAULT']:
             if self.pdb_prefix + '.info' in glob('*.info'):
                 with open(self.pdb_prefix + '.info', 'r') as f:
                     data = f.readlines()
@@ -103,7 +103,14 @@ class solventBoxBuilderMetal(object):
                 self.totalcharge = newtotalcharge
             else:
                 print('Error: can not find',self.pdb_prefix + '.info', 'please assign the charge manually') 
-                sys.exit()          
+                sys.exit()
+        else:
+            try:
+                self.totalcharge = int(totalcharge)
+               # print('The totalcharge is assigned as',self.totalcharge)
+            except ValueError:
+                print('Error: Invalid input for the number of totalcharge')
+                sys.exit()         
 
     def get_ligand_name(self):
         lignames = []
@@ -411,7 +418,7 @@ class solventBoxBuilderMetal(object):
             ofile.close()
     
     def tleap(self):
-        cmd = self.amberhome + 'tleap -f ' + 'leap_add_solventbox.cmd'
+        cmd = self.amberhome + 'tleap -f ' + 'leap_add_solventbox.cmd > tleap.log'
         subprocess.call(cmd,shell=True)
         
     def build(self):
@@ -441,7 +448,7 @@ def startboxgen(argumentList):
     cube_size = 54
     closeness = "automated"
     outputFile = ""
-    amberhome = '$AMBERHOME/bin'
+    amberhome = '$AMBERHOME/bin/'
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate_metal boxgen [OPTIONS]')
@@ -465,7 +472,7 @@ def startboxgen(argumentList):
             outputFile=str(currentValue)
         elif currentArgument in ("-c", "--charge"):
             print ("Charge:", currentValue)
-            totalcharge=currentValue
+            totalcharge=str(currentValue)
         elif currentArgument in ("-b", "--cubesize"):
             print ("Cubesize:", currentValue)
             cube_size=float(currentValue)
