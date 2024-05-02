@@ -209,19 +209,32 @@ class PubChemAPI():
         
         """
         try:
-            mol = pybel.readstring("smi", self.sml)
+            compound_infos = pcp.get_compounds(self.name, 'name', record_type='3d')
             try:
-                mol.make3D(forcefield=self.ff, steps=self.s)
-                mol.write('xyz', self.export, overwrite=True)
+                coord_info = compound_infos[0]
+                atoms = coord_info.atoms
+                num_atoms = str(len(atoms)) + '\n'
+                coordinates_3d = [(atom.element, atom.x, atom.y, atom.z) for atom in atoms]
+
+                with open(self.export, 'w') as file:
+                    file.write(num_atoms)
+                    for line in coordinates_3d:
+                        coord = '\n '
+                        for elem in line:
+                            if type(elem) == str:
+                                coord += ' '
+                                coord += elem
+                            else:
+                                coord += ' '
+                                coord += str(elem)
+                        file.write(coord)
                 print(f'XYZ file successfully saved as {self.export}')
                 return 1
             except:
-                print(f'Error, could not convert {self.sml} into 3D structure with forcefield {self.ff} \
-                      with steps {self.s}.\nTry a different parameter setup using set_force_field() and \
-                        set_steps().')
+                print('3D coordinate is unavailable from PubChem, try upload a xyz file')
                 return 0
         except:
-            print(f'Error, invalid SMILES input {self.sml}, make sure set_up_mol() is called before.')
+            print(f'Error, invalid IUPAC name: {self.name}')
             return 0
     
     def get_info(self):
