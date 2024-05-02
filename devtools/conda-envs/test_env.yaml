@@ -41,7 +41,8 @@ dependencies:
     - ase
     - mendeleev
     - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
-    - git+https://github.com/SangniXun/pyvdwsurface_moreelements.git
+    - git+https://github.com/Liu-group/pyvdwsurface_moreelements.git
+    - git+https://github.com/Liu-group/pymsmt_autosolvate.git
 
   #  - codecov
 
