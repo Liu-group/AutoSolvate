@@ -1,0 +1,9 @@
+REMARK
+ATOM      1   Fe QMR     1       0.000  -0.000   0.000
+ATOM      2   H  QMR     1       0.886   0.351   0.530
+ATOM      3   H  QMR     1       0.082  -0.772   0.765
+ATOM      4   H  QMR     1       0.549  -0.667  -0.664
+ATOM      5   H  QMR     1      -0.841  -0.423  -0.549
+ATOM      6   H  QMR     1      -0.012   0.826  -0.711
+ATOM      7   H  QMR     1      -0.623   0.705   0.550
+END

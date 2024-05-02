@@ -1,0 +1,17 @@
+node7
+/home/sunnyxun/projects/new_project_AutoMCPB/RedoxPotential/Fe/plus2/FFgen
+pascal
+274752
+
+  Error opening unit   30: File "qmmm.ncrst" is missing or unreadable                
+
+  Error opening unit   30: File "qmmm.ncrst" is missing or unreadable                
+AutoSolvate is starting in command line mode!
+Running the module to automatically run MD simulations of solvated structure.
+Filename: Fe_plus2_solvated
+MM Energy minimization
+MM Heating
+MM NPT equilibration
+QMMM Energy minimization
+QMMM Heating
+QMMM NVT Run

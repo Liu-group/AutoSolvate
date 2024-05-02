@@ -1,0 +1,37 @@
+gpr QMMM qmmmnvt.in
+ &cntrl
+  imin   = 0,
+  ntx    = 5, ! 1-read in coordinates, but not velocity, 5-both
+  irest  = 1, ! 0- new simulation 1- restart
+  cut    = 8.0,
+  ig     = -1, !random seed
+  ntc    = 2, ntf    = 2, !Shake is used for solvent
+  ntb    = 1,
+  tempi  = 300,
+  temp0  = 300,
+  ntt    = 3, ! 0=const. E, 1=rescale 3=Langevin dynamics 7-bussi
+  vrand  = 1,
+  tautp  = 0.01,
+  gamma_ln = 5.0, !Langevin dynamics collision frequency
+  nstlim = 10000,  !num steps
+  dt     = 0.0005,  !in ps
+  ntpr   = 1, !print details to log every step
+  ntwx   = 1, !write coordinates to mdcrd every step
+  ntwr   = 1, !write restart file every step
+  ifqnt  = 1,!turn on QM/MM
+/
+ &qmmm
+  qmmask    = ':1',
+  qmcharge  = 0,
+  qmcut     = 8,
+  qmshake   = 0, !Shake QM H atoms if shake is turned on (NTC>1) (default)
+  qm_theory = 'EXTERN',
+  qm_ewald  = 0,
+  qmgb      = 0,
+  verbosity = 2,
+  writepdb  = 1,
+ /
+ &tc
+  executable = 'terachem',
+  use_template = 1,
+ /

@@ -1,0 +1,8 @@
+parm Fe_plus2_solvated.prmtop               # 指定拓扑文件
+trajin Fe_plus2_solvated-mmnpt.netcdf lastframe                      # 读取NetCDF轨迹文件的最后一帧
+#autoimage                                   # 自动调整PBC，通常是将分子移动到盒子中心
+center :1 mass                          # 将整个系统的质心移动到盒子的原点
+                # 将盒子居中并应用familiar选项使得分子保持在盒子中心
+image center familiar
+trajout last_frame_centered.pdb pdb         # 输出处理后的帧为PDB格式
+

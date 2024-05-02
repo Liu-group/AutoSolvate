@@ -1,0 +1,21 @@
+# All atoms from diferent molecules will be at least 1.88 Angstroms apart
+tolerance 1.88
+
+filetype pdb
+
+output Fe_plus2_packmol.pdb
+
+# add the solute
+structure Fe_plus2_mcpbpy.pdb
+   number 1
+   fixed  27.0 27.0 27.0 0. 0. 0.
+   centerofmass
+   resnumbers 2 
+end structure
+
+# add first type of solvent molecules
+structure ch3cn.pdb
+  number 1815 
+  inside cube 0. 0. 0. 54.0 
+  resnumbers 2 
+end structure

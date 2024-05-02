@@ -1,0 +1,12 @@
+@<TRIPOS>MOLECULE
+FE
+    1     0     1     0     0
+SMALL
+User Assigned Charge
+ 
+ 
+@<TRIPOS>ATOM
+      1 FE         -0.0110    0.0150   -0.0100 FE        1 FE       2.000000
+@<TRIPOS>BOND
+@<TRIPOS>SUBSTRUCTURE
+     1 FE          1 TEMP              0 ****  ****    0 ROOT
