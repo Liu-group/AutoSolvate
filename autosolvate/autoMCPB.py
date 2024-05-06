@@ -453,6 +453,20 @@ class AutoMCPB():
                                     cmd = self.amberhome +'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c rc -cf ' + ligandname +'_fake.chg'
                                     with open(ligandname + '_antechamber_generate_fake_charge_mol2.log', 'w') as f:
                                         subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
+
+                            if 'Please check the total charge (-nc flag) and spin multiplicity' in line:
+                                print('warning: the provided charge might not be right for -bcc charge calculation, please check, now attempting using fake charges to generate mol2')
+                                atom_count = 0
+                                with open(ligandname +'___.pdb','r') as f:
+                                    for line in f:
+                                        if line.startswith('ATOM'):
+                                            if len(line) > 10:
+                                                atom_count += 1
+                                    fake_charge = charge / atom_count
+                                with open(ligandname +'_fake.chg','w') as f:
+                                    for i in range(atom_count):
+                                        f.write("%.4f" % fake_charge + ' ')
+                                cmd = self.amberhome +'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c rc -cf ' + ligandname +'_fake.chg'
                                     
             elif len(ligand) == 1:
                 cmd = self.amberhome+'metalpdb2mol2.py -i ' + ligandname + '___.pdb'+ ' -o ' + ligandname + '.mol2' + ' -c ' + str(charge)
@@ -501,6 +515,42 @@ class AutoMCPB():
                 with open(ligandname + '_antechamber_generate_mol2.log', 'w') as f:
                     subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
                 
+                if os.path.exists(ligandname + '_antechamber_generate_mol2.log'):
+                    print('antechamber was processed to generate mol2 file, now checking ' + ligandname + '_antechamber_generate_mol2.log')
+                    with open(ligandname + '_antechamber_generate_mol2.log','r') as f:
+                        for line in f:
+                            if 'Cannot properly run' in line:
+                                if 'sqm -O -i sqm.in -o sqm.out' in line:
+                                    print('Warning, bcc can not converge, attemping using fake charges to generate mol2')
+                                    atom_count = 0
+                                    with open(ligandname +'___.pdb','r') as f:
+                                        for line in f:
+                                            if line.startswith('ATOM'):
+                                                if len(line) > 10:
+                                                    atom_count += 1
+                                    fake_charge = charge / atom_count
+                                    with open(ligandname +'_fake.chg','w') as f:
+                                        for i in range(atom_count):
+                                            f.write("%.4f" % fake_charge + ' ')
+                                    cmd = self.amberhome +'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c rc -cf ' + ligandname +'_fake.chg'
+                                    with open(ligandname + '_antechamber_generate_fake_charge_mol2.log', 'w') as f:
+                                        subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
+                            
+                            if 'Please check the total charge (-nc flag) and spin multiplicity' in line:
+                                print('warning: the provided charge might not be right for -bcc charge calculation, please check, now attempting using fake charges to generate mol2')
+                                atom_count = 0
+                                with open(ligandname +'___.pdb','r') as f:
+                                    for line in f:
+                                        if line.startswith('ATOM'):
+                                            if len(line) > 10:
+                                                atom_count += 1
+                                    fake_charge = charge / atom_count
+                                with open(ligandname +'_fake.chg','w') as f:
+                                    for i in range(atom_count):
+                                        f.write("%.4f" % fake_charge + ' ')
+                                cmd = self.amberhome +'antechamber -fi pdb -fo mol2 -i ' + ligandname +'___.pdb' + ' -o ' + ligandname + '.mol2'  + ' -c rc -cf ' + ligandname +'_fake.chg'
+                                with open(ligandname + '_antechamber_generate_fake_charge_mol2.log', 'w') as f:
+                                    subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
             
             elif length == 1:
                 cmd = self.amberhome+'metalpdb2mol2.py -i ' + ligandname + '___.pdb'+ ' -o ' + ligandname + '.mol2' + ' -c ' + str(charge)
@@ -1087,7 +1137,7 @@ def startautoMCPB(argumentList):
                 -m, --mode              Set the mode (A/M).
                 -f, --chargefile        Specify the charge file if --mode is M.
                                         chargefile example:
-                                        FG1 -1 # ligand name charge 
+                                        LG1 -1 # ligand name charge 
                 -s, --round             round of MCPB.py
                 -x, --software            g09,g16 or gms
                 -A, --amberhome         path of AmberTools bin 
