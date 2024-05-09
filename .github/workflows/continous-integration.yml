@@ -12,9 +12,9 @@ name: Python application
 
 on:
   push:
-    branches: [ "patrick_merge" ]
+    branches: [ "autosolvate_merge" ]
   pull_request:
-    branches: [ "patrick_merge" ]
+    branches: [ "autosolvate_merge" ]
 
 permissions:
   contents: read
