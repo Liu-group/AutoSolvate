@@ -1,0 +1,54 @@
+##################################################################################################
+# @Date:      May 9th 2024
+# @Author:    Patrick 
+# @Email:     pinyuan.li@emory.edu 
+# @Description: environment for merged autosolvate (multicomponent + continous integration) 
+##################################################################################################
+name: autosolvate
+channels:
+  - conda-forge
+dependencies:
+    # Base depends
+  - python=3.8
+  - pip
+  - setuptools
+  - cython
+
+    # Testing
+  - pytest
+  - pytest-cov
+  - codecov
+    
+    # Openbabel
+  - openbabel=3.1.1
+
+    # molsimplify:
+  - molsimplify=1.7.3
+
+    # Molecule visualization
+  - nglview
+
+    # AmberTools
+  - ambertools
+
+    # MDtraj
+  - mdtraj
+
+    # rdkit
+  - rdkit
+
+    # Documentation
+  - sphinx
+  - sphinx_rtd_theme
+
+    # Pip-only installs
+  - pip:
+    - imolecule
+    - pillow
+    - pubchempy
+    - ase
+    - mendeleev
+    - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
+    - git+https://github.com/Liu-group/pyvdwsurface_moreelements.git
+    - git+https://github.com/Liu-group/pymsmt_autosolvate.git
+  #  - codecov
