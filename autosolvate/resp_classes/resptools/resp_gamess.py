@@ -123,6 +123,7 @@ class RespGAMESS(RespABC):
         
         # Header for energy minimization.
         gamess_header['optimize'] = """\
+ $SYSTEM MWORDS=128 $END   
  $CONTRL SCFTYP={scf} EXETYP=RUN RUNTYP=OPTIMIZE COORD=UNIQUE $END
  $CONTRL ICHARG={charge} MULT={multiplicity} $END
  $CONTRL MOLPLT=.TRUE. UNITS=ANGS NPRINT=8 $END
