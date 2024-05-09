@@ -137,6 +137,7 @@ class RespGAMESS(RespABC):
      
         # Header for no optimization case.
         gamess_header['singlepoint'] = """\
+ $SYSTEM MWORDS=128 $END   
  $CONTRL SCFTYP={scf} EXETYP=RUN RUNTYP=ENERGY COORD=UNIQUE $END
  $CONTRL ICHARG={charge} MULT={multiplicity} $END
  $CONTRL MOLPLT=.TRUE. UNITS=ANGS NPRINT=8 $END
