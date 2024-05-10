@@ -16,7 +16,6 @@ class RespGAMESS(RespABC):
         self.srun_use = kwargs["srun_use"] if "srun_use" in kwargs else True # GAMESS script usually requires srun_use
         self.nnodes = kwargs["nnodes"] if "nnodes" in kwargs else 1 # Gamess need
         self.ncpus = kwargs["ncpus"] if "ncpus" in kwargs else 1
-        self.version = kwargs["gamessversion"] if "gamessversion" in kwargs else "01"
         RespABC.__init__(self, **kwargs)
         self.potential = None
 
@@ -36,6 +35,18 @@ class RespGAMESS(RespABC):
                print("Error! Gamess executable path",gamess_path)
                print("Does not exist! Exiting...")
                exit()
+        gmsexe_fnames = glob.glob(os.path.join(self.qm_dir,'gamess.*.x'))
+        gmsexe_versions = []
+        if len(gmsexe_fnames) > 0:
+            gmsexe_versions = [ fname[-4:-2] for fname in gmsexe_fnames]
+        else:
+            print("Error! No GAMESS executable file with name gamess.XX.x found under")
+            print("the given path: ", self.qm_dir, " Exiting...")
+            exit()
+            
+        self.version = kwargs["gamessversion"] if "gamessversion" in kwargs else gmsexe_versions[-1]
+        print("gms_versions: ", gmsexe_versions)
+        # By default, use the latest version of gamess under the directory.
             
 
     def findLineStartWith(self, lines, string):
@@ -132,6 +143,7 @@ class RespGAMESS(RespABC):
  $ELPOT  IEPOT=1 WHERE=PDC OUTPUT=PUNCH $END
  $PDC    PTSEL=CONNOLLY CONSTR=NONE $END
  $GUESS  GUESS=HUCKEL $END
+ $SYSTEM MWORDS=125 $END
 """.format(scf=scf, charge=charge, multiplicity=multiplicity)
      
         # Header for no optimization case.
@@ -144,6 +156,7 @@ class RespGAMESS(RespABC):
  $ELPOT  IEPOT=1 WHERE=PDC OUTPUT=PUNCH $END
  $PDC    PTSEL=CONNOLLY CONSTR=NONE $END
  $GUESS  GUESS=HUCKEL $END
+ $SYSTEM MWORDS=125 $END
 """.format(scf=scf, charge=charge, multiplicity=multiplicity)
      
      
@@ -282,7 +295,7 @@ class RespGAMESS(RespABC):
 
         gamess_inp = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.inp"))
         gamess_log = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.log"))
-        gamess_dat = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.dat"))
+        gamess_dat = os.path.join(self.molname + "_gamess.dat")
         
         
         cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
