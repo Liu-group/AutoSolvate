@@ -14,7 +14,7 @@ support_basisset = ['6-31G','6-31G*','LANL2DZ','6-31GS']
 class genFF():
     def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,folder,
                  mode,spinmult,software,basisset,method,cubesize,closeness,
-                 totalcharge,nprocs,QMexe,amberhome,solvent_off,solvent_frcmod,opt,gamessexe):
+                 totalcharge,nprocs,QMexe,amberhome,solvent_off,solvent_frcmod,opt):
         self.metal_charge = metal_charge
         self.filename = filename
         self.xyzfile = filename + '.xyz'
@@ -31,7 +31,6 @@ class genFF():
         self.solvent_off=solvent_off
         self.solvent_frcmod=solvent_frcmod
         self.opt = opt
-        self.gamessexe = gamessexe
         self.solvent = solvent
         self.cubesize = cubesize
         self.closeness = closeness
@@ -603,10 +602,10 @@ class genFF():
 """
 
 def startFFgen(argumentList):
-    options = 'hm:c:u:v:f:x:k:r:G:n:l:p:s:A:Q:W:e:b:t:z:'
+    options = 'hm:c:u:v:f:x:k:r:G:n:l:p:s:A:Q:e:b:t:z:'
     long_options = ["help",'filename=','metal_charge=','spin=','mode=', 'folder=',
                     'chargefile=','totalcharge=','software=','nprocs=','method=','cubesize=','closeness='
-                    'qmexe=','basisset=','solventoff=','solventfrcmod=','amberhome=','opt=','gamessexe=','solvent=']
+                    'qmexe=','basisset=','solventoff=','solventfrcmod=','amberhome=','opt=','solvent=']
     arguments, values = getopt.getopt(argumentList,options,long_options)
     filename = None
     metal_charge = None
@@ -643,22 +642,20 @@ def startFFgen(argumentList):
                 -v, --mode              Set the mode (A/M).
                 -f, --chargefile        Specify the charge file if --mode is M.
                                         chargefile example:
-                                        FG1 -1 # ligand name charge 
-                -x, --software            g09,g16,gms,orca, default:gms
+                                        LG1 -1 #ligand name charge 
+                -x, --software          gau,g09,g16,gms,orca, default:gms
                 -k, --totalcharge       total charge of the whole system, the default is caluated after charge assignment
                 -r, --nprocs             procs to run orca QM calculation, if -x orca
-                -G  --qmexe             path to QM exe
+                -G  --qmexe             path to QM exe e.g. /opt/orca/5.0.2/orca
                 -n  --method            method of QM default:B3LYP
                 -l  --solventoff        path to the custom solvent .off library file
                 -p  --solventfrcmod     path to the custom solvent .frcmod file
                 -s  --basisset          basisset used in QM calculation, default: 6-31G*
-                -A  --amberhome         path of AmberTools bin
+                -A  --amberhome         path of AmberTools bin default: $AMBERHOME/bin/
                 -Q  --opt               use(Y) or not use(N) the QM optimized structure for charge calculation default: Y
-                -W  --gamessexe         when use orca to calculate opt and freq, the path of gamess exe should be provided
-                                        to calculate charge
-                -e  --solvent           name of solvent (water, methanol, chloroform, nma, ch3cn)
-                -b  --cubesize          size of solvent cube in angstroms
-                -t  --closeness         Solute-solvent closeness setting
+                -e  --solvent           name of solvent (water, methanol, chloroform, nma, acetonitrile)
+                -b  --cubesize          size of solvent cube in angstroms default: 56 
+                -t  --closeness         Solute-solvent closeness setting default value is used if the option is not specified
                 -z  --folder            the path of outputfiles, default: the current folder './'
 
 
@@ -695,8 +692,6 @@ def startFFgen(argumentList):
             amberhome = str(currentValue)
         elif currentArgument in ('-Q','-opt'):
             opt = str(currentValue)
-        elif currentArgument in ('-W','-gamessexe'):
-            gamessexe = str(currentValue)
         elif currentArgument in ('-e','-solvent'):
             solvent = str(currentValue)
         elif currentArgument in ('-b','-cubesize'):
@@ -706,7 +701,7 @@ def startFFgen(argumentList):
         elif currentArgument in ('-z','-folder'):
             folder = str(currentValue)
 
-    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,gamessexe=gamessexe,closeness=closeness,folder = folder,
+    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,closeness=closeness,folder = folder,
                     mode=mode,chargefile=chargefile,software=software,solvent_frcmod=solvent_frcmod,amberhome=amberhome,cubesize=cubesize,
                     totalcharge=totalcharge,nprocs=nprocs,QMexe=QMexe,method=method,solvent_off=solvent_off,opt=opt,solvent=solvent,slv_count=slv_count)
  #   print(arguments)
