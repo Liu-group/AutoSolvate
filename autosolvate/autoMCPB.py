@@ -888,19 +888,13 @@ class AutoMCPB():
         print('******** start to check the force field ******** ')
         missingbond = open('missingbonds.txt','w')
         topology_file = self.filename + '_dry.prmtop'
-        cpptraj_command = 'bondinfo'
-        process = subprocess.Popen([self.amberhome + 'cpptraj','-p',topology_file], 
-                        stdin=subprocess.PIPE, 
-                        stdout=subprocess.PIPE, 
-                        stderr=subprocess.PIPE, 
-                        text=True)
-        output, error = process.communicate(cpptraj_command + '\n')
-        if error:
-            print("Error:", error)
-
-        with open('bondinfo_output.txt', 'w') as file:
-            file.write(output)
-
+        cpptraj_command = 'bondinfo\n'
+        with open('bondinfo.in','w') as f:
+            f.write(cpptraj_command)
+        with open('bondinfo_output.txt', 'w') as output_file:
+            cmd = self.amberhome + 'cpptraj -p ' + topology_file + ' -i bondinfo.in'
+            subprocess.call(cmd,shell=True,stdout=output_file, stderr=subprocess.STDOUT)
+       
         with open(self.filename + '_MCPB.in','r') as file:
             for line in file:
                 if 'ion_ids' in line:
@@ -910,6 +904,8 @@ class AutoMCPB():
                   #  print(add_bonded_pairs)
                 elif 'ion_mol2files' in line:
                     metal_name = line.split()[1].split('.')[0]
+        with open('bondinfo_output.txt','r') as f:
+            output = f.read()
         for sort, line in enumerate(output.split('\n')):
             if '#Bnd'  in line:
                 begin = sort + 1

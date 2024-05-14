@@ -366,7 +366,7 @@ class solventBoxBuilderMetal(object):
             AtomTypes = []
             bondmol = []
             for line in data_tleapin:
-                print(line)
+             #   print(line)
                 if len(line) > 1:
                     if '{' in line:
                         if '}' in line:
