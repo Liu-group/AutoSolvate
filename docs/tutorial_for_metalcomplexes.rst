@@ -93,6 +93,7 @@ When the following messages are printed on your screen, it indicates that all th
 Next, QM calculations for orca_small_opt orca_small_fc orca_large_mk start, if a calculation is finished, the next will start
 
 .. code-block:: text
+
     ******************** start to QM calculations for orca_small_opt orca_small_fc orca_large_mk ********************
     Next to submit Freq calculation
     ORCA opt terminated normally
@@ -104,12 +105,14 @@ When all QM calculations converge, parameters for force field will be generated.
 solvated box are packed when the screen shows:
 
 .. code-block:: text
+
     ********************    start to generate the solvated box******************
     ********************    Autosolvate successfully generates Febpy3_solvated.prmtop ********************
 
 The output files generated throughout the process will be listed in your directory, confirming the success of the computations and parameter generation.
 
 .. code-block:: text
+   
     autosolvate.log                    Febpy3_mcpbpy.frcmod                Febpy3_solv.prmtop                 LG0.smi                            LG2.smi
     bondinfo.in                        Febpy3_mcpbpy.pdb                   Febpy3_standard.fingerprint        LG0_temp.pdb                       LG2_temp.pdb
     bondinfo_output.txt                Febpy3_mcpbpy_pre.frcmod            Febpy3_standard.pdb                LG0.xyz                            LG2.xyz
