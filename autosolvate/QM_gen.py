@@ -129,47 +129,65 @@ class QM_inputs_gen():
         self.nprocs = nprocs
         self.opt = opt
 
-        if self.totalcharge in ['default','Default'] or self.metal in ['default','Default']:
-            try:
-                with open(self.info, 'r') as f:
-                    data = f.readlines()
+        if self.totalcharge in ['default','Default'] :
+            with open(self.info, 'r') as f:
+                data = f.readlines()
 
-                begin, end = 0, len(data) 
-                for sort, line in enumerate(data):
-                    if '@charges' in line:
-                        begin = sort + 1
-                    elif '@connection_infos' in line:
-                        end = sort
-                newtotalcharge = 0  
+            begin, end = 0, len(data) 
+            for sort, line in enumerate(data):
+                if '@charges' in line:
+                    begin = sort + 1
+                elif '@connection_infos' in line:
+                    end = sort
+            newtotalcharge = 0  
 
-                for line in data[begin:end]:
-                    if 'LG' not in line:
-                        parts = line.split()
-                        if len(parts) == 2:
-                            new_metal = parts[0].capitalize()
-                            self.metal = new_metal
-                            metalcharge = int(parts[1])
-                            newtotalcharge += metalcharge
-                    else:
-                        parts = line.split()
-                        if len(parts) == 2:
-                            ligand = parts[0].capitalize()
-                            ligandchg = int(parts[1])
-                            newtotalcharge += ligandchg
-                self.totalcharge = newtotalcharge
+            for line in data[begin:end]:
+                if 'LG' not in line:
+                    parts = line.split()
+                    if len(parts) == 2:
+                        new_metal = parts[0].capitalize()
+                        metalcharge = int(float(parts[1]))
+                        newtotalcharge += metalcharge
+                else:
+                    parts = line.split()
+                    if len(parts) == 2:
+                        ligand = parts[0].capitalize()
+                        ligandchg = int(float(parts[1]))
+                        newtotalcharge += ligandchg
+            self.totalcharge = newtotalcharge
+            
+        if self.metal in ['default','Default']:
+            with open(self.info, 'r') as f:
+                data = f.readlines()
 
-            except FileNotFoundError:
-                print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
-                sys.exit()
-            except IOError:
-                print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
-                sys.exit()
-            except IndexError:
-                print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
-                sys.exit()
-            except ValueError:
-                print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
-                sys.exit()
+            begin, end = 0, len(data) 
+            for sort, line in enumerate(data):
+                if '@charges' in line:
+                    begin = sort + 1
+                elif '@connection_infos' in line:
+                    end = sort
+
+            for line in data[begin:end]:
+                if 'LG' not in line:
+                    parts = line.split()
+                    if len(parts) == 2:
+                        new_metal = parts[0].capitalize()
+                        self.metal = new_metal
+            
+         #   print('########### total charge is ', self.totalcharge)
+
+        #    except FileNotFoundError:
+        #        print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
+        #        sys.exit()
+          #  except IOError:
+        #        print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
+        #        sys.exit()
+         #   except IndexError:
+         #       print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
+         #       sys.exit()
+       #     except ValueError:
+          #      print('Error, cant find',self.info, ' or the info file is not correct, please assign the metal name and total charge manually')
+            #    sys.exit()
     
     def write_gaussian_opt(self,crds,out,multi,totalcharge,nprocs,basisset,method):
         chkfile = self.filename + '_small_opt.chk'
@@ -326,7 +344,7 @@ class QM_inputs_gen():
                                                              basisset=self.basisset,totalcharge=self.totalcharge,
                                                              metal=self.metal,nprocs=self.nprocs)
             ECPinput.write_orca_mk(crds=crds,multi=multi,
-                                   totalcharge=totalcharge,basiset=basiset,method=method,out=out)
+                                   totalcharge=self.totalcharge,basiset=basiset,method=method,out=out)
     
     def write_gms_opt(self,inp,out,multi,totalcharge,basiset,method):  ## just for 6-31g*
         if basiset in ['6-31gs','6-31GS','6-31G*','6-31g*']:
@@ -355,9 +373,9 @@ class QM_inputs_gen():
                 
                 ofile.write( " $SYSTEM MEMDDI=400 MWORDS=200 $END\n")
                 if int(multi) > 1:
-                    ofile.write(" $CONTRL SCFTYP=UHF DFTTYP=" + method + " RUNTYP=OPTIMIZE\n      ICHARG=" + str(totalcharge) + " MULT=" + str(multi)+" MAXIT=200 $END\n")
+                    ofile.write(" $CONTRL SCFTYP=UHF DFTTYP=" + method + " RUNTYP=OPTIMIZE\n      ICHARG=" + str(self.totalcharge) + " MULT=" + str(multi)+" MAXIT=200 $END\n")
                 else:
-                    ofile.write(" $CONTRL DFTTYP=" + method + " RUNTYP=OPTIMIZE\n        ICHARG=" + str(totalcharge) + " MULT=" + str(multi)+" MAXIT=200 $END\n")
+                    ofile.write(" $CONTRL DFTTYP=" + method + " RUNTYP=OPTIMIZE\n        ICHARG=" + str(self.totalcharge) + " MULT=" + str(multi)+" MAXIT=200 $END\n")
                 ofile.write(' $STATPT NSTEP=1000 $END\n')
             
                 ofile.write(' $BASIS GBASIS=N31 NGAUSS=6 NDFUNC=1 $END\n')
@@ -373,7 +391,7 @@ class QM_inputs_gen():
                                                     multi=self.multi,method=self.method,
                                                     basisset=self.basisset,totalcharge=self.totalcharge,
                                                     metal=self.metal,nprocs=self.nprocs)
-            ECPinput.write_gms_opt(inp,out,multi,totalcharge,basiset,method)
+            ECPinput.write_gms_opt(inp,out,multi,self.totalcharge,basiset,method)
 
     
     def write_gms_fc(self, inp, out, multi, totalcharge, basiset, method):
@@ -424,9 +442,9 @@ class QM_inputs_gen():
         if basiset.upper() in ['6-31G','6-31G*','6-31GS']:
             ofile = open(out,'w')
             ofile.write(' $SYSTEM MEMDDI=400 MWORDS=200 $END\n')
-            line = ' $CONTRL DFTTYP=' + method.upper() + ' ICHARG=' + str(totalcharge) + ' MULT=1'  + ' $END\n'
+            line = ' $CONTRL DFTTYP=' + method.upper() + ' ICHARG=' + str(self.totalcharge) + ' MULT=1'  + ' $END\n'
             if int(multi) > 1:
-                line = ' $CONTRL SCFTYP=UHF DFTTYP=' + method.upper() + ' ICHARG=' + str(totalcharge) + ' MULT=' + str(multi) + '\n       MAXIT=200 $END\n'
+                line = ' $CONTRL SCFTYP=UHF DFTTYP=' + method.upper() + ' ICHARG=' + str(self.totalcharge) + ' MULT=' + str(multi) + '\n       MAXIT=200 $END\n'
             ofile.write(line)
             ofile.write(' $ELPOT IEPOT=1 WHERE=PDC $END\n')
             ofile.write(' $PDC PTSEL=CONNOLLY CONSTR=NONE $END\n')
@@ -577,7 +595,7 @@ def startautoQM(argumentList):
     arguments, values = getopt.getopt(argumentList,options,long_options)
     software = 'gms'
     filename = None
-    totalcharge = str(0)
+    totalcharge = 'default'
     multi = '1'
     caltype = None
     metal = 'default'

@@ -26,6 +26,7 @@ class genFF():
         self.basisset = basisset
         self.method = method
         self.totalcharge = totalcharge
+    #    print('################ totalcharge is ',self.totalcharge)
         self.nprocs = nprocs
         self.QMexe = QMexe
         self.amberhome = amberhome
