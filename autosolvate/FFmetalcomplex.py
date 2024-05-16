@@ -6,6 +6,7 @@ from . import boxgen_metal
 import getopt
 from . import gen_esp
 import subprocess
+from glob import glob
 
 support_method = ['B3LYP']
 support_basisset = ['6-31G','6-31G*','LANL2DZ','6-31GS']
@@ -362,7 +363,7 @@ class genFF():
                 print('Freq calculation is finished, start to run QM charge calculation')
 
     def runQM_mk(self):
-        print('runingg QM mk')
+        print('start to run charge calculation')
         if self.software in[ 'gms' ]:
             mkinp = self.filename + '_large_mk.inp'
             mkout = self.filename + '_large_mk.log'
@@ -538,27 +539,35 @@ class genFF():
                 """ 
 
         elif checkmk == 'notconverged':
-            print('Erorr: charge calculation is not finished!')
+            raise TypeError('Erorr: charge calculation is not finished!')
             sys.exit()
         if os.path.exists('resp2.chg'):
             step7 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
                         mode=self.mode,chargefile=self.chargefile,round='4',software=self.software,amberhome=self.amberhome)
             step7.build()
         else:
-            print('Erorr: can not find resp2.chg')
+            raise TypeError('Erorr: can not find resp2.chg')
             sys.exit()
         if os.path.exists(self.filename + '_dry.prmtop'):
             step8 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
                         mode=self.mode,chargefile=self.chargefile,round='5',software=self.software,amberhome=self.amberhome)
             step8.build()
         else:
-            print('Erorr: can not find ' + self.filename + '_dry.prmtop')
+            raise TypeError('Erorr: can not find ' + self.filename + '_dry.prmtop')
+        
+        print('********************    start to generate the solvated box********************    ')
         
         step9 = boxgen_metal.solventBoxBuilderMetal(pdb_prefix=self.filename,totalcharge=self.totalcharge,solvent=self.solvent,
                                               solvent_frcmod=self.solvent_frcmod, solvent_off=self.solvent_off,closeness=self.closeness,
                                              outputFile='',amberhome=self.amberhome,cube_size=self.cubesize,slv_count=self.slv_count)
         step9.build()
+        solvated_prmtop = self.filename +'_solvated.prmtop'
+        if solvated_prmtop in glob('*.prmtop'):
+            print('********************    Autosolvate successfully generates', solvated_prmtop,'********************    ')
+        else:
+            raise TypeError('Erorr: can not find ' + solvated_prmtop + ', please check tleap.log')
         os.chdir(cwd)
+
 """
         pdb_prefix = self.filename
         solvent = self.solvent

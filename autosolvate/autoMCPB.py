@@ -876,7 +876,7 @@ class AutoMCPB():
             if self.software in ['orca','ORCA','Orca']:
                 cmd = 'MCPB_orca ' + self.filename + '_MCPB.in ' + self.round
             with open('MCPB_4.log', 'w') as output_file:
-                subprocess.call(cmd,shell=True)
+                subprocess.call(cmd,shell=True,stdout=output_file, stderr=subprocess.STDOUT)
             inp = self.filename + '_tleap.in'
             outfile = self.filename + '_tleap_check.in'
             self.check_tleapin(inp,outfile)

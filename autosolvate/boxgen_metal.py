@@ -136,11 +136,11 @@ class solventBoxBuilderMetal(object):
     def writeTleapcmd_add_solvent(self,lignames,frcmondnames):
         if self.pdb_prefix + '_tleap.in' in glob('*'):
             tleapin = open(self.pdb_prefix + '_tleap.in', 'r')
-            print(self.pdb_prefix + '_tleap.in')
+          #  print(self.pdb_prefix + '_tleap.in')
             data_tleapin = tleapin.readlines()
             tleapin.close()
             ofile = open("leap_add_solventbox.cmd","w")
-            print('leap_add_solventbox.cmd')
+         #   print('leap_add_solventbox.cmd')
             ofile.write("source leaprc.protein.ff14SB\n")
             ofile.write("source leaprc.gaff\n")
             ofile.write("source leaprc.water.tip3p\n")
