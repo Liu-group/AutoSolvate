@@ -157,7 +157,7 @@ Now, with the `Febpy3_solvated.inpcrd`, `Febpy3_solvated.prmtop`, and `Febpy3_so
 
 
 Example 2: Fe(bpy)3 in acetonitrile
-----------------------------
+-----------------------------------
 
 **Command Line Execution**
 
@@ -172,7 +172,7 @@ The rest steps are the same with Example 1.
 
 
 Example 3: Fe(bpy)3 in DMSO
-----------------------------
+---------------------------
 
 **Command Line Execution**
 
@@ -186,3 +186,26 @@ for more details about  generate the force field for Fe(bpy)3 in customized solv
     autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -l dmso.off -p dmso.frcmod
 
 The rest steps are the same with Example 2.
+
+
+Example 4: Fe(bpy)3 in water with M mode to assign charges
+----------------------------------------------------------
+
+During the file preparation for MCPB.py step 1, the automatic mode of ligand-charge assignment is applicable only when the organic ligands do not exhibit any spin multiplicity. Autosolvate also provides a manual mode for assigning formal charges
+
+.. code-block:: bash
+
+    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water -v M -f charge.txt
+
+**Parameters:**
+
+- ``-v``: M means manual mode for ligand's charge assignment
+- ``-f``: txt file of charge for each ligand
+
+an example of `charge.txt` for -f opition.
+
+.. code-block:: text
+
+    LG0 0
+    LG1 0
+    LG2 0
