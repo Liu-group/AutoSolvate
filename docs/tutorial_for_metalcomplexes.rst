@@ -1,161 +1,77 @@
-Tutorial for Force Field Generation of Organometallic Compounds
-====================================================================================================================
-The following tutorial illustrates the Automating Force Field Generation for Organometallic Compounds with the Autosolvate in the command line interface (CLI).
 
-There will be three example systems: Fe(bpy)3 in water,  Fe(bpy)3 in acetonitrile, Fe(bpy)3 in DCM
+Tutorial for Force Field Generation of Organometallic Compounds
+================================================================
+
+This tutorial illustrates how to automate the force field generation for organometallic compounds using AutoSolvate via the command line interface (CLI). We will cover three systems: Fe(bpy)3 in water, Fe(bpy)3 in acetonitrile, and Fe(bpy)3 in DCM.
 
 Prerequisites
--------------------------------------------
-Once you have AutoSolvate and all dependencies installed you will need the organometallic compound's xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The Fe(bpy)3.xyz is provided below so that you can follow along on your own computer.
-Please install one of the following quantum mechanics software programs: Gaussian, Orca, or GAMESS-US, to perform quantum mechanical calculations for force field parameterization.
+-------------
+Before starting, ensure you have AutoSolvate and all necessary dependencies installed. You will also need the organometallic compound's .xyz file for each molecule. Place each molecule in its own directory to prevent file overwriting. Quantum mechanics software such as Gaussian, Orca, or GAMESS-US is required for quantum mechanical calculations needed for force field parameterization.
+
 .. image:: _images/metalTutorial_1.png
-   :width: 400
-::
+   :width: 400 px
 
-.. note::
+You can download the necessary xyz file here:
+:download:`Febpy3.xyz <_data/Febpy3.xyz>`
 
-  You can download both xyz files here:
-  :download:`naphthalene_neutral.xyz <_data/Febpy3.xyz>`
-Now that you have the structures, make a directory for each example. We will start with the Fe(bpy)3 molecule with Fe+2 . 
+Example 1: Fe(bpy)3 in Water
+----------------------------
 
-Example 1: Fe(bpy)3 in water
--------------------------------------------
+**Command Line Execution**
 
-The entire process of generating the force field for Fe(bpy)3 can be completed in a single step using the following command:
+Execute the following command to generate the force field for Fe(bpy)3 in water:
 
-``autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water``
+.. code-block:: bash
 
-There are 7 options that users are recommended to specify:
+    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water
 
--m: Full Name to the .xyz file in current file
--c: Charge of the metal atom
--u: Spin multiplicity of the entire compound
--x: Name of the QM software such as gau,orca,gms
--r: Number of processors for running the QM calculation
--G: Path to the QM software executable
--e: Type of solvent
-All other options will be set to default values.
+**Parameters:**
 
-This command can be incorporated into a script for submission to compute nodes, as shown in the example below:
+- ``-m``: Path to the .xyz file
+- ``-c``: Charge of the metal atom
+- ``-u``: Spin multiplicity of the compound
+- ``-x``: Quantum mechanics software to use (gau, orca, gms)
+- ``-r``: Number of processors for the QM calculation
+- ``-G``: Path to the QM software executable
+- ``-e``: Solvent type
 
-``#!/bin/bash
-#SBATCH --time=144:00:00
-#SBATCH --partition=week-long
-#SBATCH --nodes=1
-#SBATCH --mem=1G
-#SBATCH --ntasks=32
-#SBATCH --cpus-per-task=1
-#SBATCH --partition=cpuq
-echo $HOSTNAME
-echo $SLURM_SUBMIT_DIR
-echo $SLURM_SUBMIT_HOST
-echo $SLURM_JOB_ID
-module load orca/5.0.2
-autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water``
+**Script for Compute Node Submission**
 
-If AutoSolvate is running successfully, the following messages will be printed to your screen::
+You can use the following script to submit this job on a compute node:
 
-AutoSolvate is starting in command line mode!
-Running the module to generate solvent box and force field parameters for organometallic compounds.
-******************** start to generate inputs for MCPB.py -s 1 ********************
-antechamber was processed to generate mol2 file, now checking LG0_antechamber_generate_mol2.log
-antechamber was processed to generate mol2 file, now checking LG1_antechamber_generate_mol2.log
-antechamber was processed to generate mol2 file, now checking LG2_antechamber_generate_mol2.log
-Febpy3_final.pdb is generated
-add_bonded_pairs 1-2 1-13 1-22 1-33 1-42 1-53
-FE.mol2 is generated
-LG0.mol2 is generated
-LG1.mol2 is generated
-LG2.mol2 is generated
-LG0.frcmod is generated
-LG1.frcmod is generated
-LG2.frcmod is generated
-charge assigned for each ligand:
-FE 2
-LG0 0
-LG1 0
-LG2 0
-******************** Finish generating inputs for MCPB.py -s 1 ********************
-******************** start to QM calculations for orca_small_opt orca_small_fc orca_large_mk ********************
-Next to submit Freq calculation
-ORCA opt terminated normally
-Freq calculation is finished, start to run QM charge calculation
-ORCA opt terminated normally
-start to run charge calculation
+.. code-block:: bash
 
+    #!/bin/bash
+    #SBATCH --time=144:00:00
+    #SBATCH --partition=week-long
+    #SBATCH --nodes=1
+    #SBATCH --mem=1G
+    #SBATCH --ntasks=32
+    #SBATCH --cpus-per-task=1
+    #SBATCH --partition=cpuq
+    echo $HOSTNAME
+    echo $SLURM_SUBMIT_DIR
+    echo $SLURM_SUBMIT_HOST
+    echo $SLURM_JOB_ID
+    module load orca/5.0.2
+    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water
 
-after all QM calculations are finished, the following messages will be printed to your screen::
-******************** start to generate inputs for MCPB.py -s 2 ********************
-checking the file generated by QM calculation:
+**Expected Output**
 
-Febpy3_small_fc.orcaout is generated by the first round of MCPB.py 
+When AutoSolvate runs successfully, the following messages will be printed on your screen, indicating the start of the module to generate solvent boxes and force field parameters:
 
-Febpy3_small_opt.orca_trj.xyz is generated by the first round of MCPB.py 
+.. code-block:: text
 
-Febpy3_small_opt.orcaout is generated by the first round of MCPB.py 
+    AutoSolvate is starting in command line mode!
+    Running the module to generate solvent box and force field parameters for organometallic compounds.
 
-Febpy3_large_mk.orcaout is generated by the first round of MCPB.py 
+The output files generated throughout the process will be listed in your directory, confirming the success of the computations and parameter generation.
 
-Febpy3_mcpbpy.frcmod is generated by MCPB.py -s
-******************** Finish generating frcmod files for metal bonds ********************
-********************    start to generate inputs for MCPB.py -s 3   ********************
-ORCA opt terminated normally
-/opt/orca/5.0.2/orca_vpot Febpy3_large_mk.orca.gbw Febpy3_large_mk.orca.scfp esp.xyz Febpy3_large_mk.orcaespout
-Febpy3_mcpbpy.frcmod is generated by the secondary round of MCPB.py 
+**Checking the Final Output**
 
-Febpy3_mcpbpy_pre.frcmod is generated by the secondary round of MCPB.py 
-
-******** start to check the force field ******** 
-metal bond 1-2 is parameterized in prmtop file
-metal bond 1-13 is parameterized in prmtop file
-metal bond 1-22 is parameterized in prmtop file
-metal bond 1-33 is parameterized in prmtop file
-metal bond 1-42 is parameterized in prmtop file
-metal bond 1-53 is parameterized in prmtop file
-******** start to use ParmEd to check Force Field ********
-LJ_Radius of metal bonds > 1 Angstrom
-the avg of bond Frc Cnst < 200 
-the avg of bond R e < 200 
-Warning: the avg of angle Frc Cnst > 100 
-Warning: the avg of  Theta eq >= 100 degree
-********************    start to generate the solvated box********************    
-********************    Autosolvate successfully generates Febpy3_solvated.prmtop ********************
-
-Additionally, these files should all be in your directory now::
-autosolvate.log                    Febpy3_mcpbpy.frcmod                Febpy3_solv.prmtop                 LG0.smi                            LG2.smi
-bondinfo.in                        Febpy3_mcpbpy.pdb                   Febpy3_standard.fingerprint        LG0_temp.pdb                       LG2_temp.pdb
-bondinfo_output.txt                Febpy3_mcpbpy_pre.frcmod            Febpy3_standard.pdb                LG0.xyz                            LG2.xyz
-esp_gen.log                        Febpy3_small_fc.com                 Febpy3_temp.pdb                    LG1_antechamber_generate_mol2.log  MCPB_1.log
-esp.xyz                            Febpy3_small_fc.inp                 Febpy3_tleap_check.in              LG1_FE.xyz                         MCPB_2.log
-FE1.mol2                           Febpy3_small_fc.orca                Febpy3_tleap_check.out             LG1.frcmod                         MCPB_4.log
-Febpy3_dry.inpcrd                  Febpy3_small_fc.orca.densities      Febpy3_tleap.in                    LG1.mol2                           mcpbpy_parmed.in
-Febpy3_dry.pdb                     Febpy3_small_fc.orca.gbw            Febpy3.xyz                         LG1_obabel_smi.log                 missingbonds.txt
-Febpy3_dry.prmtop                  Febpy3_small_fc.orca.hess           FE.mol2                            LG1___.pdb                         orca.sh
-Febpy3_final_nonprot.pdb           Febpy3_small_fc.orcaout             FE.pdb                             LG1__.pdb                          parmed.out
-Febpy3_final.pdb                   Febpy3_small_fc.orca_property.txt   FE_temp.pdb                        LG1_.pdb                           resp1_calc.esp
-Febpy3_final_renum.txt             Febpy3_small_opt.com                FE.xyz                             LG1.pdb                            resp1.chg
-Febpy3_final_sslink                Febpy3_small_opt.inp                genmetalmol2.py                    LG1.sdf                            resp1.in
-Febpy3_final.xyz                   Febpy3_small_opt.orca               L01.mol2                           LG1_sdf.log                        resp1.out
-Febpy3.info                        Febpy3_small_opt.orca.densities     L11.mol2                           LG1.smi                            resp1.pch
-Febpy3_large.fingerprint           Febpy3_small_opt.orca.engrad        L21.mol2                           LG1_temp.pdb                       resp2_calc.esp
-Febpy3_large_mk.com                Febpy3_small_opt.orca.gbw           leap_add_solventbox.cmd            LG1.xyz                            resp2.chg
-Febpy3_large_mk.inp                Febpy3_small_opt.orca.opt           leap.log                           LG2_antechamber_generate_mol2.log  resp2.in
-Febpy3_large_mk.orca               Febpy3_small_opt.orcaout            LG0_antechamber_generate_mol2.log  LG2_FE.xyz                         resp2.out
-Febpy3_large_mk.orca.densities     Febpy3_small_opt.orca_property.txt  LG0_FE.xyz                         LG2.frcmod                         resp2.pch
-Febpy3_large_mk.orca.esp           Febpy3_small_opt.orca_trj.xyz       LG0.frcmod                         LG2.mol2                           respinputgen.log
-Febpy3_large_mk.orcaespout         Febpy3_small_opt.orca.xyz           LG0.mol2                           LG2_obabel_smi.log                 slurm-332789.out
-Febpy3_large_mk.orca.gbw           Febpy3_small.pdb                    LG0_obabel_smi.log                 LG2___.pdb                         sqm.in
-Febpy3_large_mk.orca.K.tmp         Febpy3_small.res                    LG0___.pdb                         LG2__.pdb                          sqm.out
-Febpy3_large_mk.orcaout            Febpy3_solvated.inpcrd              LG0__.pdb                          LG2_.pdb                           sqm.pdb
-Febpy3_large_mk.orca_property.txt  Febpy3_solvated.pdb                 LG0_.pdb                           LG2.pdb                            tleap.log
-Febpy3_large.pdb                   Febpy3_solvated.prmtop              LG0.pdb                            LG2_pdb4amber.log                  tleap_MCPB.log
-Febpy3_MCPB.in                     Febpy3_solv.inpcrd                  LG0.sdf                            LG2.sdf
-Febpy3_MCPB_orca.in                Febpy3_solv.pdb                     LG0_sdf.log                        LG2_sdf.log
-
-The three files that we care about for moving forward to the next MD simulation are the ones with the output prefix Febpy3_solvated (the last three listed above). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber parameter topology. The ``.pdb`` file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there. The block below shows the first few lines of the ``.pdb`` file::
+The final step involves checking the generated parameter files, specifically the .pdb file containing the coordinates for the solute in the solvent box. You want to ensure that both the solvent and the solute are correctly placed.
 
 .. image:: _images/advancedTutorial3_2.png
-   :width: 400
+   :width: 400 px
 
-
-With these three files, we are ready to proceed to the next step!
+Now, with the `.inpcrd`, `.prmtop`, and `.pdb` files, you are fully equipped to proceed to the molecular dynamics simulations.
