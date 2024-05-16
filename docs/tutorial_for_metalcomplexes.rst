@@ -66,15 +66,16 @@ When AutoSolvate runs, the following messages will be printed on your screen, in
     AutoSolvate is starting in command line mode!
     Running the module to generate solvent box and force field parameters for organometallic compounds.
 
-When the following messages printed on your screen, it indicates that all the files required for MCPB.py are generated
+When the following messages are printed on your screen, it indicates that all the files required for MCPB.py are generated:
 
 .. code-block:: text
+
     ******************** start to generate inputs for MCPB.py -s 1 ********************
     antechamber was processed to generate mol2 file, now checking LG0_antechamber_generate_mol2.log
     antechamber was processed to generate mol2 file, now checking LG1_antechamber_generate_mol2.log
     antechamber was processed to generate mol2 file, now checking LG2_antechamber_generate_mol2.log
     Febpy3_final.pdb is generated
-    add_bonded_pairs 1-2 1-13 1-22 1-33 1-42 1-53
+    add_bonded pairs 1-2 1-13 1-22 1-33 1-42 1-53
     FE.mol2 is generated
     LG0.mol2 is generated
     LG1.mol2 is generated
