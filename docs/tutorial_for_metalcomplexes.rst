@@ -181,6 +181,7 @@ Example 3: Fe(bpy)3 in DMSO
 Execute the following command to generate the force field for Fe(bpy)3 in DMSO:
 Autosolvate will use the default values for other options
 for more details about  generate the force field for Fe(bpy)3 in customized solvents such as DMSO, users could refer to the advanced tutorial :download:`advancedTutorial.rst <./advancedTutorial.rst>`
+
 .. code-block:: bash
 
     autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -l dmso.off -p dmso.frcmod
