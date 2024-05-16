@@ -1,5 +1,5 @@
 Tutorial for Force Field Generation of Organometallic Compounds
-=============================
+====================================================================================================================
 The following tutorial illustrates the Automating Force Field Generation for Organometallic Compounds with the Autosolvate in the command line interface (CLI).
 
 There will be three example systems: Fe(bpy)3 in water,  Fe(bpy)3 in acetonitrile, Fe(bpy)3 in DCM
@@ -10,6 +10,7 @@ Once you have AutoSolvate and all dependencies installed you will need the organ
 Please install one of the following quantum mechanics software programs: Gaussian, Orca, or GAMESS-US, to perform quantum mechanical calculations for force field parameterization.
 .. image:: _images/metalTutorial_1.png
    :width: 400
+::
 
 .. note::
 
