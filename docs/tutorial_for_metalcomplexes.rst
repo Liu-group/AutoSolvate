@@ -2,7 +2,7 @@
 Tutorial for Force Field Generation of Organometallic Compounds
 ================================================================
 
-This tutorial illustrates how to automate the force field generation for organometallic compounds using AutoSolvate via the command line interface (CLI). We will cover three systems: Fe(bpy)3 in water, Fe(bpy)3 in acetonitrile, and Fe(bpy)3 in DCM.
+This tutorial illustrates how to automate the force field generation for organometallic compounds using AutoSolvate via the command line interface (CLI). We will cover three systems: Fe(bpy)3 in water, Fe(bpy)3 in acetonitrile, and Fe(bpy)3 in DMSO.
 
 Prerequisites
 -------------
@@ -146,9 +146,43 @@ The output files generated throughout the process will be listed in your directo
 
 **Checking the Final Output**
 
+`Febpy3_dry.prmtop` is the prmtop file of the single compound
+
 The final step involves checking the generated parameter files, specifically the .pdb file containing the coordinates for the solute in the solvent box. You want to ensure that both the solvent and the solute are correctly placed.
 
 .. image:: _images/advancedTutorial3_2.png
    :width: 400 px
 
-Now, with the `Febpy3_solvated.inpcrd`, `Febpy3_solvated.prmtop`, and `Febpy3_solvated.pdb` files, you are fully equipped to proceed to the molecular dynamics simulations.
+Now, with the `Febpy3_solvated.inpcrd`, `Febpy3_solvated.prmtop`, and `Febpy3_solvated.pdb` files, you are fully equipped to proceed to the molecular dynamics simulations. 
+
+
+Example 2: Fe(bpy)3 in acetonitrile
+----------------------------
+
+**Command Line Execution**
+
+Execute the following command to generate the force field for Fe(bpy)3 in acetonitrile:
+Autosolvate will use the default values for other options
+
+.. code-block:: bash
+
+    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e acetonitrile
+
+The rest steps are the same with Example 1.
+
+
+Example 3: Fe(bpy)3 in DMSO
+----------------------------
+
+**Command Line Execution**
+
+
+
+Execute the following command to generate the force field for Fe(bpy)3 in DMSO:
+Autosolvate will use the default values for other options
+for more details about  generate the force field for Fe(bpy)3 in customized solvents such as DMSO, users could refer to the advanced tutorial :download:`advancedTutorial.rst <./advancedTutorial.rst>`
+.. code-block:: bash
+
+    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -l dmso.off -p dmso.frcmod
+
+The rest steps are the same with Example 2.
