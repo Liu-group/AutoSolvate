@@ -36,7 +36,7 @@ jobs:
         channel-priority: true
 
     - name: Create conda environment
-      run: conda env create -f devtools/conda-envs/doc_env.yaml
+      run: conda env create -f devtools/conda-envs/test_env.yaml
 
     - name: Activate conda environment
       shell: bash -l {0}
