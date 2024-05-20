@@ -1,15 +1,17 @@
 import autosolvate
 import pytest
+from . import helper_functions as hp
+import os
 
 def test_example_1(tmp_path):
     autosolvate.startboxgen(["-m", "inputs/naphthalene_neutral.xyz", "-o", "neutral"])
-    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("neutral", "refs/naphthalene_water/neutral")
+    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("neutral", os.path.join(hp.get_reference_dir(), "naphthalene_water/neutral"))
     assert compare_pdb
     assert compare_inpcrd
     assert compare_prmtop
 
     autosolvate.startboxgen(["-m", "inputs/naphthalene_radical.xyz", "-o", "radical"])
-    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("radical", "refs/naphthalene_water/radical")
+    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("radical", os.path.join(hp.get_reference_dir(), "naphthalene_water/radical"))
     assert compare_pdb
     assert compare_inpcrd
     assert compare_prmtop

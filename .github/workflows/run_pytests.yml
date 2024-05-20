@@ -1,0 +1,49 @@
+##################################################################################################
+# @Date:      May 9th 2024
+# @Author:    Patrick 
+# @Email:     pinyuan.li@emory.edu 
+# @Description: This workflow will automatically run pytest
+##################################################################################################
+
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        miniconda-version: "latest"
+        channels: anaconda
+        channel-priority: true
+
+    - name: Create conda environment
+      run: conda env create -f devtools/conda-envs/test_env.yaml
+
+    - name: Activate conda environment
+      shell: bash -l {0}
+      run: conda activate autosolvate
+
+    - name: Install additional dependencies if needed
+      run: conda install --yes flake8 pytest
+
+    - name: Test with pytest
+      run: conda run -n autosolvate pytest
