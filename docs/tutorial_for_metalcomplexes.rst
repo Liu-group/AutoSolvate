@@ -24,38 +24,40 @@ Autosolvate will use the default values for other options
 
 .. code-block:: bash
 
-    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water
+    autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -s water
 
 **Parameters:**
 
 - ``-m``: Path to the .xyz file
-- ``-c``: Charge of the metal atom
+- ``-k``: Charge of the metal atom
 - ``-u``: Spin multiplicity of the compound
-- ``-x``: Quantum mechanics software to use (gau, orca, gms)
-- ``-r``: Number of processors for the QM calculation
-- ``-G``: Path to the QM software executable
-- ``-e``: Solvent type
+- ``-e``: Quantum mechanics software to use (gau, orca, gms)
+- ``-y``: Number of processors for the QM calculation
+- ``-d``: Path to the QM software executable
+- ``-s``: Solvent type
 
 **Script for Compute Node Submission**
 
-You can use the following script to submit this job on a compute node:
+.. note::
+    
+    You can use the following script to submit this job on a compute node. Below, we provide an example of a job submission script for a SLURM workload manager system. Please adjust the script parameters to fit your specific system configuration 
 
-.. code-block:: bash
+    .. code-block:: bash
 
-    #!/bin/bash
-    #SBATCH --time=144:00:00
-    #SBATCH --partition=week-long
-    #SBATCH --nodes=1
-    #SBATCH --mem=1G
-    #SBATCH --ntasks=32
-    #SBATCH --cpus-per-task=1
-    #SBATCH --partition=cpuq
-    echo $HOSTNAME
-    echo $SLURM_SUBMIT_DIR
-    echo $SLURM_SUBMIT_HOST
-    echo $SLURM_JOB_ID
-    module load orca/5.0.2
-    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water
+      #!/bin/bash
+      #SBATCH --time=144:00:00
+      #SBATCH --partition=week-long
+      #SBATCH --nodes=1
+      #SBATCH --mem=4G  
+      #SBATCH --ntasks=32               ### make sure that the number of nprocs is the same with the '-y' option
+      #SBATCH --cpus-per-task=1
+      #SBATCH --partition=cpuq
+      echo $HOSTNAME
+      echo $SLURM_SUBMIT_DIR
+      echo $SLURM_SUBMIT_HOST
+      echo $SLURM_JOB_ID
+      module load orca/5.0.2            ### load the module of QM software applied for QM calculation
+      autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -s water
 
 **Expected Output**
 
