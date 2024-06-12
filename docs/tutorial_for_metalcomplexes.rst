@@ -169,7 +169,7 @@ Autosolvate will use the default values for other options
 
 .. code-block:: bash
 
-    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e acetonitrile
+    autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -s acetonitrile
 
 The rest steps are the same with Example 1.
 
@@ -187,7 +187,7 @@ for more details about  generate the force field for Fe(bpy)3 in customized solv
 
 .. code-block:: bash
 
-    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -l dmso.off -p dmso.frcmod
+    autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -l dmso.off -p dmso.frcmod
 
 The rest steps are the same with Example 2.
 
@@ -199,7 +199,7 @@ During the file preparation for MCPB.py step 1, the automatic mode of ligand-cha
 
 .. code-block:: bash
 
-    autosolvate boxgen_metal -m Febpy3.xyz -c 2 -u 1 -x orca -r 32 -G /opt/orca/5.0.2/orca -e water -v M -f charge.txt
+    autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -s water -v M -f charge.txt
 
 **Parameters:**
 
