@@ -153,7 +153,7 @@ The output files generated throughout the process will be listed in your directo
 
 The final step involves checking the generated parameter files, specifically the .pdb file containing the coordinates for the solute in the solvent box. You want to ensure that both the solvent and the solute are correctly placed.
 
-.. image:: _images/advancedTutorial3_2.png
+.. image:: _images/solventbox.png
    :width: 400 px
 
 Now, with the `Febpy3_solvated.inpcrd`, `Febpy3_solvated.prmtop`, and `Febpy3_solvated.pdb` files, you are fully equipped to proceed to the molecular dynamics simulations. 
