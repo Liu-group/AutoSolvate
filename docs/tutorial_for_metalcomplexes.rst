@@ -36,11 +36,10 @@ Autosolvate will use the default values for other options
 - ``-d``: Path to the QM software executable
 - ``-s``: Solvent type
 
-**Script for Compute Node Submission**
 
 .. note::
     
-    You can use the following script to submit this job on a compute node. Below, we provide an example of a job submission script for a SLURM workload manager system. Please adjust the script parameters to fit your specific system configuration 
+    You can use the following script to submit this job on a compute node. Below, we provide an example of a job submission script for a SLURM workload manager system. Please adjust the script parameters to fit your specific system configuration. 
 
     .. code-block:: bash
 
@@ -58,6 +57,8 @@ Autosolvate will use the default values for other options
       echo $SLURM_JOB_ID
       module load orca/5.0.2            ### load the module of QM software applied for QM calculation
       autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -s water
+
+
 
 **Expected Output**
 
