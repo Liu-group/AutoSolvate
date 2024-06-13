@@ -2,6 +2,7 @@
 import subprocess
 import numpy as np
 from glob import glob
+import os
 import sys
 import getopt
 import collections
@@ -499,7 +500,7 @@ class QM_inputs_gen():
                     for line in crds_origin:
                         new_crds.append([line.split()[0],line.split()[2],line.split()[3],line.split()[4]])
                     self.write_orca_mk( out=out, crds=new_crds,multi=self.multi,  nprocs=self.nprocs,
-                                    totalcharge=self.totalcharge,basiset=self.basisset,method=self.method)
+                                    totalcharge=self.totalcharge,basisset=self.basisset,method=self.method)
                     
         elif self.software in ['gms','GAMESS']:
             if self.caltype in ['MK','mk','Mk']:
@@ -507,8 +508,7 @@ class QM_inputs_gen():
                     out = self.filename + '_large_mk.inp'
                     inp = self.filename + '_small_opt.log'
                     crds = get_crds_from_gmsopt(inp)
-                    #  print(crds)
-                    if self.filename+'_small_opt.logback' not in glob('*'):
+                    if os.path.exists(self.filename+'_small_opt.logback') == False:
                         cmd = 'cp ' + inp + ' ' + self.filename+'_small_opt.logback'
                         subprocess.call(cmd,shell=True)
                     self.write_gms_mk(out=out,multi=self.multi,crds=crds,
@@ -522,7 +522,7 @@ class QM_inputs_gen():
             
             elif self.caltype in ['opt','OPT']:
                 inp=self.filename+'_small_opt.inpback'
-                if inp not in glob('*'):
+                if os.path.exists(inp) == False:
                     cmd = 'cp ' + self.filename+'_small_opt.inp ' + inp
                     subprocess.call(cmd,shell=True)
                 out = self.filename+'_small_opt.inp'
@@ -531,7 +531,7 @@ class QM_inputs_gen():
 
             elif self.caltype in ['FC','fc']:
                 inp=self.filename+'_small_opt.log'
-                if self.filename+'_small_opt.logback' not in glob('*'):
+                if os.path.exists(self.filename+'_small_opt.logback') == False:
                     cmd = 'cp ' + inp + ' ' + self.filename+'_small_opt.logback'
                     subprocess.call(cmd,shell=True)
                 out = self.filename+'_small_fc.inp'
@@ -541,7 +541,7 @@ class QM_inputs_gen():
         elif self.software in ['gau','g09','g03']:
             if self.caltype in ['opt','OPT']:
                 inp = self.filename + '_small_opt.inp'
-                if self.filename + '_small_opt.inpback' not in glob('*'):
+                if os.path.exists(self.filename + '_small_opt.inpback') == False:
                     cmd = 'cp ' + inp + ' ' + self.filename + '_small_opt.inpback'
                     subprocess.call(cmd,shell=True)
                 crds = get_crds_from_gmsinp(inp + 'back')
@@ -568,7 +568,7 @@ class QM_inputs_gen():
                     self.write_gaussian_mk_from_opt(out=out,nprocs=self.nprocs,basisset=self.basisset,method=self.method)
                 elif self.opt == 'N':
                     inp = self.filename + '_small_opt.inp'
-                    if self.filename + '_small_opt.inpback' not in glob('*'):
+                    if os.path.exists(self.filename + '_small_opt.inpback') == False:
                         cmd = 'cp ' + inp + ' ' + self.filename + '_small_opt.logback'
                         subprocess.call(cmd,shell=True)
                     crds = get_crds_from_gmsinp(inp + 'back')
@@ -593,7 +593,7 @@ def startautoQM(argumentList):
     options = "hn:c:u:x:t:m:b:p:l:Q:"
     long_options = ["help",'filename=','totalcharge=','multi=','software=','caltype=','metal=','basisset=','nprocs=','orcapath=','opt=']
     arguments, values = getopt.getopt(argumentList,options,long_options)
-    software = 'gms'
+    software = 'orca'
     filename = None
     totalcharge = 'default'
     multi = '1'

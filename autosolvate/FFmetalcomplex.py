@@ -26,7 +26,6 @@ class genFF():
         self.basisset = basisset
         self.method = method
         self.totalcharge = totalcharge
-    #    print('################ totalcharge is ',self.totalcharge)
         self.nprocs = nprocs
         self.QMexe = QMexe
         self.amberhome = amberhome
@@ -563,7 +562,7 @@ class genFF():
                                              outputFile='',amberhome=self.amberhome,cube_size=self.cubesize,slv_count=self.slv_count)
         step9.build()
         solvated_prmtop = self.filename +'_solvated.prmtop'
-        if solvated_prmtop in glob('*.prmtop'):
+        if  os.path.exists(solvated_prmtop):
             print('********************    Autosolvate successfully generates', solvated_prmtop,'********************    ')
         else:
             raise TypeError('Erorr: can not find ' + solvated_prmtop + ', please check tleap.log')
@@ -612,17 +611,17 @@ class genFF():
 """
 
 def startFFgen(argumentList):
-    options = 'hm:c:u:v:f:x:k:r:G:n:l:p:s:A:Q:e:b:t:z:'
-    long_options = ["help",'filename=','metal_charge=','spin=','mode=', 'folder=',
-                    'chargefile=','totalcharge=','software=','nprocs=','method=','cubesize=','closeness='
-                    'qmexe=','basisset=','solventoff=','solventfrcmod=','amberhome=','opt=','solvent=']
-    arguments, values = getopt.getopt(argumentList,options,long_options)
+    options = 'hm:k:u:v:f:e:c:y:d:i:l:p:j:a:w:s:b:t:D:'
+    long_options = ["help", 'filename=', 'metal_charge=', 'spin=', 'mode=', 'folder=', 'rundir=',
+                'chargefile=', 'charge=', 'nprocs=', 'method=', 'cubesize=', 'closeness=', 'qmdir=',
+                'qmexe=', 'basisset=', 'solventoff=', 'solventfrcmod=', 'amberhome=', 'opt=', 'solvent=']
+    arguments, values = getopt.getopt(argumentList, options, long_options)
     filename = None
     metal_charge = None
     mode='A'
     spinmult=None
     chargefile = None
-    software = 'gms'
+    software = 'orca'
     spinmult = '1'
     totalcharge= 'default'
     nprocs='8'
@@ -630,7 +629,7 @@ def startFFgen(argumentList):
     QMexe = None
     solvent_off=''
     solvent_frcmod = ''
-    basisset='6-31G*'
+    basisset='DEF2-TZVP'
     amberhome='$AMBERHOME/bin/'
     opt = 'Y'
     gamessexe = None
@@ -647,26 +646,26 @@ def startFFgen(argumentList):
             Options:
                 -h, --help              Display this help message.
                 -m, --main              metalcomplex xyz file including extension.
-                -c, --metal_charge      Set the metal charge.
+                -k, --metal_charge      Set the metal charge.
                 -u, --spin              Set the spin default: 1
-                -v, --mode              Set the mode (A/M).
+                -v, --mode              Set the mode (A/M). default: A . A is automode for charge assignment of ligands, M is manual
                 -f, --chargefile        Specify the charge file if --mode is M.
                                         chargefile example:
                                         LG1 -1 #ligand name charge 
-                -x, --software          gau,g09,g16,gms,orca, default:gms
-                -k, --totalcharge       total charge of the whole system, the default is caluated after charge assignment
-                -r, --nprocs             procs to run orca QM calculation, if -x orca
-                -G  --qmexe             path to QM exe e.g. /opt/orca/5.0.2/orca
-                -n  --method            method of QM default:B3LYP
+                -e, --qmexe             name of the quantum chemistry package executable'gau,g09,g16,gms,orca, default:orca
+                -c, --charge            total charge of the whole complex, the default is caluated after charge assignment
+                -y, --nprocs            procs to run orca QM calculation, if -x orca
+                -d  --qmdir             full path to QM exe e.g. /opt/orca/5.0.2/orca
+                -i  --method            method of QM default:B3LYP
                 -l  --solventoff        path to the custom solvent .off library file
                 -p  --solventfrcmod     path to the custom solvent .frcmod file
-                -s  --basisset          basisset used in QM calculation, default: 6-31G*
-                -A  --amberhome         path of AmberTools bin default: $AMBERHOME/bin/
-                -Q  --opt               use(Y) or not use(N) the QM optimized structure for charge calculation default: Y
-                -e  --solvent           name of solvent (water, methanol, chloroform, nma, acetonitrile)
-                -b  --cubesize          size of solvent cube in angstroms default: 56 
+                -j  --basisset          basisset used in QM calculation, default: DEF2-TZVP (for GAMES-US only 6-31G,6-31G*,LANL2DZ are supported)
+                -a  --amberhome         path of AmberTools bin default: $AMBERHOME/bin/
+                -w  --opt               use(Y) or not use(N) the QM optimized structure for charge calculation default: Y
+                -s  --solvent           name of solvent (water, methanol, chloroform, nma, acetonitrile)
+                -b  --cubesize          size of solvent cube in angstroms default: 54 
                 -t  --closeness         Solute-solvent closeness setting default value is used if the option is not specified
-                -z  --folder            the path of outputfiles, default: the current folder './'
+                -D, --rundir            running directory where temporary files are stored, default: the current folder './'
 
 
                 '''
@@ -674,7 +673,7 @@ def startFFgen(argumentList):
             sys.exit()
         elif currentArgument in ("-m","--main"):
             filename = os.path.splitext(str(currentValue))[0]
-        elif currentArgument in ("-c",'--metal_charge'):
+        elif currentArgument in ("-k",'--metal_charge'):
             metal_charge = int(currentValue)
         elif currentArgument in ('-u','--spin'):
             spinmult=int(currentValue)
@@ -682,45 +681,44 @@ def startFFgen(argumentList):
             mode = str(currentValue)
         elif currentArgument in ('-f','--chargefile'):
             chargefile = str(currentValue)
-        elif currentArgument in ('-x','--software'):
+        elif currentArgument in ('-e','--qmexe'):
             software = str(currentValue)
-        elif currentArgument in ('-k','--totalcharge'):
+        elif currentArgument in ('-c','--charge'):
             totalcharge = str(currentValue)
-        elif currentArgument in ('-r','--nprocs'):
+        elif currentArgument in ('-y','--nprocs'):
             nprocs = str(currentValue)
-        elif currentArgument in ('-G','--qmexe'):
+        elif currentArgument in ('-d','--qmdir'):
             QMexe = str(currentValue)
-        elif currentArgument in ('-n','--method'):
+        elif currentArgument in ('-i','--method'):
             method = str(currentValue)
         elif currentArgument in ('-l','--solventoff'):
             solvent_off = str(currentValue)
         elif currentArgument in ('-p','--solventfrcmod'):
             solvent_frcmod  = str(currentValue)
-        elif currentArgument in ('-s','--basisset'):
+        elif currentArgument in ('-j','--basisset'):
             basisset  = str(currentValue)
-        elif currentArgument in ('-A','--amberhome'):
+        elif currentArgument in ('-a','--amberhome'):
             amberhome = str(currentValue)
-        elif currentArgument in ('-Q','-opt'):
+        elif currentArgument in ('-w','--opt'):
             opt = str(currentValue)
-        elif currentArgument in ('-e','-solvent'):
+        elif currentArgument in ('-s','--solvent'):
             solvent = str(currentValue)
-        elif currentArgument in ('-b','-cubesize'):
+        elif currentArgument in ('-b','--cubesize'):
             cubesize = str(currentValue)
-        elif currentArgument in ('-t','-closeness'):
+        elif currentArgument in ('-t','--closeness'):
             closeness = str(currentValue)
-        elif currentArgument in ('-z','-folder'):
+        elif currentArgument in ('-D','--rundir'):
             folder = str(currentValue)
+
 
     builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,closeness=closeness,folder = folder,
                     mode=mode,chargefile=chargefile,software=software,solvent_frcmod=solvent_frcmod,amberhome=amberhome,cubesize=cubesize,
                     totalcharge=totalcharge,nprocs=nprocs,QMexe=QMexe,method=method,solvent_off=solvent_off,opt=opt,solvent=solvent,slv_count=slv_count)
- #   print(arguments)
 
     builder.build()
     
 if __name__ == '__main__':
     argumentList = sys.argv[1:]
-   # print(argumentList)
     startFFgen(argumentList)
                     
 
