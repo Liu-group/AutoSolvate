@@ -36,15 +36,15 @@ def test_ionpair_solvation(tmpdir):
         folder = os.getcwd()
     )
     inst.build()
-    pass_fragment_exist = True
+    path_fragment_exist = True
     for res in ("TPA", "SUF"):
-        pass_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.pdb")
-        pass_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.lib")
-    assert pass_fragment_exist
-    pass_main_exist = True
+        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.pdb")
+        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.lib")
+    assert path_fragment_exist
+    path_main_exist = True
     for suffix in ("lib", "pdb"):
-        pass_main_exist *= os.path.exists(f"{name}.{suffix}")
-    assert pass_main_exist
+        path_main_exist *= os.path.exists(f"{name}.{suffix}")
+    assert path_main_exist
 
 #     assert hp.compare_pdb(f"water_solvated.pdb", hp.get_reference_dir(f"multicomponent/water_solvated.pdb"))
 #     assert hp.compare_inpcrd_prmtop(f"water_solvated.prmtop", hp.get_reference_dir(f"multicomponent/water_solvated.prmtop"))
@@ -63,15 +63,15 @@ def test_ionpair_solvation_custom_solvent(tmpdir):
         custom_ionpair = True
     )
     inst.build()
-    pass_fragment_exist = True
+    path_fragment_exist = True
     for res in ("TPA", "SUF"):
-        pass_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.pdb")
-        pass_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.lib")
-    assert pass_fragment_exist
-    pass_main_exist = True
+        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.pdb")
+        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.lib")
+    assert path_fragment_exist
+    path_main_exist = True
     for suffix in ("lib", "pdb"):
-        pass_main_exist *= os.path.exists(f"{name}.{suffix}")
-    assert pass_main_exist
+        path_main_exist *= os.path.exists(f"{name}.{suffix}")
+    assert path_main_exist
 
 
 
@@ -85,10 +85,38 @@ def test_multicomponent(tmpdir):
         pre_optimize_fragments=True,
     )
     builder.build()
-    pass_exist = True
+    path_exist = True
     for res in ("UAA", "UAB", "UAC", "UAD"):
-        pass_exist *= os.path.exists(f"{inpfname}-{res.lower()}.pdb")
-        pass_exist *= os.path.exists(f"{inpfname}-{res.lower()}.lib")
-        pass_exist *= os.path.exists(f"{inpfname}-{res.lower()}.frcmod")
-    assert pass_exist
+        path_exist *= os.path.exists(f"{inpfname}-{res.lower()}.pdb")
+        path_exist *= os.path.exists(f"{inpfname}-{res.lower()}.lib")
+        path_exist *= os.path.exists(f"{inpfname}-{res.lower()}.frcmod")
+    assert path_exist
     assert hp.compare_pdb(f"{inpfname}.pdb", hp.get_reference_dir(f"multicomponent/{inpfname}-processed.pdb"))
+
+
+
+def test_mixture_builder():
+    test_name = "test_mixture_builder" 
+    solute    = ['naphthalene_neutral.xyz']
+    solvent   = ['acetonitrile.pdb', 'water.pdb'] 
+    builder = MixtureBuilder(folder=os.getcwd()) 
+    for s in solute:
+        builder.add_solute(hp.get_input_dir(s)) 
+    for s in solvent:
+        builder.add_solvent(hp.get_input_dir(s)) 
+    builder.build() 
+
+    path_exist = True
+    for res in ("naphthalene_neutral", "acetonitrile", "water"):
+        path_exist *= os.path.exists(f"{res}.pdb")
+        path_exist *= os.path.exists(f"{res}.lib")
+        path_exist *= os.path.exists(f"{res}.frcmod")
+
+
+    path_exist *= os.path.exists("MYBOX.pdb") 
+    path_exist *= os.path.exists("MYBOX.prmtop") 
+    path_exist *= os.path.exists("MYBOX.inpcrd") 
+
+    assert path_exist 
+    assert hp.compare_pdb("MYBOX.pdb", hp.get_reference_dir(f"multicomponent/MYBOX.pdb"), threshold=6.0e-3) #threshold 6.0e-3 is reasonable because the there are many atoms in the system. 
+    assert hp.compare_inpcrd_prmtop("MYBOX.prmtop", hp.get_reference_dir(f"multicomponent/MYBOX.prmtop"), threshold=6.0e-3) 
