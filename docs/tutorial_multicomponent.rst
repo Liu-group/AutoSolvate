@@ -11,6 +11,7 @@ Once you have AutoSolvate and all dependencies installed you will need the pdb f
 .. image:: _images/tutorial4_1.jpg
    :width: 400
 
+naphthalene_neutral.xyz
 ::
 
     18
@@ -35,7 +36,7 @@ Once you have AutoSolvate and all dependencies installed you will need the pdb f
      H     3.3840333383   -1.2452476243    0.0000259290
 
 
-.. image:: _images/tutorial5_1.jpg
+.. image:: _images/tutorial5_1.png
    :width: 400
 
 
@@ -51,7 +52,7 @@ acetonitrile.pdb
     TER 
 
 
-.. image:: _images/tutorial5_2.jpg
+.. image:: _images/tutorial5_2.png
    :width: 400
 
 water.pdb
@@ -69,9 +70,11 @@ water.pdb
 
   You can download the xyz files and pdb files here:
 
-  :download:`naphthalene_neutral.xyz <_data/naphthalene_neutral.xyz>`
-  :download:`acetonitrile.pdb <_data/acetonitrile.pdb>` 
-  :download:`water.pdb <_data/water.pdb>` 
+  :download:`naphthalene_neutral.xyz <_data/naphthalene_neutral.xyz>`  
+  
+  :download:`acetonitrile.pdb <_data/acetonitrile.pdb>`   
+  
+  :download:`water.pdb <_data/water.pdb>`   
 
 
 
