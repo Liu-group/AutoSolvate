@@ -181,13 +181,17 @@ class MixtureBuilder():
             ParmchkDocker(workfolder=self.folder),
             TleapDocker(workfolder = self.folder)
         ]
-        self.complex_pipeline = [TleapDocker(workfolder=self.folder)]
         self.custom_solvation = [
             PackmolDocker(workfolder = self.folder),
             TleapDocker(workfolder = self.folder)
         ]
 
-    def add_solute(self, xyzfile:str, name="", residue_name="SLU", charge=0, spinmult=1, number = 1, **kwargs):
+    def add_solute(self, xyzfile:str, name="", residue_name="", charge=0, spinmult=1, number = 1, **kwargs):
+
+        #use the first three letters of the xyzfile name as the residue name 
+        if not residue_name and len(xyzfile.split(".")[0].split("/")[-1]) >= 3:
+            residue_name = xyzfile.split(".")[0].split("/")[-1][:3].upper()
+
         molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
 
         if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
@@ -204,7 +208,12 @@ class MixtureBuilder():
         molecule.number = number
         self.solutes.append(molecule)
     
-    def add_solvent(self, xyzfile:str, name="", residue_name="SLU", charge=0, spinmult=1, number = 1, **kwargs):
+    def add_solvent(self, xyzfile:str, name="", residue_name="", charge=0, spinmult=1, number = 200, **kwargs):
+
+        #use the first three letters of the xyzfile name as the residue name 
+        if not residue_name and len(xyzfile.split(".")[0].split("/")[-1]) >= 3:
+            residue_name = xyzfile.split(".")[0].split("/")[-1][:3].upper() #get the file name from the absolute path 
+            
         molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
 
         if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
@@ -225,6 +234,12 @@ class MixtureBuilder():
         system_name = "-".join([m.name for m in self.solutes + self.solvents])
         solute_numbers = [m.number for m in self.solutes]
         solvent_numbers = [m.number for m in self.solvents]
+        '''
+        @DEBUG 
+        comment left by Patrick Jun 12 2024.  
+        the old way to define 'system_name' will cause bug, please have the person who wrote this to fix it.
+        '''
+        system_name = 'MYBOX' 
         system = SolvatedSystem(system_name, solute = self.solutes, solvent = self.solvents,
                                 cubesize=self.boxsize, closeness=self.closeness, 
                                 solute_number = solute_numbers, solvent_number = solvent_numbers,
@@ -232,6 +247,69 @@ class MixtureBuilder():
         for docker in self.custom_solvation:
             docker.run(system)
             
+def startmulticomponent(argumentList):
+    # options = "hm:s:o:c:b:a:t:l:p:"
+    # long_options = ["help", "pdb_prefix", "solvent", "output", "totalcharge", 
+    #             "cubesize", "amberhome","closeness","solventoff","solventfrcmod"]
+    # arguments, values = getopt.getopt(argumentList, options, long_options)
+
+    # pdb_prefix= '' 
+    # totalcharge='Default' 
+    # solvent = "water"
+    # solvent_frcmod = ""
+    # solvent_off = ""
+    # slv_count = 210*8
+    # cube_size = 54
+    # closeness = "automated"
+    # outputFile = ""
+    # amberhome = '$AMBERHOME/bin/'
+    # for currentArgument, currentValue in arguments:
+    #     if  currentArgument in ("-h", "--help"):
+    #         print('Usage: autosolvate_metal boxgen [OPTIONS]')
+    #         print('  -m, --pdb_prefix           prefix of pdb file name not include _mcpb')
+    #         print('  -s, --solvent              name of solvent')
+    #         print('  -o, --output               prefix of the output file names')
+    #         print('  -c, --charge               formal charge of solute')
+    #         print('  -b, --cubesize             size of solvent cube in angstroms')
+    #         print('  -a, --amberhome            path to the AMBER molecular dynamics package root directory')
+    #         print('  -t, --closeness            Solute-solvent closeness setting')
+    #         print('  -l, --solventoff           path to the custom solvent .off library file')
+    #         print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
+    #         print('  -h, --help                 short usage description')
+    #         exit()
+    #     elif currentArgument in ('-m','-pdb_prefix'):
+    #         pdb_prefix = str(currentValue)
+    #     elif currentArgument in ("-s", "--solvent"):
+    #         solvent=str(currentValue)
+    #     elif currentArgument in ("-o", "--output"):
+    #         print ("Output:", currentValue)
+    #         outputFile=str(currentValue)
+    #     elif currentArgument in ("-c", "--charge"):
+    #         print ("Charge:", currentValue)
+    #         totalcharge=str(currentValue)
+    #     elif currentArgument in ("-b", "--cubesize"):
+    #         print ("Cubesize:", currentValue)
+    #         cube_size=float(currentValue)
+    #     elif currentArgument in ("-a","--amberhome"):
+    #         print("Amber home directory:", currentValue)
+    #         amberhome = currentValue
+    #     elif currentArgument in ("-t", "--closeness"):
+    #         print("Solute-Solvente closeness parameter", currentValue)
+    #         closeness = currentValue
+    #     elif currentArgument in ("-l", "--solventoff"):
+    #         print("Custom solvent .off library path:", currentValue)
+    #         solvent_off = currentValue
+    #     elif currentArgument in ("-p", "`````--solventfrcmod"):
+    #         print("Custom solvent .frcmmod file path:", currentValue)
+    #         solvent_frcmod = currentValue
+    print('DEBUGGING MULTICOMPONENT')
+
+    builder = MixtureBuilder()
+    builder.add_solute('naphthalene_neutral.xyz')
+    builder.add_solvent('acetonitrile.pdb')
+    builder.add_solvent('water.pdb')
+    builder.build()
+
 
 if __name__ == "__main__":
     inst = MulticomponentParamsBuilder("PAHs.pdb", deletefiles=True)
