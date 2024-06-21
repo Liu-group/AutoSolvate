@@ -2,7 +2,7 @@
 # @Date:      May 9th 2024
 # @Author:    Patrick 
 # @Email:     pinyuan.li@emory.edu 
-# @Description: environment for merged autosolvate (multicomponent + continous integration) 
+# @Description: environment for tutorial
 ##################################################################################################
 name: autosolvate
 channels:

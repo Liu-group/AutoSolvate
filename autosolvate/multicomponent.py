@@ -302,7 +302,7 @@ def startmulticomponent(argumentList):
     #print(values)
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
-            print('Usage: autosolvate boxgen [OPTIONS]')
+            print('Usage: autosolvate boxgen_multicomponent [OPTIONS]')
             print('  -m, --main                 solute xyz file')
             print('  -s, --solvent_lists        solvent xyz files, separated by slash. (ex. water.pdb/acetonitrile.pdb)')
             # print('  -o, --output               prefix of the output file names')                                     # not currently supporting this option

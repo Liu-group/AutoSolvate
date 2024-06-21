@@ -78,121 +78,240 @@ water.pdb
 
 
 
+Now that you have the structures, make a directory for the tutorial and move the files into it:: 
+   
+   (autosolvate) [pli@pascal tutorial]$ ls
+   acetonitrile.pdb  naphthalene_neutral.xyz  water.pdb
 
-Now that you have the structures, make a directory for each example. We will start with the neutral molecule. 
-
-Example 1: Naphthalene in Water
+Example 1: Naphthalene in mixed water and acetonitrile solution
 -------------------------------------------
 
 Step 1: Solvate system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the default settings, use the following command:
+The first step is putting the solute in the solvent box, which uses the boxgen_multicomponent command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main, -s for solvents. To run boxgen_multicomponent with all of the default settings, use the following command:
 
-``autosolvate boxgen -m naphthalene_neutral.xyz``
+``autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz  -s water.pdb/acetonitrile.pdb``
 
-Autosolvate will use the default values of water as the solvent, solute charge of 0, solute multiplicity of 1, charge fitting method of resp, box size of 54, and output file name of water_solvated. 
+Autosolvate will use the calculate force field parameters for the solute (naphthalene_neutral) and solvents (water/acetonitrile). The command will use the assume the charge of solute and solvents are neutral, and the multiplicity of the solute and solvents are 1, charge fitting method of bcc and output file name of MYBOX. 
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
-  AutoSolvate is starting in command line mode!
-  Running the module to generate solvent box and force field parameters.
-  ['-m', 'nap_neutral.xyz']
-  Main/solutexyz nap_neutral.xyz
-  WARNING: Amber home directory is not specified in input options
-  WARNING: Checking AMBERHOME environment variable...
-  ['echo', '$AMBERHOME']
-  WARNING: AMBERHOME detected:  $AMBERHOME
-  
-  Converting xyz to pdb
-  Generate frcmod file for the solute
-  cleaning up solute.xyz.pdb
-  Then write out mol2
-  
-  Welcome to antechamber 21.0: molecular input file processor.
-  
-  acdoctor mode is on: check and diagnose problems in the input file.
-  The atom type is set to gaff; the options available to the -at flag are
-      gaff, gaff2, amber, bcc, and sybyl.
-  -- Check Format for pdb File --
-     Status: pass
-  -- Check Unusual Elements --
-     Status: pass
-  -- Check Open Valences --
-     Status: pass
-  -- Check Geometry --
-       for those bonded   
-       for those not bonded   
-     Status: pass
-  -- Check Weird Bonds --
-     Status: pass
-  -- Check Number of Units --
-     Status: pass
-  acdoctor mode has completed checking the input file.
-  
-  Info: Total number of electrons: 68; net charge: 0
-  
-  Running: /jet/home/agale/miniconda3/envs/autosolvate/bin/sqm -O -i sqm.in -o sqm.out
-  
-  Finally generate frcmod with parmchk2
-  Now create the solute library file
-  Generate Amber parameters for the solvated system
-  Now add pre-equlibrated solvent box to the solute
-  The script has finished successfully
+   (autosolvate) [pli@pascal tutorial]$ autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz  -s water.pdb/acetonitrile.pdb
+
+   AutoSolvate is starting in command line mode!
+   Running the module to generate solvent box and force field parameters for multicomponent systems.
+   Main/solutexyz naphthalene_neutral.xyz
+   Solvent: water.pdb/acetonitrile.pdb
+   1 molecule converted
+
+   Welcome to antechamber 22.0: molecular input file processor.
+
+   Info: acdoctor mode is on: check and diagnose problems in the input file.
+   Info: The atom type is set to gaff; the options available to the -at flag are
+         gaff, gaff2, amber, bcc, and sybyl.
+
+   -- Check Format for pdb File --
+      Status: pass
+   -- Check Unusual Elements --
+      Status: pass
+   -- Check Open Valences --
+      Status: pass
+   -- Check Geometry --
+         for those bonded   
+         for those not bonded   
+      Status: pass
+   -- Check Weird Bonds --
+      Status: pass
+   -- Check Number of Units --
+      Status: pass
+   acdoctor mode has completed checking the input file.
+
+   Info: Total number of electrons: 68; net charge: 0
+
+   Running: /home/pli/anaconda3/envs/autosolvate/bin/sqm -O -i sqm.in -o sqm.out
+
+   1 molecule converted
+
+   Welcome to antechamber 22.0: molecular input file processor.
+
+   Info: acdoctor mode is on: check and diagnose problems in the input file.
+   Info: The atom type is set to gaff; the options available to the -at flag are
+         gaff, gaff2, amber, bcc, and sybyl.
+
+   -- Check Format for pdb File --
+      Status: pass
+   -- Check Unusual Elements --
+      Status: pass
+   -- Check Open Valences --
+      Status: pass
+   -- Check Geometry --
+         for those bonded   
+         for those not bonded   
+      Status: pass
+   -- Check Weird Bonds --
+      Status: pass
+   -- Check Number of Units --
+      Status: pass
+   acdoctor mode has completed checking the input file.
+
+   Info: Total number of electrons: 10; net charge: 0
+
+   Running: /home/pli/anaconda3/envs/autosolvate/bin/sqm -O -i sqm.in -o sqm.out
+
+   1 molecule converted
+
+   Welcome to antechamber 22.0: molecular input file processor.
+
+   Info: acdoctor mode is on: check and diagnose problems in the input file.
+   Info: The atom type is set to gaff; the options available to the -at flag are
+         gaff, gaff2, amber, bcc, and sybyl.
+
+   -- Check Format for pdb File --
+      Status: pass
+   -- Check Unusual Elements --
+      Status: pass
+   -- Check Open Valences --
+      Status: pass
+   -- Check Geometry --
+         for those bonded   
+         for those not bonded   
+      Status: pass
+   -- Check Weird Bonds --
+      Status: pass
+   -- Check Number of Units --
+      Status: pass
+   acdoctor mode has completed checking the input file.
+
+   Info: Total number of electrons: 22; net charge: 0
+
+   Running: /home/pli/anaconda3/envs/autosolvate/bin/sqm -O -i sqm.in -o sqm.out
+
 
 Additionally, you should now have the following files in your directory::
 
-  ANTECHAMBER_AC.AC           ATOMTYPE.INF              nap_neutral.xyz   sqm.in   
-  ANTECHAMBER_AC.AC0          leap_add_solventbox.cmd   solute.frcmod     sqm.out  
-  ANTECHAMBER_AM1BCC.AC       leap_add_solventbox.log   solute.lib        sqm.pdb  
-  ANTECHAMBER_AM1BCC_PRE.AC   leap.cmd                  solute.mol2       water_solvated.inpcrd
-  ANTECHAMBER_BOND_TYPE.AC    leap.log                  solute.pdb        water_solvated.pdb
-  ANTECHAMBER_BOND_TYPE.AC0   leap_savelib.log          solute.xyz.pdb    water_solvated.prmtop
+   (autosolvate) [pli@pascal tutorial]$ ls
+   acetonitrile.frcmod  ANTECHAMBER_AC.AC          autosolvate.log               leap_naphthalene_neutral.log  MYBOX.prmtop                naphthalene_neutral.xyz  water.mol2
+   acetonitrile.inpcrd  ANTECHAMBER_AC.AC0         leap_acetonitrile.cmd         leap_water.cmd                naphthalene_neutral.frcmod  sqm.in                   water.pdb
+   acetonitrile.lib     ANTECHAMBER_AM1BCC.AC      leap_acetonitrile.log         leap_water.log                naphthalene_neutral.inpcrd  sqm.out                  water.prmtop
+   acetonitrile.mol2    ANTECHAMBER_AM1BCC_PRE.AC  leap.log                      MYBOX.inpcrd                  naphthalene_neutral.lib     sqm.pdb                  water.xyz
+   acetonitrile.pdb     ANTECHAMBER_BOND_TYPE.AC   leap_MYBOX.cmd                MYBOX_packmol.inp             naphthalene_neutral.mol2    water.frcmod
+   acetonitrile.prmtop  ANTECHAMBER_BOND_TYPE.AC0  leap_MYBOX.log                MYBOX_packmol.out             naphthalene_neutral.pdb     water.inpcrd
+   acetonitrile.xyz     ATOMTYPE.INF               leap_naphthalene_neutral.cmd  MYBOX.pdb                     naphthalene_neutral.prmtop  water.lib
 
-The three files that we care about for moving forward to the next step are the ones with the output prefix water_solvated (the last three listed above). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber parameter topology. The ``.pdb`` file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there. The block below shows the first few lines of the ``.pdb`` file::
+The three files that we care about for moving forward to the next step are the ones with the output prefix MYBOX (MYBOX.inpcrd, MYBOX.prmtop, MYBOX.pdb). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber parameter topology. The ``.pdb`` file has the coordinates for the solvent box, so you want to check that both the solvent and the solute are there. The block below shows the first few lines of the ``.pdb`` file::
 
-        CRYST1   66.461   66.696   66.822  90.00  90.00  90.00 P 1           1
-        ATOM      1  C   SLU     1       2.302  -0.634   0.016  1.00  0.00
-        ATOM      2  C1  SLU     1       2.302   0.786   0.016  1.00  0.00
-        ATOM      3  C2  SLU     1       1.110   1.482   0.016  1.00  0.00
-        ATOM      4  C3  SLU     1      -0.138   0.795   0.016  1.00  0.00
-        ATOM      5  C4  SLU     1      -1.386   1.482   0.016  1.00  0.00
-        ATOM      6  C5  SLU     1      -2.578   0.786   0.016  1.00  0.00
-        ATOM      7  C6  SLU     1      -2.578  -0.634   0.016  1.00  0.00
-        ATOM      8  C7  SLU     1      -1.386  -1.330   0.016  1.00  0.00
-        ATOM      9  C8  SLU     1      -0.138  -0.643   0.016  1.00  0.00
-        ATOM     10  C9  SLU     1       1.110  -1.330   0.016  1.00  0.00
-        ATOM     11  H   SLU     1       1.107  -2.417   0.016  1.00  0.00
-        ATOM     12  H1  SLU     1      -1.383  -2.417   0.016  1.00  0.00
-        ATOM     13  H2  SLU     1      -3.522  -1.169   0.016  1.00  0.00
-        ATOM     14  H3  SLU     1      -3.522   1.321   0.016  1.00  0.00
-        ATOM     15  H4  SLU     1      -1.383   2.569   0.016  1.00  0.00
-        ATOM     16  H5  SLU     1       1.107   2.569   0.016  1.00  0.00
-        ATOM     17  H6  SLU     1       3.246   1.321   0.016  1.00  0.00
-        ATOM     18  H7  SLU     1       3.246  -1.169   0.016  1.00  0.00
-        TER
-        ATOM     19  O   WAT     2      30.753  27.440  26.571  1.00  0.00
-        ATOM     20  H1  WAT     2      30.672  26.525  26.300  1.00  0.00
-        ATOM     21  H2  WAT     2      30.339  27.937  25.865  1.00  0.00
-        TER
-        ATOM     22  O   WAT     3      28.885  29.218  28.452  1.00  0.00
-        ATOM     23  H1  WAT     3      28.109  28.738  28.742  1.00  0.00
-        ATOM     24  H2  WAT     3      29.536  28.538  28.277  1.00  0.00
+      CRYST1   56.000   56.000   56.000  90.00  90.00  90.00 P 1           1
+      ATOM      1  C   NAP     1      29.440  26.290  27.000  1.00  0.00
+      ATOM      2  C1  NAP     1      29.440  27.710  27.000  1.00  0.00
+      ATOM      3  C2  NAP     1      28.248  28.406  27.000  1.00  0.00
+      ATOM      4  C3  NAP     1      27.000  27.719  27.000  1.00  0.00
+      ATOM      5  C4  NAP     1      25.752  28.406  27.000  1.00  0.00
+      ATOM      6  C5  NAP     1      24.560  27.710  27.000  1.00  0.00
+      ATOM      7  C6  NAP     1      24.560  26.290  27.000  1.00  0.00
+      ATOM      8  C7  NAP     1      25.752  25.594  27.000  1.00  0.00
+      ATOM      9  C8  NAP     1      27.000  26.281  27.000  1.00  0.00
+      ATOM     10  C9  NAP     1      28.248  25.594  27.000  1.00  0.00
+      ATOM     11  H   NAP     1      28.245  24.507  27.000  1.00  0.00
+      ATOM     12  H1  NAP     1      25.755  24.507  27.000  1.00  0.00
+      ATOM     13  H2  NAP     1      23.616  25.755  27.000  1.00  0.00
+      ATOM     14  H3  NAP     1      23.616  28.245  27.000  1.00  0.00
+      ATOM     15  H4  NAP     1      25.755  29.493  27.000  1.00  0.00
+      ATOM     16  H5  NAP     1      28.245  29.493  27.000  1.00  0.00
+      ATOM     17  H6  NAP     1      30.384  28.245  27.000  1.00  0.00
+      ATOM     18  H7  NAP     1      30.384  25.755  27.000  1.00  0.00
+      TER   
+      ATOM     19  O   WAT     2      39.703  19.741  21.984  1.00  0.00
+      ATOM     20  H   WAT     2      40.098  20.279  21.135  1.00  0.00
+      ATOM     21  H1  WAT     2      40.367  19.860  22.827  1.00  0.00
+      TER   
+      ATOM     22  O   WAT     3      20.966  19.593   6.288  1.00  0.00
+      ATOM     23  H   WAT     3      21.989  19.277   6.146  1.00  0.00
+      ATOM     24  H1  WAT     3      20.652  20.188   5.444  1.00  0.00
+      TER   
+      ATOM     25  O   WAT     4      44.585  14.042  40.563  1.00  0.00
+      ATOM     26  H   WAT     4      45.613  13.879  40.274  1.00  0.00
+      ATOM     27  H1  WAT     4      43.936  13.439  39.945  1.00  0.00
+      TER   
+      ...
+      ATOM    691  N1  ACE   214      41.425  23.650  23.309  1.00  0.00
+      ATOM    692  C2  ACE   214      42.456  23.301  23.557  1.00  0.00
+      ATOM    693  C3  ACE   214      43.757  22.737  23.780  1.00  0.00
+      ATOM    694  H4  ACE   214      44.283  22.591  22.897  1.00  0.00
+      ATOM    695  H5  ACE   214      44.400  23.397  24.358  1.00  0.00
+      ATOM    696  H6  ACE   214      43.625  21.786  24.312  1.00  0.00
+      TER   
+      ATOM    697  N1  ACE   215      28.384  44.128  36.083  1.00  0.00
+      ATOM    698  C2  ACE   215      27.683  44.880  35.648  1.00  0.00
+      ATOM    699  C3  ACE   215      26.801  45.776  34.955  1.00  0.00
+      ATOM    700  H4  ACE   215      26.042  45.276  34.453  1.00  0.00
+      ATOM    701  H5  ACE   215      26.269  46.439  35.633  1.00  0.00
+      ATOM    702  H6  ACE   215      27.403  46.366  34.253  1.00  0.00
+      TER   
+      ATOM    703  N1  ACE   216       7.103  33.721  29.910  1.00  0.00
+      ATOM    704  C2  ACE   216       7.537  34.606  30.435  1.00  0.00
+      ATOM    705  C3  ACE   216       7.991  35.828  31.036  1.00  0.00
+      ATOM    706  H4  ACE   216       7.225  36.347  31.507  1.00  0.00
+      ATOM    707  H5  ACE   216       8.711  35.654  31.832  1.00  0.00
+      ATOM    708  H6  ACE   216       8.446  36.442  30.249  1.00  0.00
+      TER
+      ...
 
-The fourth column has 18 'SLU' entries, or solvent, and under that there are 6 'WAT' entries, which we can see makes up two water molecules. When you visualize ``water_solvated.pdb`` you should be able to see the water box containing the solute:
+The pdb file format is as follows:
+   COLUMN     DESCRIPTION
+   ------     ----------------------------
+   1-6       Record Name ("ATOM" indicates a line containing information about an atom, while "TER" marks the end of a chain of atoms.)
+   7-11      Atom serial number (1)
+   13-16     Atom name (Ex. "O", "H", "H1") 
+   17        Alternate location indicator (optional, usually blank)
+   18-20     Residue name (Ex. "WAT", "ACE")
+   22        Chain identifier (optional, usually blank)
+   23-26     Residue sequence number (1 for one naphthalene molecule, 2 for one water molecule, 214 for one acetonitrile molecule)
+   27        Code for insertion of residues (optional, usually blank)
+   31-38     X coordinate (29.440)
+   39-46     Y coordinate (26.290)
+   47-54     Z coordinate (27.000)
+   55-60     Occupancy (1.00)
+   61-66     Temperature factor or B-factor (default 0.00)
+   77-78     Element symbol (right-justified, 'N') (left blank in our example files in the tutorial)
 
-.. image:: _images/tutorial4_2.png
+When you visualize ``MYBOX.pdb`` you should be able to see the mixed-solvent (water/acetonitrile) box containing the solute (naphthalene):
+
+.. image:: _images/tutorial5_3.png
    :width: 400
 
 With these three files, we are ready to proceed to the next step!
-
+ 
 .. note::
 
-   This example uses default settings for boxgen, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
+   needs check again!!!!!
+
+   This example uses default settings for boxgen_multicomponent, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
    ``autosolvate boxgen -m naphthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral``
 
    The semi-empirical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 .. _tutstep2:
