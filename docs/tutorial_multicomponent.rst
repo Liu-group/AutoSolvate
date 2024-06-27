@@ -37,7 +37,7 @@ naphthalene_neutral.xyz
 
 
 .. image:: _images/tutorial5_1.png
-   :width: 200
+   :width: 300
 
 
 acetonitrile.pdb 
@@ -53,7 +53,7 @@ acetonitrile.pdb
 
 
 .. image:: _images/tutorial5_2.png
-   :width: 200
+   :width: 300
 
 water.pdb
 :: 
