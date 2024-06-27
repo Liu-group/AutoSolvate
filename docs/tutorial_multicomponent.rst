@@ -42,14 +42,14 @@ naphthalene_neutral.xyz
 
 acetonitrile.pdb 
 ::
-    COMPND      Acetonitrile
-    ATOM      1  N1  SLV     1      14.182  11.288  13.720
-    ATOM      2  C2  SLV     1      13.673  12.188  13.299
-    ATOM      3  C3  SLV     1      13.153  13.383  12.698
-    ATOM      4  H4  SLV     1      13.342  13.429  11.678
-    ATOM      5  H5  SLV     1      12.069  13.440  12.762
-    ATOM      6  H6  SLV     1      13.602  14.242  13.212
-    TER 
+   COMPND      Acetonitrile
+   ATOM      1  N1  SLV     1      14.182  11.288  13.720
+   ATOM      2  C2  SLV     1      13.673  12.188  13.299
+   ATOM      3  C3  SLV     1      13.153  13.383  12.698
+   ATOM      4  H4  SLV     1      13.342  13.429  11.678
+   ATOM      5  H5  SLV     1      12.069  13.440  12.762
+   ATOM      6  H6  SLV     1      13.602  14.242  13.212
+   TER 
 
 
 .. image:: _images/tutorial5_2.png
@@ -84,10 +84,10 @@ Now that you have the structures, make a directory for the tutorial and move the
    acetonitrile.pdb  naphthalene_neutral.xyz  water.pdb
 
 Example 1: Naphthalene in mixed water and acetonitrile solution
--------------------------------------------
+-----------------------------------------------------------------------
 
 Step 1: Solvate system
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The first step is putting the solute in the solvent box, which uses the boxgen_multicomponent command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main, -s for solvents. To run boxgen_multicomponent with all of the default settings, use the following command:
 
@@ -284,8 +284,7 @@ With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we a
  
 .. note::
 
-   !!!!!
-   needs check again, because there are many bugs in boxgen_multicomponent flags
+   needs check again, because there are many bugs in boxgen_multicomponent flags!!!!!!
    
 
    This example uses default settings for boxgen_multicomponent, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
@@ -318,7 +317,8 @@ The mdrun command has several more options than the previous one, but the only r
 
    If you use AutoSolvate on a computer cluster with other type of Workload managers like `SGE, Torque <https://en.wikipedia.org/wiki/TORQUE>`_, or `PBS <https://en.wikipedia.org/wiki/Portable_Batch_System>`_, the ``-r`` option won't work either.
 
-   For more explanations about the ``-r`` option, please see :ref:`this warning message <roption>`.
+   For more explanations about the ``-r`` option, please see :ref:`this warning message <roption>`. 
+
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
@@ -351,8 +351,8 @@ mmheat.in        mmmin.in     mm.ncrst    mmnpt.out   MYBOX.inpcrd       MYBOX.p
 
 Once everything has finished, the main output is the QM/MM trajectory ``MYBOX-qmmmnvt.netcdf``. When you have this file, you can move on to the next step!
 
-!!!!
-continue writing from here
+
+continue writing from here !!!!
 
 
 .. warning::
