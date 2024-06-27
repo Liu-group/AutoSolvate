@@ -278,37 +278,21 @@ The pdb file format is as follows:
 When you visualize ``MYBOX.pdb`` you should be able to see the mixed-solvent (water/acetonitrile) box containing the solute (naphthalene):
 
 .. image:: _images/tutorial5_3.png
-   :width: 400
+   :width: 600
 
-With these three files, we are ready to proceed to the next step!
+With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we are ready to proceed to the next step!
  
 .. note::
 
-   needs check again!!!!!
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   needs check again, because there are many bugs in boxgen_multicomponent flags
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    This example uses default settings for boxgen_multicomponent, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
    ``autosolvate boxgen -m naphthalene_neutral.xyz -s water -c 0 -u 1 -g "bcc" -o nap_neutral``
 
    The semi-empirical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -323,7 +307,7 @@ The second step is running molecular dynamics, which includes equilibration and 
 
 To do a short example run of QM/MM use the following command:
 
-``autosolvate mdrun -f water_solvated -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 100 -s 100 -l 250 -r``
+``autosolvate mdrun -f MYBOX -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 10 -s 10 -l 25 -r``
   
 The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min > MM heat > MM NPT > QMMM min > QMMM heat > QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( -m, -n, -l, -o, -s). If you computer does not use srun, please remove the ``-r`` in the above command. Currently only TeraChem is supported for the QMMM step.
 
@@ -338,55 +322,38 @@ The mdrun command has several more options than the previous one, but the only r
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
-  AutoSolvate is starting in command line mode!
-  Running the module to automatically run MD simulations of solvated structure.
-  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-t', '300', '-p', '1', '-m', '10000', '-n', '10000', '-o', '100', '-s', '100', '-l', '250', '-r']
-  Filename: water_solvated
-  Charge: 0
-  Spinmultiplicity: 1
-  Temperature in K: 300
-  Pressure in bar: 1
-  Steps MM heat: 10000
-  Steps MM NPT: 10000
-  Steps QMMM heat: 100
-  Steps QMMM NPT: 100
-  Steps QMMM min: 10
-  using srun
-  MM Energy minimization
-  srun: job 5791719 queued and waiting for resources
-  srun: job 5791719 has been allocated resources
-  MM Heating
-  srun: job 5791725 queued and waiting for resources
-  srun: job 5791725 has been allocated resources
-  MM NPT equilibration
-  srun: job 5792049 queued and waiting for resources
-  srun: job 5792049 has been allocated resources
-  QMMM Energy minimization
-  srun: job 5792146 queued and waiting for resources
-  srun: job 5792146 has been allocated resources
-  QMMM Heating
-  srun: job 5792524 queued and waiting for resources
-  srun: job 5792524 has been allocated resources
-  QMMM NVT Run
-  srun: job 5792524 queued and waiting for resources
-  srun: job 5792524 has been allocated resources
+   (autosolvate) [pli@pascal tutorial_step2]$ autosolvate mdrun -f MYBOX -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 10 -s 10 -l 25 -r
+   AutoSolvate is starting in command line mode!
+   Running the module to automatically run MD simulations of solvated structure.
+   Filename: MYBOX
+   Charge: 0
+   Spinmultiplicity: 1
+   Temperature in K: 300
+   Pressure in bar: 1
+   Steps MM heat: 10000
+   Steps MM NPT: 10000
+   Steps QMMM heat: 10
+   Steps QMMM NPT: 10
+   Steps QMMM min: 25
+   using srun
+   MM Energy minimization
+   MM Heating
+   MM NPT equilibration
+   QMMM Energy minimization
+   QMMM Heating
+   QMMM NVT Run
   
 Additionally, these files should all be in your directory now::
  
-  inpfile.xyz       mmnpt.info          qmmmmin.ncrst     water_solvated.inpcrd
-  mmheat.in         mmnpt.out           qmmmmin.out       water_solvated-heat.netcdf
-  mmheat.info       old.tc_job.dat      qmmmnvt.in        water_solvated-mmnpt.netcdf
-  mmheat.ncrst      old.tc_job.inp      qmmmnvt.info      water_solvated-qmmmheat.netcdf
-  mmheat.out        ptchrg.xyz          qmmmnvt.out       water_solvated-qmmmmin.netcdf
-  mmmin.in          qmmmheat.in         qmmm_region.pdb   water_solvated-qmmmnvt.netcdf
-  mmmin.info        qmmmheat.info       tc_job.dat
-  mmmin.ncrst       qmmmheat.ncrst      tc_job.inp
-  mmmin.out         qmmmheat.out        tc_job.tpl
-  mm.ncrst          qmmmmin.in          tc_job.tpl.bak
-  mmnpt.in          qmmmmin.info        tc_job.tpl.bak
+autosolvate.log  mmheat.info  mmmin.info  mmnpt.in    mmnve.in           MYBOX-mmnpt.netcdf  MYBOX-qmmmheat.netcdf  old.tc_job.dat  qmmmheat.in    qmmmmin.in    qmmm.ncrst  qmmmnvt.info     scr
+inpfile.xyz      mmheat.out   mmmin.out   mmnpt.info  MYBOX-heat.netcdf  MYBOX.pdb           MYBOX-qmmmmin.netcdf   old.tc_job.inp  qmmmheat.info  qmmmmin.info  qmmmnve.in  qmmmnvt.out      tc_job.tpl
+mmheat.in        mmmin.in     mm.ncrst    mmnpt.out   MYBOX.inpcrd       MYBOX.prmtop        MYBOX-qmmmnvt.netcdf   ptchrg.xyz      qmmmheat.out   qmmmmin.out   qmmmnvt.in  qmmm_region.pdb  tc_job.tpl.bak
 
-Once everything has finished, the main output is the QM/MM trajectory ``water_solvated-qmmmnvt.netcdf``. When you have this file, you can move on to the next step!
+Once everything has finished, the main output is the QM/MM trajectory ``MYBOX-qmmmnvt.netcdf``. When you have this file, you can move on to the next step!
 
+!!!!!!
+continue writing from here
+!!!!!!
 .. warning::
 
    Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. 
