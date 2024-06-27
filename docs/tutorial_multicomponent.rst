@@ -11,7 +11,7 @@ Once you have AutoSolvate and all dependencies installed you will need the pdb f
 .. image:: _images/tutorial4_1.jpg
    :width: 400
 
-naphthalene_neutral.xyz
+naphthalene_neutral.xyz:
 ::
 
     18
@@ -40,7 +40,7 @@ naphthalene_neutral.xyz
    :width: 300
 
 
-acetonitrile.pdb 
+acetonitrile.pdb:
 ::
    COMPND      Acetonitrile
    ATOM      1  N1  SLV     1      14.182  11.288  13.720
@@ -55,7 +55,7 @@ acetonitrile.pdb
 .. image:: _images/tutorial5_2.png
    :width: 300
 
-water.pdb
+water.pdb:
 :: 
 
   COMPND      Water
