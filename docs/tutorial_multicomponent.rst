@@ -101,20 +101,20 @@ The first step is putting the solute in the solvent box, which uses the ``boxgen
    
    note to Autosolvate Developers::
 
-   (1) Please test if '-m' and '-s' command fully support both xyz and pdb file inputs which means if someone provides xyz file, the Multicomponent module will convert the xyz file into pdb file using openbable. 
+      (1) Please test if '-m' and '-s' command fully support both xyz and pdb file inputs which means if someone provides xyz file, the Multicomponent module will convert the xyz file into pdb file using openbable. 
 
-   (2) Please implement a way to allow user to specify the solute charges and multiplicities. 
-   
-      The idea case is allow user to provide a .inp document for the Multicomponent to read. 
+      (2) Please implement a way to allow user to specify the solute charges and multiplicities. 
+      
+         The idea case is allow user to provide a .inp document for the Multicomponent to read. 
 
-      For example autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz -s solvents.inp 
+         For example autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz -s solvents.inp 
 
-      The solvents.inp file will look like this: 
-         #xyzfile, charge, multiplicities
-         water.xyz 0 1 
-         acetonitrile.xyz 0 1 
+         The solvents.inp file will look like this: 
+            #xyzfile, charge, multiplicities
+            water.xyz 0 1 
+            acetonitrile.xyz 0 1 
 
-   (3) Please implement a way to allow user to use TIP3P water and other solvents AMBER already has force field parameters for. 
+      (3) Please implement a way to allow user to use TIP3P water and other solvents AMBER already has force field parameters for. 
 
 Autosolvate will use the calculate force field parameters for the solute (naphthalene_neutral) and solvents (water/acetonitrile). By default, the command will assume the charge of solute and solvents are neutral, and the multiplicity of the solute and solvents are 1, charge fitting method of bcc and output file name of MYBOX. 
 
@@ -326,23 +326,23 @@ With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we a
 
    note to Autosolvate Developers::
 
-   There are many flags in startmulticomponent() not working. 
+      There are many flags in startmulticomponent() not working. 
 
-   -o, --output. Currently, we can not specify the output names. Please implement this feature and make sure it works. 
+      -o, --output. Currently, we can not specify the output names. Please implement this feature and make sure it works. 
 
-   -r, --srunuse. Not implemented at all 
+      -r, --srunuse. Not implemented at all 
 
-   -e, --gaussianexe. Not sure if we need this flag. 
+      -e, --gaussianexe. Not sure if we need this flag. 
 
-   -d, --gaussiandir. Not sure if we need this flag. 
+      -d, --gaussiandir. Not sure if we need this flag. 
 
-   -a, --amberhome. Not sure if we need this flag 
+      -a, --amberhome. Not sure if we need this flag 
 
-   -l, --solventoff. MixtureBuilder() can read solvent.off file, I have not implmented and tested this flag 
+      -l, --solventoff. MixtureBuilder() can read solvent.off file, I have not implmented and tested this flag 
 
-   -p, --solventfrcmod Same as above. 
+      -p, --solventfrcmod Same as above. 
 
-   -g --chargefitting. Currently only support bcc. Please implement RESP charge fitting method.
+      -g --chargefitting. Currently only support bcc. Please implement RESP charge fitting method.
 
 
 .. _tutstep2:
