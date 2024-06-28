@@ -70,6 +70,7 @@ water.pdb:
 
   You can download the xyz files and pdb files here:
 
+  [Download File.rts](https://github.com/Liu-group/AutoSolvate/blob/test_multicomponent_command_line/docs/_data/naphthalene_neutral.xyz)
   :download:`naphthalene_neutral.xyz <_data/naphthalene_neutral.xyz>`  
   
   :download:`acetonitrile.pdb <_data/acetonitrile.pdb>`   
