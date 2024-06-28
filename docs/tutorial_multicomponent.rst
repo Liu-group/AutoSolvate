@@ -1,6 +1,6 @@
 Tutorial
 =============================
-The following tutorial illustrates the basic usage of Autosolvate Multicomponent module in the command line interface (CLI).
+The following tutorial illustrates the basic usage of ``Autosolvate Multicomponent`` module in the command line interface (CLI).
 
 There will be one example systems: naphthalene in mixed water and acetonitrile solvent. The tutorial will be broken down into three steps:
 
@@ -65,26 +65,27 @@ water.pdb:
   TER       4              1 
   END   
 
-
 .. note::
 
   You can download the xyz files and pdb files here:
 
-  [Download File.rts](https://github.com/Liu-group/AutoSolvate/blob/test_multicomponent_command_line/docs/_data/naphthalene_neutral.xyz)
-
-  <a href="https://github.com/Liu-group/AutoSolvate/blob/test_multicomponent_command_line/docs/_data/naphthalene_neutral.xyz">Download here</a>
   :download:`naphthalene_neutral.xyz <_data/naphthalene_neutral.xyz>`  
   
   :download:`acetonitrile.pdb <_data/acetonitrile.pdb>`   
   
   :download:`water.pdb <_data/water.pdb>`   
 
-
-
 Now that you have the structures, make a directory for the tutorial and move the files into it:: 
    
-   (autosolvate) [pli@pascal tutorial]$ ls
    acetonitrile.pdb  naphthalene_neutral.xyz  water.pdb
+
+.. note::
+
+   You can find the ``tutorial_step1`` folder here: 
+
+   :download:`tutorial_step1 <_data/multicomponent_tutorial/example1/tutorial_step1>`  
+
+   It includes all the files you need to proceed with the step 1 of the tutorial. 
 
 Example 1: Naphthalene in mixed water and acetonitrile solution
 -----------------------------------------------------------------------
@@ -92,15 +93,32 @@ Example 1: Naphthalene in mixed water and acetonitrile solution
 Step 1: Solvate system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The first step is putting the solute in the solvent box, which uses the boxgen_multicomponent command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main, -s for solvents. To run boxgen_multicomponent with all of the default settings, use the following command:
+The first step is putting the solute in the solvent box, which uses the ``boxgen_multicomponent`` command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file and the solvents pdb files. It will be listed as -m for main, -s for solvents. To run boxgen_multicomponent with all of the default settings, use the following command:
 
 ``autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz  -s water.pdb/acetonitrile.pdb``
 
-Autosolvate will use the calculate force field parameters for the solute (naphthalene_neutral) and solvents (water/acetonitrile). The command will use the assume the charge of solute and solvents are neutral, and the multiplicity of the solute and solvents are 1, charge fitting method of bcc and output file name of MYBOX. 
+.. note::
+   
+   note to Autosolvate Developers 
+
+   (1) Please test if '-m' and '-s' command fully support both xyz and pdb file inputs which means if someone provides xyz file, the Multicomponent module will convert the xyz file into pdb file using openbable. 
+
+   (2) Please implement a way to allow user to specify the solute charges and multiplicities. 
+   
+      The idea case is allow user to provide a .inp document for the Multicomponent to read. 
+
+      For example autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz -s solvents.inp 
+
+      The solvents.inp file will look like this: 
+         #xyzfile, charge, multiplicities
+         water.xyz 0 1 
+         acetonitrile.xyz 0 1 
+
+   (3) Please implement a way to allow user to use TIP3P water and other solvents AMBER already has force field parameters for. 
+
+Autosolvate will use the calculate force field parameters for the solute (naphthalene_neutral) and solvents (water/acetonitrile). By default, the command will assume the charge of solute and solvents are neutral, and the multiplicity of the solute and solvents are 1, charge fitting method of bcc and output file name of MYBOX. 
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
-
-   (autosolvate) [pli@pascal tutorial]$ autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz  -s water.pdb/acetonitrile.pdb
 
    AutoSolvate is starting in command line mode!
    Running the module to generate solvent box and force field parameters for multicomponent systems.
@@ -193,14 +211,23 @@ If AutoSolvate is running successfully, the following messages will be printed t
 
 Additionally, you should now have the following files in your directory::
 
-   (autosolvate) [pli@pascal tutorial]$ ls
-   acetonitrile.frcmod  ANTECHAMBER_AC.AC          autosolvate.log               leap_naphthalene_neutral.log  MYBOX.prmtop                naphthalene_neutral.xyz  water.mol2
-   acetonitrile.inpcrd  ANTECHAMBER_AC.AC0         leap_acetonitrile.cmd         leap_water.cmd                naphthalene_neutral.frcmod  sqm.in                   water.pdb
-   acetonitrile.lib     ANTECHAMBER_AM1BCC.AC      leap_acetonitrile.log         leap_water.log                naphthalene_neutral.inpcrd  sqm.out                  water.prmtop
-   acetonitrile.mol2    ANTECHAMBER_AM1BCC_PRE.AC  leap.log                      MYBOX.inpcrd                  naphthalene_neutral.lib     sqm.pdb                  water.xyz
-   acetonitrile.pdb     ANTECHAMBER_BOND_TYPE.AC   leap_MYBOX.cmd                MYBOX_packmol.inp             naphthalene_neutral.mol2    water.frcmod
-   acetonitrile.prmtop  ANTECHAMBER_BOND_TYPE.AC0  leap_MYBOX.log                MYBOX_packmol.out             naphthalene_neutral.pdb     water.inpcrd
-   acetonitrile.xyz     ATOMTYPE.INF               leap_naphthalene_neutral.cmd  MYBOX.pdb                     naphthalene_neutral.prmtop  water.lib
+   acetonitrile.frcmod        leap_acetonitrile.log         naphthalene_neutral.mol2
+   acetonitrile.inpcrd        leap.log                      naphthalene_neutral.pdb
+   acetonitrile.lib           leap_MYBOX.cmd                naphthalene_neutral.prmtop
+   acetonitrile.mol2          leap_MYBOX.log                naphthalene_neutral.xyz
+   acetonitrile.pdb           leap_naphthalene_neutral.cmd  sqm.in
+   acetonitrile.prmtop        leap_naphthalene_neutral.log  sqm.out
+   acetonitrile.xyz           leap_water.cmd                sqm.pdb
+   ANTECHAMBER_AC.AC          leap_water.log                water.frcmod
+   ANTECHAMBER_AC.AC0         MYBOX.inpcrd                  water.inpcrd
+   ANTECHAMBER_AM1BCC.AC      MYBOX_packmol.inp             water.lib
+   ANTECHAMBER_AM1BCC_PRE.AC  MYBOX_packmol.out             water.mol2
+   ANTECHAMBER_BOND_TYPE.AC   MYBOX.pdb                     water.pdb
+   ANTECHAMBER_BOND_TYPE.AC0  MYBOX.prmtop                  water.prmtop
+   ATOMTYPE.INF               naphthalene_neutral.frcmod    water.xyz
+   autosolvate.log            naphthalene_neutral.inpcrd
+   leap_acetonitrile.cmd      naphthalene_neutral.lib
+
 
 The three files that we care about for moving forward to the next step are the ones with the output prefix MYBOX (MYBOX.inpcrd, MYBOX.prmtop, MYBOX.pdb). The ``.inpcrd`` file contains the input coordinates, and the ``.prmtop`` file contains the Amber parameter topology. The ``.pdb`` file has the coordinates for the solvent box, so you want to check that both the solvent and the solute are there. The block below shows the first few lines of the ``.pdb`` file::
 
@@ -285,10 +312,7 @@ When you visualize ``MYBOX.pdb`` you should be able to see the mixed-solvent (wa
 
 With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we are ready to proceed to the next step!
  
-.. note::
-
-   needs check again, because there are many bugs in boxgen_multicomponent flags!!!!!!
-   
+.. note::   
 
    This example uses default settings for boxgen_multicomponent, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:
 
@@ -296,16 +320,62 @@ With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we a
 
    The semi-empirical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.
 
+.. note::   
 
+   note to Autosolvate Developers 
 
+   There are many flags in startmulticomponent() not working. 
+
+   -o, --output. Currently, we can not specify the output names. Please implement this feature and make sure it works. 
+
+   -r, --srunuse. Not implemented at all 
+
+   -e, --gaussianexe. Not sure if we need this flag. 
+
+   -d, --gaussiandir. Not sure if we need this flag. 
+
+   -a, --amberhome. Not sure if we need this flag 
+
+   -l, --solventoff. MixtureBuilder() can read solvent.off file, I have not implmented and tested this flag 
+
+   -p, --solventfrcmod Same as above. 
+
+   -g --chargefitting. Currently only support bcc. Please implement RESP charge fitting method.
 
 
 .. _tutstep2:
+
+Prerequisites
+-------------------------------------------
+
+Before running the second step, I strongly suggest you make a new directory for the next step. Files generated in the first step might cause bugs in the second step.
+
+You should the following files only in your directory:: 
+   
+   MYBOX.inpcrd  MYBOX.pdb  MYBOX.prmtop
+
+.. note::
+
+   You can find the ``tutorial_step2`` folder here: 
+
+   :download:`tutorial_step2 <_data/multicomponent_tutorial/example1/tutorial_step2>`  
+
+   It includes all the files you need to proceed with the step 2 of the tutorial. 
+
 
 Step 2: MD Simulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The second step is running molecular dynamics, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.
+
+.. note::
+
+   'autosolvate mdrun' command uses TeraChem. Make sure you have TeraChem installed and module loaded.
+
+   Load your TeraChem module with the following command: 
+      module load TeraChem/mpich2  (replace the TeraChem path with your local TeraChem path) 
+
+   
 
 To do a short example run of QM/MM use the following command:
 
@@ -325,7 +395,6 @@ The mdrun command has several more options than the previous one, but the only r
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
-   (autosolvate) [pli@pascal tutorial_step2]$ autosolvate mdrun -f MYBOX -q 0 -u 1 -t 300 -p 1 -m 10000 -n 10000 -o 10 -s 10 -l 25 -r
    AutoSolvate is starting in command line mode!
    Running the module to automatically run MD simulations of solvated structure.
    Filename: MYBOX
@@ -348,9 +417,19 @@ If AutoSolvate is running successfully, the following messages will be printed t
   
 Additionally, these files should all be in your directory now::
  
-autosolvate.log  mmheat.info  mmmin.info  mmnpt.in    mmnve.in           MYBOX-mmnpt.netcdf  MYBOX-qmmmheat.netcdf  old.tc_job.dat  qmmmheat.in    qmmmmin.in    qmmm.ncrst  qmmmnvt.info     scr
-inpfile.xyz      mmheat.out   mmmin.out   mmnpt.info  MYBOX-heat.netcdf  MYBOX.pdb           MYBOX-qmmmmin.netcdf   old.tc_job.inp  qmmmheat.info  qmmmmin.info  qmmmnve.in  qmmmnvt.out      tc_job.tpl
-mmheat.in        mmmin.in     mm.ncrst    mmnpt.out   MYBOX.inpcrd       MYBOX.prmtop        MYBOX-qmmmnvt.netcdf   ptchrg.xyz      qmmmheat.out   qmmmmin.out   qmmmnvt.in  qmmm_region.pdb  tc_job.tpl.bak
+   autosolvate.log  MYBOX-heat.netcdf      qmmmheat.out
+   inpfile.xyz      MYBOX.inpcrd           qmmmmin.in
+   mmheat.in        MYBOX-mmnpt.netcdf     qmmmmin.info
+   mmheat.info      MYBOX.pdb              qmmmmin.out
+   mmheat.out       MYBOX.prmtop           qmmm.ncrst
+   mmmin.in         MYBOX-qmmmheat.netcdf  qmmmnve.in
+   mmmin.info       MYBOX-qmmmmin.netcdf   qmmmnvt.in
+   mmmin.out        MYBOX-qmmmnvt.netcdf   qmmmnvt.info
+   mm.ncrst         old.tc_job.dat         qmmmnvt.out
+   mmnpt.in         old.tc_job.inp         qmmm_region.pdb
+   mmnpt.info       ptchrg.xyz             scr
+   mmnpt.out        qmmmheat.in            tc_job.tpl
+   mmnve.in         qmmmheat.info          tc_job.tpl.bak
 
 Once everything has finished, the main output is the QM/MM trajectory ``MYBOX-qmmmnvt.netcdf``. When you have this file, you can move on to the next step!
 
@@ -398,7 +477,6 @@ When you are ready to do a production run and want to use all of these defaults,
   
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
-   (autosolvate) [pli@pascal tutorial_step2_run3]$ autosolvate mdrun -f MYBOX -q 0 -u 1 -d
    AutoSolvate is starting in command line mode!
    Running the module to automatically run MD simulations of solvated structure.
    Filename: MYBOX
@@ -415,7 +493,6 @@ If AutoSolvate is running successfully, the following messages will be printed t
 
 The following files will be added to your directory::
 
-(autosolvate) [pli@pascal tutorial_step2]$ ls
 autosolvate.log  MYBOX.inpcrd  qmmmnve.in
 mmheat.in        MYBOX.pdb     qmmmnvt.in
 mmmin.in         MYBOX.prmtop  runMM.sh
@@ -436,6 +513,24 @@ Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each 
    * If you do not use the -r flag, but call the autosolvate command in your own submit script, AutoSolvate will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
    
 
+Prerequisites
+-------------------------------------------
+
+Unlike the second step, you do not need to create a separate directory for the third step. You can use the same directory where you ran the second step.
+
+Before you run the third step, you should have the following files in your directory:: 
+   
+   MYBOX-qmmmnvt.netcdf  MYBOX.prmtop
+
+.. note::
+
+   You can find the ``tutorial_step3`` folder here: 
+
+   :download:`tutorial_step3 <_data/multicomponent_tutorial/example1/tutorial_step3>`  
+
+   It includes all the files you need to proceed with the step 3 of the tutorial. 
+
+
 Step 3: Microsolvated cluster extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -455,7 +550,6 @@ The .prmtop and .netcdf filenames are required, but Autosolvate will use the def
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
-   (autosolvate) [pli@pascal tutorial_step3]$ autosolvate clustergen -f MYBOX.prmtop -t MYBOX-qmmmnvt.netcdf
    AutoSolvate is starting in command line mode!
    Running the module to extract microsolvated clusters from MD trajectories with solvent box.
    Filename: MYBOX.prmtop
@@ -480,13 +574,6 @@ As Autosolvate is running, you will notice this line now includes the list of th
   extracting from frames: [0, 5]
 
 If you want spherical solvent shells instead of the default aspherical solvent shells add ``-p`` to the end of the previous command. Then the solvent shell size is measured from the center of mass of the solute.
-
-.. note::
-
-  If you were not able to run the clustergen command above, you can download one of the microsolvated clusters with 6 Å solvent shell size here:
-
-  :download:`water_solvated-cutoutn-0.xyz <_data/water_solvated-cutoutn-0.xyz>`
-
 
 .. warning::
 
