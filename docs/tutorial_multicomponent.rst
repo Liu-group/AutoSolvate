@@ -99,7 +99,7 @@ The first step is putting the solute in the solvent box, which uses the ``boxgen
 
 .. note::
    
-   note to Autosolvate Developers 
+   note to Autosolvate Developers::
 
    (1) Please test if '-m' and '-s' command fully support both xyz and pdb file inputs which means if someone provides xyz file, the Multicomponent module will convert the xyz file into pdb file using openbable. 
 
@@ -324,7 +324,7 @@ With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we a
 
 .. note::   
 
-   note to Autosolvate Developers 
+   note to Autosolvate Developers::
 
    There are many flags in startmulticomponent() not working. 
 
