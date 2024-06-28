@@ -110,6 +110,12 @@ The first step is putting the solute in the solvent box, which uses the ``boxgen
 ``autosolvate boxgen_multicomponent -m naphthalene_neutral.xyz  -s water.pdb/acetonitrile.pdb``
 
 .. note::
+   If you saw this error message:
+      NameError: name '_read_utf8_with_fallback' is not defined
+
+   It means you did not install and complie the AutoSolvate properly, please install and complie the AutoSolvate in the new conda Environment. 
+
+.. note::
    
    Note::
       
@@ -393,7 +399,16 @@ The second step is running molecular dynamics, which includes equilibration and 
    Load your TeraChem module with the following command: 
       module load TeraChem/mpich2  (replace the TeraChem path with your local TeraChem path) 
 
+.. note::
    
+   Note::
+
+      Note for AutoSolvate Developers
+
+      It seems the autosolvate mdrun command will not work if you use nohup. 
+
+      Please test and try to fix this issue. 
+
 
 To do a short example run of QM/MM use the following command:
 
