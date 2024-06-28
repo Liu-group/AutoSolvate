@@ -562,7 +562,7 @@ If AutoSolvate is running successfully, the following messages will be printed t
 
 The output of this command will be the cartesian coordinates of the microsolvated clusters in ``MYBOX-cutoutn-*.xyz``, with * showing the frame number. When you open one of cut out files, the microsolvated cluster should look like this:
 
-.. image:: _images/tutorial5_4.jpg
+.. image:: _images/tutorial5_4.png
    :width: 400
 
 Running the above command only generates one xyz file because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every hundred frames. However, if we extract every 5 steps (with option `-i 5`), then we will get 2 coordinate files. We can increase the solvent shell size to 6 Å with `-s 6`. 
