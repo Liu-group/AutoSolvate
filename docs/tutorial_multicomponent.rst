@@ -287,7 +287,9 @@ The three files that we care about for moving forward to the next step are the o
       TER
       ...
 
-The pdb file format is as follows:
+
+The pdb file format is as follows::
+
    COLUMN     DESCRIPTION
    ------     ----------------------------
    1-6       Record Name ("ATOM" indicates a line containing information about an atom, while "TER" marks the end of a chain of atoms.)
@@ -345,8 +347,8 @@ With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we a
 
 .. _tutstep2:
 
-Prerequisites
--------------------------------------------
+Step 2 Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before running the second step, I strongly suggest you make a new directory for the next step. Files generated in the first step might cause bugs in the second step.
 
@@ -513,8 +515,8 @@ Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each 
    * If you do not use the -r flag, but call the autosolvate command in your own submit script, AutoSolvate will run *on a compute node in the queue* with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.
    
 
-Prerequisites
--------------------------------------------
+Step 3 Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Unlike the second step, you do not need to create a separate directory for the third step. You can use the same directory where you ran the second step.
 
