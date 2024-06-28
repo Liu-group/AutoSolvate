@@ -8,7 +8,7 @@ There will be one example systems: naphthalene in mixed water and acetonitrile s
 
    Note::
 
-      **Note to Autosolvate Developers**
+      Note to Autosolvate Developers
 
       I have not tested if the download links work properly in this document because I can not add this .rst file to https://autosolvate.readthedocs.io/en/latest/. 
 
@@ -113,7 +113,7 @@ The first step is putting the solute in the solvent box, which uses the ``boxgen
    
    Note::
       
-      **Note to Autosolvate Developers**
+      Note to Autosolvate Developers
 
       (1) Please test if '-m' and '-s' command fully support both xyz and pdb file inputs which means if someone provides xyz file, the Multicomponent module will convert the xyz file into pdb file using openbable. 
 
@@ -340,7 +340,7 @@ With these three files (``MYBOX.inpcrd``, ``MYBOX.prmtop``, ``MYBOX.pdb``), we a
 
    Note::
 
-      **Note to Autosolvate Developers**
+      Note to Autosolvate Developers
 
       There are many flags in startmulticomponent() not working. 
 
