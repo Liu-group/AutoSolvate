@@ -352,9 +352,6 @@ mmheat.in        mmmin.in     mm.ncrst    mmnpt.out   MYBOX.inpcrd       MYBOX.p
 Once everything has finished, the main output is the QM/MM trajectory ``MYBOX-qmmmnvt.netcdf``. When you have this file, you can move on to the next step!
 
 
-continue writing from here !!!!
-
-
 .. warning::
 
    Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run. 
@@ -394,29 +391,33 @@ The default mdrun will have the following settings:
 
 When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right: 
 
-``autosolvate mdrun -f water_solvated -q 0 -u 1 -d``
+``autosolvate mdrun -f MYBOX -q 0 -u 1 -d``
   
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
-  AutoSolvate is starting in command line mode!
-  Running the module to automatically run MD simulations of solvated structure.
-  ['-f', 'water_solvated', '-q', '0', '-u', '1', '-d']
-  Filename: water_solvated
-  Charge: 0
-  Spinmultiplicity: 1
-  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands
-  MM Energy minimization
-  MM Heating
-  MM NPT equilibration
-  QMMM Energy minimization
-  QMMM Heating
-  QMMM NVT Run
-  
+   (autosolvate) [pli@pascal tutorial_step2_run3]$ autosolvate mdrun -f MYBOX -q 0 -u 1 -d
+   AutoSolvate is starting in command line mode!
+   Running the module to automatically run MD simulations of solvated structure.
+   Filename: MYBOX
+   Charge: 0
+   Spinmultiplicity: 1
+   Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands
+   MM Energy minimization
+   MM Heating
+   MM NPT equilibration
+   QMMM Energy minimization
+   QMMM Heating
+   QMMM NVT Run
+
+
 The following files will be added to your directory::
 
-  mmheat.in  qmmmheat.in  runMM.sh
-  mmmin.in   qmmmmin.in   runQMMMM.sh
-  mmnpt.in   qmmmnvt.in   tc_job.tpl
+(autosolvate) [pli@pascal tutorial_step2]$ ls
+autosolvate.log  MYBOX.inpcrd  qmmmnve.in
+mmheat.in        MYBOX.pdb     qmmmnvt.in
+mmmin.in         MYBOX.prmtop  runMM.sh
+mmnpt.in         qmmmheat.in   runQMMMM.sh
+mmnve.in         qmmmmin.in    tc_job.tpl
 
 Inside ``runMM.sh`` and ``runQMMMM.sh``, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.
 
@@ -439,43 +440,41 @@ The last step is extracting a cluster from the previous results that can be used
 
 To extract the cluster from the final QMMM results, use the following command:
 
-``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmnvt.netcdf``
+``autosolvate clustergen -f MYBOX.prmtop -t MYBOX-qmmmnvt.netcdf``
 
 .. note::
 
   If you were not able to run the QMMM simulation above, you can download the QM/MM trajectory here:
 
-  :download:`water_solvated-qmmmnvt.netcdf <_data/water_solvated-qmmmnvt.netcdf>`
+  :download:`MYBOX-qmmmnvt.netcdf <_data/MYBOX-qmmmnvt.netcdf>`
 
 The .prmtop and .netcdf filenames are required, but Autosolvate will use the default values of 0 for the starting frame, 100 for the extraction interval, and a cutout size of 4 Å.
 
 If AutoSolvate is running successfully, the following messages will be printed to your screen::
 
-    AutoSolvate is starting in command line mode!
-    Running the module to extract solvated cluster (sphere) from MD trajectories of solvent box.
-    ['-f', 'water_solvated.prmtop', '-t', 'water_solvated-qmmmnvt.netcdf']
-    Filename: water_solvated.prmtop
-    Trajectory name: water_solvated-qmmmnvt.netcdf
-    Loading trajectory
-    selecting center solute
-    extracting from frames: [0]
-    calculating distance to all solvent molecules
-    select solvent molecules
-    for first frame selected 26 solvent molecules
-    saving xyz
+   (autosolvate) [pli@pascal tutorial_step3]$ autosolvate clustergen -f MYBOX.prmtop -t MYBOX-qmmmnvt.netcdf
+   AutoSolvate is starting in command line mode!
+   Running the module to extract microsolvated clusters from MD trajectories with solvent box.
+   Filename: MYBOX.prmtop
+   Trajectory name: MYBOX-qmmmnvt.netcdf
+   ['NAP'] [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+   select solvent molecules
+   for first frame selected 17 solvent molecules
+   saving xyz
+   MYBOX-cutoutn-0.xyz
 
-The output of this command will be the cartesian coordinates of the microsolvated clusters in ``water_solvated-cutoutn-*.xyz``, with * showing the frame number. When you open one of cut out files, the microsolvated cluster should look like this:
+The output of this command will be the cartesian coordinates of the microsolvated clusters in ``MYBOX-cutoutn-*.xyz``, with * showing the frame number. When you open one of cut out files, the microsolvated cluster should look like this:
 
-.. image:: _images/tutorial4_3.jpg
+.. image:: _images/tutorial5_4.jpg
    :width: 400
 
-Running the above command only generates one xyz file because we only did 100 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every hundred frames. However, if we extract every 10 steps (with option `-i 10`), then we will get 10 coordinate files. We can increase the solvent shell size to 6 Å with `-s 6`. 
+Running the above command only generates one xyz file because we only did 10 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every hundred frames. However, if we extract every 5 steps (with option `-i 5`), then we will get 2 coordinate files. We can increase the solvent shell size to 6 Å with `-s 6`. 
 
-``autosolvate clustergen -f water_solvated.prmtop -t water_solvated-qmmmnvt.netcdf -a 0 -i 10 -s 6``
+``autosolvate clustergen -f MYBOX.prmtop -t MYBOX-qmmmnvt.netcdf -a 0 -i 5 -s 6``
 
-As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from::
+As Autosolvate is running, you will notice this line now includes the list of the 2 frames that the clusters will be extracted from::
 
-  extracting from frames: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+  extracting from frames: [0, 5]
 
 If you want spherical solvent shells instead of the default aspherical solvent shells add ``-p`` to the end of the previous command. Then the solvent shell size is measured from the center of mass of the solute.
 
@@ -489,36 +488,3 @@ If you want spherical solvent shells instead of the default aspherical solvent s
 .. warning::
 
    The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, *the new coordinates will overwrite the old ones* (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.
-
-Example 2: Naphthalene Radical in Chloroform
-----------------------------------------------------------
-
-Now that we have gone through the details of one example, the second example will be the compact version of a production run.
-
-``autosolvate boxgen -m naphthalene_radical.xyz -s chloroform -c 1 -u 2 -g "resp" -o nap_radical_chcl3``
-  * must designate charge and multiplicity for the radical system
-  * must use resp for open-shell system
-``autosolvate mdrun -f nap_radical_chcl3 -q 1 -u 2 -d``
-  * must designate charge and multiplicity for the radical system
-  * make sure to track the output filename from boxgen as the input filename
-  * copy the contents of runMM.sh and runQMMM.sh into a submit script that calls Terachem and submits the (very long) job into a queue with sufficient time
-``autosolvate clustergen -f nap_radical_chcl3.prmtop -t nap_radical_chcl3-qmmmnvt.netcdf -s 4``
-  * make sure to make note of which trajectory the clusters come from
-
-.. image:: _images/tutorial4_4.jpg
-   :width: 400
-
-Example 3: Naphthalene in Acetonitrile (custom solvent)
-----------------------------------------------------------
-
-``autosolvate boxgen -m naphthalene_neutral.xyz -s acetonitrile -c 0 -u 1 -g "bcc" -o nap_neutral_MeCN``
-  * custom solvent called the same as Amber pre-equilibrated solvent boxes
-  * bcc charge method is sufficient for closed-shell system
-``autosolvate mdrun -f nap_neutral_MeCN -q 0 -u 1 -l 0 -o 0 -s 0 -d``
-  * example with only MM steps in the MDrun
-``autosolvate clustergen -f nap_neutral_MeCN.prmtop -t nap_neutral_MeCN-mmnpt.netcdf -a 0 -i 300 -s 4``
-  * make sure the trajectory name is for the MM NPT step
-  * MM NPT has 30,000 steps, so you may want to increase the interval
-  
-.. image:: _images/tutorial4_5.jpg
-   :width: 400
