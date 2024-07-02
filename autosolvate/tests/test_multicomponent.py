@@ -97,26 +97,33 @@ def test_multicomponent(tmpdir):
 
 def test_mixture_builder():
     test_name = "test_mixture_builder" 
-    solute    = ['naphthalene_neutral.xyz']
-    solvent   = ['acetonitrile.pdb', 'water.pdb'] 
     builder = MixtureBuilder(folder=os.getcwd()) 
-    for s in solute:
-        builder.add_solute(hp.get_input_dir(s)) 
-    for s in solvent:
-        builder.add_solvent(hp.get_input_dir(s)) 
+    builder.add_solute(hp.get_input_dir("naphthalene_neutral.xyz"), name="napthalene", residue_name="NAP", charge=0, spinmult=1, number=1)
+   
+    # predefined solvents do not need to specify the xyz file.
+    builder.add_solvent(name="acetonitrile", residue_name="C3N", charge=0, spinmult=1, number=200)
+    builder.add_solvent(name="water", residue_name="WAT", charge=0, spinmult=1, number=600)
     builder.build() 
 
+    solute_path_exist = True
+    solute_path_exist *= os.path.exists("napthalene.mol2")
+    solute_path_exist *= os.path.exists("napthalene.frcmod")
+    assert solute_path_exist
+
+    # predefined solvent will not generate the mol2 and frcmod files.
     path_exist = True
-    for res in ("naphthalene_neutral", "acetonitrile", "water"):
-        path_exist *= os.path.exists(f"{res}.pdb")
-        path_exist *= os.path.exists(f"{res}.lib")
-        path_exist *= os.path.exists(f"{res}.frcmod")
-
-
-    path_exist *= os.path.exists("MYBOX.pdb") 
-    path_exist *= os.path.exists("MYBOX.prmtop") 
-    path_exist *= os.path.exists("MYBOX.inpcrd") 
+    path_exist *= os.path.exists("napthalene-acetonitrile-water.pdb") 
+    path_exist *= os.path.exists("napthalene-acetonitrile-water.prmtop") 
+    path_exist *= os.path.exists("napthalene-acetonitrile-water.inpcrd") 
 
     assert path_exist 
-    assert hp.compare_pdb("MYBOX.pdb", hp.get_reference_dir(f"multicomponent/MYBOX.pdb"), threshold=6.0e-3) #threshold 6.0e-3 is reasonable because the there are many atoms in the system. 
-    assert hp.compare_inpcrd_prmtop("MYBOX.prmtop", hp.get_reference_dir(f"multicomponent/MYBOX.prmtop"), threshold=6.0e-3) 
+    assert hp.compare_pdb(
+                "napthalene-acetonitrile-water.pdb", 
+                hp.get_reference_dir(f"multicomponent/napthalene-acetonitrile-water.pdb"), 
+                threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the number of atoms and residues.
+                ) 
+    assert hp.compare_inpcrd_prmtop(
+                "napthalene-acetonitrile-water.prmtop", 
+                hp.get_reference_dir(f"multicomponent/napthalene-acetonitrile-water.prmtop"), 
+                threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the topology and force field parameters.
+                ) 

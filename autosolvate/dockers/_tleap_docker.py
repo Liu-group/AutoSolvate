@@ -208,7 +208,7 @@ class TleapDocker(GeneralDocker):
                         mol:           SolventBox,
                         check:         bool = False
     ) -> None:
-        if mol.amber_solvent:
+        if mol.amber_solvent and not mol.name == "water":
             doc.write('{:<5} {}  \n'.format("loadamberparams", mol.frcmod))
             return 
         
