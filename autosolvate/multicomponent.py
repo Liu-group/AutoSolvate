@@ -121,8 +121,7 @@ class MulticomponentSolventBoxBuilder():
         ]
     
     def get_solvent(self, solvent:str, slv_xyz:str = "", solvent_frcmod:str = "", solvent_off:str = "", slv_generate:bool = False, slv_count:int = 210*8, solvent_box_name:str = "SLVBOX"):
-        if solvent in AMBER_SOLVENT_DICT:
-            # amber solvents
+        if solvent in AMBER_SOLVENT_DICT and not slv_generate:
             self_solvent = AMBER_SOLVENT_DICT[solvent]
         elif solvent in custom_solv_dict:
             # solvent data prepared by autosolvate
@@ -137,10 +136,7 @@ class MulticomponentSolventBoxBuilder():
             self_solvent.frcmod = solvent_frcmod_path
             self_solvent.prep   = solvent_prep_path
             self_solvent.number = slv_count
-        elif os.path.exists(solvent_frcmod) and os.path.exists(solvent_off):
-            # using prebuilt solvent box
-            self_solvent = SolventBox(solvent_off, solvent_frcmod, name = solvent, folder = self.folder, box_name=solvent_box_name)
-        elif os.path.exists(slv_xyz) and slv_generate == True:
+        elif os.path.exists(slv_xyz) and slv_generate:
             # generate solvent box
             self_solvent = Molecule(slv_xyz, folder = self.folder)
             self_solvent.number = slv_count
@@ -188,10 +184,9 @@ class MixtureBuilder():
 
     def add_solute(self, xyzfile:str, name="", residue_name="", charge=0, spinmult=1, number = 1, **kwargs):
 
-        #use the first three letters of the xyzfile name as the residue name 
-        if not residue_name and len(xyzfile.split(".")[0].split("/")[-1]) >= 3:
-            residue_name = xyzfile.split(".")[0].split("/")[-1][:3].upper()
-
+        # use the first three letters of the xyzfile name as the residue name if not provided 
+        if not residue_name: 
+            residue_name = try_ones_best_to_get_residue_name(xyzfile, name)
         molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
 
         if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
@@ -202,36 +197,54 @@ class MixtureBuilder():
             molecule.lib = kwargs["lib"]
         molecule.update()
 
-        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") and not molecule.check_exist("lib")):
+        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") or molecule.check_exist("lib")):
             for docker in self.single_molecule_pipeline:
                 docker.run(molecule)
         molecule.number = number
         self.solutes.append(molecule)
-    
-    def add_solvent(self, xyzfile:str, name="", residue_name="", charge=0, spinmult=1, number = 200, **kwargs):
 
-        #use the first three letters of the xyzfile name as the residue name 
-        if not residue_name and len(xyzfile.split(".")[0].split("/")[-1]) >= 3:
-            residue_name = xyzfile.split(".")[0].split("/")[-1][:3].upper() #get the file name from the absolute path 
-            
-        molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
+    def add_solvent(self, xyzfile:str = "", name="", residue_name="", charge=0, spinmult=1, number = 210*8, slv_generate = False, **kwargs):
+        if name in AMBER_SOLVENT_DICT and not slv_generate: # predefined amber solvent
+            self_solvent = AMBER_SOLVENT_DICT[name]
+            self_solvent.folder = self.folder
+            self_solvent.generate_pdb()
+        elif name in custom_solv_dict:                      # custom solvent in autosolvate
+            # solvent data prepared by autosolvate
+            solvPrefix = custom_solv_dict[name]
+            solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvPrefix+".frcmod"))
+            solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvPrefix+".prep"))
+            solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvPrefix+".pdb"))
+            self_solvent = Molecule(solvent_pdb_path, 0, 1, name, residue_name = custom_solv_residue_name[name], folder = self.folder)
+            self_solvent.frcmod = solvent_frcmod_path
+            self_solvent.prep   = solvent_prep_path
+        elif os.path.exists(xyzfile) and slv_generate:      # user defined solvent
+            # generate solvent box
+            residue_name = try_ones_best_to_get_residue_name(xyzfile, name)
+            self_solvent = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
+            if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
+                self_solvent.mol2 = kwargs["mol2"]
+            if "frcmod" in kwargs and os.path.isfile(kwargs["frcmod"]):
+                self_solvent.frcmod = kwargs["frcmod"]
+            if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
+                self_solvent.lib = kwargs["lib"]
+            self_solvent.update()
 
-        if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
-            molecule.mol2 = kwargs["mol2"]
-        if "frcmod" in kwargs and os.path.isfile(kwargs["frcmod"]):
-            molecule.frcmod = kwargs["frcmod"]
-        if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
-            molecule.lib = kwargs["lib"]
-        molecule.update()
-
-        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") and not molecule.check_exist("lib")):
-            for docker in self.single_molecule_pipeline:
-                docker.run(molecule)
-        molecule.number = number
-        self.solvents.append(molecule)
+            if not self_solvent.check_exist("frcmod") or not (self_solvent.check_exist("mol2") or self_solvent.check_exist("lib")):
+                for docker in self.single_molecule_pipeline:
+                    docker.run(self_solvent)
+        else:
+            raise ValueError("Solvent not found")
+        self_solvent.number = number
+        for solvent in self.solvents:
+            if solvent.name == self_solvent.name:
+                raise ValueError(f"Solvent {solvent.name} already exists")
+        self.solvents.append(self_solvent)
 
     def build(self):
-        system_name = "-".join([m.name for m in self.solutes + self.solvents])
+        system_name = "-".join([m.name for m in self.solutes] + [m.name for m in self.solvents])
         solute_numbers = [m.number for m in self.solutes]
         solvent_numbers = [m.number for m in self.solvents]
         '''
@@ -239,7 +252,10 @@ class MixtureBuilder():
         comment left by Patrick Jun 12 2024.  
         the old way to define 'system_name' will cause bug, please have the person who wrote this to fix it.
         '''
-        system_name = 'MYBOX' 
+        '''
+        @DEBUG
+        bug fixed by Fangning Ren on July 1 2024
+        '''
         system = SolvatedSystem(system_name, solute = self.solutes, solvent = self.solvents,
                                 cubesize=self.boxsize, closeness=self.closeness, 
                                 solute_number = solute_numbers, solvent_number = solvent_numbers,

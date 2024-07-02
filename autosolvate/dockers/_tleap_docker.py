@@ -40,6 +40,15 @@ class TleapDocker(GeneralDocker):
     ##### check_system method for different systems
     def check_system_molecule(self, mol:Molecule):
         self.logger.info("Checking system {:s}...".format(mol.name))
+        if mol.amber_solvent:
+            self.logger.info("This is a predefined AMBER solvent.")
+            if mol.name == "water":
+                self.logger.info(f"Using TIP3P water model with predefined residue name {mol.residue_name}")
+            else:
+                self.logger.info("Solvent prep file: {:s}".format(mol.prep))
+                self.logger.info("Solvent frcmod file: {:s}".format(mol.frcmod))
+            return 
+            
         suffixs = ["mol2", "lib", "prep", "off"]
         suffixf = [0, 0, 0, 0]
         for i, suffix in enumerate(suffixs):
@@ -199,6 +208,10 @@ class TleapDocker(GeneralDocker):
                         mol:           SolventBox,
                         check:         bool = False
     ) -> None:
+        if mol.amber_solvent:
+            doc.write('{:<5} {}  \n'.format("loadamberparams", mol.frcmod))
+            return 
+        
         if mol.check_exist("off"):
             doc.write('{:<5} {}  \n'.format("loadoff", mol.off))
         if mol.check_exist("lib"):
