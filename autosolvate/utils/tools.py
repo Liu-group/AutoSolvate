@@ -11,6 +11,7 @@ from typing import List, Tuple, Dict, Union, Optional, Any, Callable, Iterable
 
 from ..Common import * 
 
+# multicomponent utilities
 def check_multicomponent(filename:str):
     """
     Check if the given file contains multiple molecules
@@ -259,6 +260,8 @@ def write_xyz(fname, element, data, energy = ""):
         f.write(f"{element[i]}    {data[i][0]:>12.8f}    {data[i][1]:>12.8f}    {data[i][2]:>12.8f}\n")
     f.close()
 
+
+# processing PDB
 def getHeadTail(mol2):
     r"""
     Detect start and end of coordinates
@@ -305,6 +308,92 @@ def updatePDB(obmol:ob.OBMol, pdbpath:str):
         os.rename(pdbpath, mainname + "-original.pdb")
     pyobmol = pybel.Molecule(ob.OBMol(obmol))
     pyobmol.write("pdb", pdbpath, overwrite=True)
+
+def xyz_to_pdb(mol: object) -> None: 
+    r'''
+    Convert xyz file to pdb file using openbabel
+    '''
+    # os.system('ob -ixyz {} -opdb -O {}'.format(mol.xyz, mol.name+'.pdb'))
+    obConversion = ob.OBConversion() 
+    obConversion.SetInAndOutFormats("xyz", "pdb") 
+    OBMOL = ob.OBMol() 
+    obConversion.ReadFile(OBMOL, mol.xyz) 
+    obConversion.WriteFile(OBMOL, mol.name+'/'+mol.name+'.pdb')
+    mol.update()
+    edit_pdb(mol)
+
+def edit_pdb(mol: object) -> None:
+    with open(mol.name+'/'+mol.pdb, 'r') as f: 
+        lines = f.readlines() 
+    with open(mol.name+'/'+mol.pdb, 'w') as f: 
+        for line in lines: 
+            if line.startswith('CONECT'): 
+                continue
+            else: 
+                f.write(line)
+
+def edit_system_pdb(box: object) -> None:
+    with open(box.name+'/'+box.system_pdb, 'r') as f: 
+        lines = f.readlines()
+    with open(box.name+'/'+box.system_pdb, 'w') as f:  
+        this_resid = 1
+        last_resid = 1
+        for line in lines:
+            if 'ATOM' in line:
+                last_resid = int(this_resid)
+                this_resid = int(line[22:26])
+            if last_resid != this_resid:
+                f.write("TER\n")
+            f.write(line)
+        f.close()
+
+def prep2pdb4amber_solvent(mol: object) -> None:
+    r'''
+    Output a pdb file for a amber predefined solvent (methanol, chloroform, nma)
+    '''
+    outputfolder = mol.folder
+    resname = mol.residue_name
+    pdbname = mol.name + '.pdb'
+    pdbpath = mol.reference_name + '.pdb'
+    if not os.path.exists(outputfolder):
+        os.makedirs(outputfolder)
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    with open(os.path.join(mol.folder, "leap_convert.cmd"), "w") as f: 
+        f.write(f"loadAmberPrep {mol.prep}\n")
+        f.write(f"singlemol = combine { {mol.residue_name} }\n")
+        f.write(f"savepdb singlemol {pdbpath}\n")
+    os.system(f"tleap -f {os.path.join(mol.folder, 'leap_convert.cmd')}")
+    mol.pdb = pdbpath
+    
+def assign_water_pdb(mol: object) -> None:
+    '''assign a reference pdb file for water'''
+    pdbstr = '''
+ATOM      1  O   WAT     0       2.537  -0.155   0.000  0.00  0.00           O  
+ATOM      2  H1  WAT     0       3.074   0.155   0.000  0.00  0.00           H  
+ATOM      3  H2  WAT     0       2.000   0.155   0.000  0.00  0.00           H  
+CONECT    1    2    3
+CONECT    2    1
+CONECT    3    1
+END
+'''.strip("\n")
+    outputfolder = mol.folder
+    if not os.path.exists(outputfolder):
+        os.makedirs(outputfolder)
+    pdbpath = mol.reference_name + '.pdb'
+    with open(pdbpath, 'w') as f:
+        f.write(pdbstr)
+    mol.pdb = pdbpath
+
+def get_residue_name_from_pdb(file_path:str) -> str:
+    residue_name = None
+    with open(file_path, 'r') as file:
+        for line in file:
+            if line.startswith('ATOM') or line.startswith('HETATM'):
+                residue_name = line[17:20]  
+                break  
+    return residue_name
+
 
 # other functions
 def process_system_name(name:str, xyzfile:str, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib"), check_exist = True):
@@ -374,44 +463,20 @@ def get_list_mol_type(*args: object, mol_type: str) -> list:
             raise Warning('mol_type is not set')
     return solvent_list
 
-def xyz_to_pdb(mol: object) -> None: 
-    r'''
-    Convert xyz file to pdb file using openbabel
-    '''
-    # os.system('ob -ixyz {} -opdb -O {}'.format(mol.xyz, mol.name+'.pdb'))
-    obConversion = ob.OBConversion() 
-    obConversion.SetInAndOutFormats("xyz", "pdb") 
-    OBMOL = ob.OBMol() 
-    obConversion.ReadFile(OBMOL, mol.xyz) 
-    obConversion.WriteFile(OBMOL, mol.name+'/'+mol.name+'.pdb')
-    mol.update()
-    edit_pdb(mol)
+def try_ones_best_to_get_residue_name(self, xyzfile:str, name:str):
+    try:
+        assert xyzfile.endswith(".pdb"), "Only pdb file is supported for now"
+        residue_name = get_residue_name_from_pdb(xyzfile)
+        assert len(residue_name) == 3, "Residue name must be three letters long"
+    except:
+        xyzbasename = os.path.splitext(os.path.basename(xyzfile))[0] if not name else name
+        if len(xyzbasename) >= 3:
+            residue_name = xyzbasename[:3].upper()
+        elif len(xyzbasename) < 3:
+            residue_name = "SLU"
+    return residue_name
 
-def edit_pdb(mol: object) -> None:
-    with open(mol.name+'/'+mol.pdb, 'r') as f: 
-        lines = f.readlines() 
-    with open(mol.name+'/'+mol.pdb, 'w') as f: 
-        for line in lines: 
-            if line.startswith('CONECT'): 
-                continue
-            else: 
-                f.write(line)
 
-def edit_system_pdb(box: object) -> None:
-    with open(box.name+'/'+box.system_pdb, 'r') as f: 
-        lines = f.readlines()
-    with open(box.name+'/'+box.system_pdb, 'w') as f:  
-        this_resid = 1
-        last_resid = 1
-        for line in lines:
-            if 'ATOM' in line:
-                last_resid = int(this_resid)
-                this_resid = int(line[22:26])
-            if last_resid != this_resid:
-                f.write("TER\n")
-            f.write(line)
-        f.close()
-    
 #handle job submission in class 
 def srun() -> callable:
     r'''

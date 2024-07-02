@@ -48,12 +48,13 @@ class SolventBox(System):
         """
         self.name           = process_system_name(name, solventbox, support_input_format=SolventBox._SUPPORT_INPUT_FORMATS, check_exist = False if amber_solvent else True)
         self.folder         = os.path.abspath(folder)
-        self.frcmod         = os.path.abspath(frcmod)
         self.box_name       = box_name
         self.amber_solvent  = amber_solvent
-        self.solventbox     = os.path.abspath(solventbox)
         
         if not amber_solvent:
+            self.frcmod         = os.path.abspath(frcmod)
+            self.solventbox     = os.path.abspath(solventbox)
+
             if not os.path.exists(solventbox):
                 logger.error("The pre-built solvent box file {} does not exist".format(solventbox))
                 raise FileNotFoundError("The solvent box file does not exist")
@@ -65,7 +66,9 @@ class SolventBox(System):
             self.box_name = self.get_box_name(self.solventbox)
             self.solventbox = getattr(self, ext)
         else:
-            pass
+            self.solventbox = solventbox
+            self.frcmod = frcmod
+            
         super(SolventBox, self).__init__(name = self.name)
         self.logger.name = self.__class__.__name__
 
@@ -86,38 +89,46 @@ class SolventBox(System):
                 break
         return previousname
 
-AMBER_WATER               = SolventBox( name='water',
-                                        solventbox='solvents.lib',
-                                        box_name='TIP3PBOX',
-                                        amber_solvent = True
-                                    )
+    def update(self):
+        # override the original update method for default system as some parameter for solvent box are predefined then cannot be updated
+        if self.amber_solvent:
+            return
+        super().update()
 
-AMBER_METHANOL            = SolventBox( name='methanol',
-                                        solventbox='solvents.lib',
-                                        frcmod="frcmod.meoh",
-                                        box_name='MEOHBOX',
-                                        amber_solvent = True
-                                    )                           
-
-AMBER_CHLOROFORM          = SolventBox(name='chloroform',
-                                        solventbox='solvents.lib',
-                                        frcmod="frcmod.chcl3",
-                                        box_name='CHCL3BOX',
-                                        amber_solvent = True
-                                    )
-                            
-AMBER_NMA                 = SolventBox(name='nma',
-                                        solventbox='solvents.lib',
-                                        frcmod="frcmod.nma",
-                                        box_name='NMABOX',
-                                        amber_solvent = True
-                                    )
-
-AMBER_SOLVENT_LIST       =  [AMBER_WATER, AMBER_METHANOL, AMBER_CHLOROFORM, AMBER_NMA] 
-AMBER_SOLVENT_DICT       =  {
-                             AMBER_WATER.name       :AMBER_WATER, 
-                             AMBER_METHANOL.name    :AMBER_METHANOL, 
-                             AMBER_CHLOROFORM.name  :AMBER_CHLOROFORM, 
-                             AMBER_NMA.name         :AMBER_NMA,
+# available name for pre-equilibrated water box includes:
+# POL3BOX, QSPCFWBOX, SPCBOX, SPCFWBOX, TIP3PBOX, TIP3PFBOX, TIP4PBOX, TIP4PEWBOX, OPCBOX, OPC3BOX, TIP5PBOX
+AMBER_WATER_BOX           = SolventBox(name='water', 
+                                       solventbox='solvents.lib',
+                                       box_name='TIP3PBOX', 
+                                       amber_solvent=True 
+                                      ) 
+ 
+AMBER_METHANOL_BOX        = SolventBox(name='methanol', 
+                                       solventbox='solvents.lib',
+                                       frcmod="frcmod.meoh", 
+                                       box_name='MEOHBOX', 
+                                       amber_solvent=True 
+                                      )                            
+ 
+AMBER_CHLOROFORM_BOX      = SolventBox(name='chloroform', 
+                                       solventbox='solvents.lib',
+                                       frcmod="frcmod.chcl3", 
+                                       box_name='CHCL3BOX', 
+                                       amber_solvent=True 
+                                      ) 
+                             
+AMBER_NMA_BOX             = SolventBox(name='nma', 
+                                       solventbox='solvents.lib',
+                                       frcmod="frcmod.nma", 
+                                       box_name='NMABOX', 
+                                       amber_solvent=True 
+                                      ) 
+ 
+AMBER_SOLVENTBOX_LIST        = [AMBER_WATER_BOX, AMBER_METHANOL_BOX, AMBER_CHLOROFORM_BOX, AMBER_NMA_BOX]  
+AMBER_SOLVENTBOX_DICT        = { 
+                             AMBER_WATER_BOX.name          : AMBER_WATER_BOX,  
+                             AMBER_METHANOL_BOX.name       : AMBER_METHANOL_BOX,  
+                             AMBER_CHLOROFORM_BOX.name     : AMBER_CHLOROFORM_BOX,  
+                             AMBER_NMA_BOX.name            : AMBER_NMA_BOX, 
                             }
-logging.basicConfig(level = INFO, force = True, handlers=[])
+logging.basicConfig(level=INFO, force=True, handlers=[])

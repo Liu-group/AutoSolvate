@@ -121,9 +121,9 @@ class MulticomponentSolventBoxBuilder():
         ]
     
     def get_solvent(self, solvent:str, slv_xyz:str = "", solvent_frcmod:str = "", solvent_off:str = "", slv_generate:bool = False, slv_count:int = 210*8, solvent_box_name:str = "SLVBOX"):
-        if solvent in AMBER_SOLVENT_DICT:
-            # amber solvents
-            self_solvent = AMBER_SOLVENT_DICT[solvent]
+        if solvent in AMBER_SOLVENTBOX_DICT and not slv_generate: # predefined amber solvent
+            self_solvent = AMBER_SOLVENTBOX_DICT[solvent]
+            self_solvent.folder = self.folder
         elif solvent in custom_solv_dict:
             # solvent data prepared by autosolvate
             solvPrefix = custom_solv_dict[solvent]
@@ -137,10 +137,7 @@ class MulticomponentSolventBoxBuilder():
             self_solvent.frcmod = solvent_frcmod_path
             self_solvent.prep   = solvent_prep_path
             self_solvent.number = slv_count
-        elif os.path.exists(solvent_frcmod) and os.path.exists(solvent_off):
-            # using prebuilt solvent box
-            self_solvent = SolventBox(solvent_off, solvent_frcmod, name = solvent, folder = self.folder, box_name=solvent_box_name)
-        elif os.path.exists(slv_xyz) and slv_generate == True:
+        elif os.path.exists(slv_xyz) and slv_generate:
             # generate solvent box
             self_solvent = Molecule(slv_xyz, folder = self.folder)
             self_solvent.number = slv_count
@@ -188,10 +185,9 @@ class MixtureBuilder():
 
     def add_solute(self, xyzfile:str, name="", residue_name="", charge=0, spinmult=1, number = 1, **kwargs):
 
-        #use the first three letters of the xyzfile name as the residue name 
-        if not residue_name and len(xyzfile.split(".")[0].split("/")[-1]) >= 3:
-            residue_name = xyzfile.split(".")[0].split("/")[-1][:3].upper()
-
+        # use the first three letters of the xyzfile name as the residue name if not provided 
+        if not residue_name: 
+            residue_name = try_ones_best_to_get_residue_name(xyzfile, name)
         molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
 
         if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
@@ -202,36 +198,54 @@ class MixtureBuilder():
             molecule.lib = kwargs["lib"]
         molecule.update()
 
-        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") and not molecule.check_exist("lib")):
+        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") or molecule.check_exist("lib")):
             for docker in self.single_molecule_pipeline:
                 docker.run(molecule)
         molecule.number = number
         self.solutes.append(molecule)
-    
-    def add_solvent(self, xyzfile:str, name="", residue_name="", charge=0, spinmult=1, number = 200, **kwargs):
 
-        #use the first three letters of the xyzfile name as the residue name 
-        if not residue_name and len(xyzfile.split(".")[0].split("/")[-1]) >= 3:
-            residue_name = xyzfile.split(".")[0].split("/")[-1][:3].upper() #get the file name from the absolute path 
-            
-        molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
+    def add_solvent(self, xyzfile:str = "", name="", residue_name="", charge=0, spinmult=1, number = 210*8, slv_generate = False, **kwargs):
+        if name in AMBER_SOLVENT_DICT and not slv_generate: # predefined amber solvent
+            self_solvent = AMBER_SOLVENT_DICT[name]
+            self_solvent.folder = self.folder
+            self_solvent.generate_pdb()
+        elif name in custom_solv_dict:                      # custom solvent in autosolvate
+            # solvent data prepared by autosolvate
+            solvPrefix = custom_solv_dict[name]
+            solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvPrefix+".frcmod"))
+            solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvPrefix+".prep"))
+            solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 
+                os.path.join('data',solvPrefix,solvPrefix+".pdb"))
+            self_solvent = Molecule(solvent_pdb_path, 0, 1, name, residue_name = custom_solv_residue_name[name], folder = self.folder)
+            self_solvent.frcmod = solvent_frcmod_path
+            self_solvent.prep   = solvent_prep_path
+        elif os.path.exists(xyzfile) and slv_generate:      # user defined solvent
+            # generate solvent box
+            residue_name = try_ones_best_to_get_residue_name(xyzfile, name)
+            self_solvent = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
+            if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
+                self_solvent.mol2 = kwargs["mol2"]
+            if "frcmod" in kwargs and os.path.isfile(kwargs["frcmod"]):
+                self_solvent.frcmod = kwargs["frcmod"]
+            if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
+                self_solvent.lib = kwargs["lib"]
+            self_solvent.update()
 
-        if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
-            molecule.mol2 = kwargs["mol2"]
-        if "frcmod" in kwargs and os.path.isfile(kwargs["frcmod"]):
-            molecule.frcmod = kwargs["frcmod"]
-        if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
-            molecule.lib = kwargs["lib"]
-        molecule.update()
-
-        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") and not molecule.check_exist("lib")):
-            for docker in self.single_molecule_pipeline:
-                docker.run(molecule)
-        molecule.number = number
-        self.solvents.append(molecule)
+            if not self_solvent.check_exist("frcmod") or not (self_solvent.check_exist("mol2") or self_solvent.check_exist("lib")):
+                for docker in self.single_molecule_pipeline:
+                    docker.run(self_solvent)
+        else:
+            raise ValueError("Solvent not found")
+        self_solvent.number = number
+        for solvent in self.solvents:
+            if solvent.name == self_solvent.name:
+                raise ValueError(f"Solvent {solvent.name} already exists")
+        self.solvents.append(self_solvent)
 
     def build(self):
-        system_name = "-".join([m.name for m in self.solutes + self.solvents])
+        system_name = "-".join([m.name for m in self.solutes] + [m.name for m in self.solvents])
         solute_numbers = [m.number for m in self.solutes]
         solvent_numbers = [m.number for m in self.solvents]
         '''
@@ -239,7 +253,10 @@ class MixtureBuilder():
         comment left by Patrick Jun 12 2024.  
         the old way to define 'system_name' will cause bug, please have the person who wrote this to fix it.
         '''
-        system_name = 'MYBOX' 
+        '''
+        @DEBUG
+        bug fixed by Fangning Ren on July 1 2024
+        '''
         system = SolvatedSystem(system_name, solute = self.solutes, solvent = self.solvents,
                                 cubesize=self.boxsize, closeness=self.closeness, 
                                 solute_number = solute_numbers, solvent_number = solvent_numbers,
@@ -248,66 +265,142 @@ class MixtureBuilder():
             docker.run(system)
             
 def startmulticomponent(argumentList):
-    # options = "hm:s:o:c:b:a:t:l:p:"
-    # long_options = ["help", "pdb_prefix", "solvent", "output", "totalcharge", 
-    #             "cubesize", "amberhome","closeness","solventoff","solventfrcmod"]
-    # arguments, values = getopt.getopt(argumentList, options, long_options)
+    r"""
+    Wrap function that parses command line options for autosolvate multicomponent module,
+    generate solvent box and related force field parameters.
+    
+    Parameters
+    ----------
+    argumentList: list
+       The list contains the command line options to specify solute, solvent, and other options
+       related to structure and force field parameter generation.
 
-    # pdb_prefix= '' 
-    # totalcharge='Default' 
-    # solvent = "water"
-    # solvent_frcmod = ""
-    # solvent_off = ""
-    # slv_count = 210*8
-    # cube_size = 54
-    # closeness = "automated"
-    # outputFile = ""
-    # amberhome = '$AMBERHOME/bin/'
-    # for currentArgument, currentValue in arguments:
-    #     if  currentArgument in ("-h", "--help"):
-    #         print('Usage: autosolvate_metal boxgen [OPTIONS]')
-    #         print('  -m, --pdb_prefix           prefix of pdb file name not include _mcpb')
-    #         print('  -s, --solvent              name of solvent')
-    #         print('  -o, --output               prefix of the output file names')
-    #         print('  -c, --charge               formal charge of solute')
-    #         print('  -b, --cubesize             size of solvent cube in angstroms')
-    #         print('  -a, --amberhome            path to the AMBER molecular dynamics package root directory')
-    #         print('  -t, --closeness            Solute-solvent closeness setting')
-    #         print('  -l, --solventoff           path to the custom solvent .off library file')
-    #         print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
-    #         print('  -h, --help                 short usage description')
-    #         exit()
-    #     elif currentArgument in ('-m','-pdb_prefix'):
-    #         pdb_prefix = str(currentValue)
-    #     elif currentArgument in ("-s", "--solvent"):
-    #         solvent=str(currentValue)
-    #     elif currentArgument in ("-o", "--output"):
-    #         print ("Output:", currentValue)
-    #         outputFile=str(currentValue)
-    #     elif currentArgument in ("-c", "--charge"):
-    #         print ("Charge:", currentValue)
-    #         totalcharge=str(currentValue)
-    #     elif currentArgument in ("-b", "--cubesize"):
-    #         print ("Cubesize:", currentValue)
-    #         cube_size=float(currentValue)
-    #     elif currentArgument in ("-a","--amberhome"):
-    #         print("Amber home directory:", currentValue)
-    #         amberhome = currentValue
-    #     elif currentArgument in ("-t", "--closeness"):
-    #         print("Solute-Solvente closeness parameter", currentValue)
-    #         closeness = currentValue
-    #     elif currentArgument in ("-l", "--solventoff"):
-    #         print("Custom solvent .off library path:", currentValue)
-    #         solvent_off = currentValue
-    #     elif currentArgument in ("-p", "`````--solventfrcmod"):
-    #         print("Custom solvent .frcmmod file path:", currentValue)
-    #         solvent_frcmod = currentValue
-    print('DEBUGGING MULTICOMPONENT')
+       Command line option definitions
+         -m, --main  solute xyz file
+         -s, --solvent  name of solvent (water, methanol, chloroform, nma)
+         -o, --output  prefix of the output file names
+         -c, --charge  formal charge of solute
+         -u, --spinmultiplicity  spin multiplicity of solute
+         -g, --chargemethod  name of charge fitting method (bcc, resp)
+         -b, --cubesize  size of solvent cube in angstroms
+         -r, --srunuse  option to run inside a slurm job
+         -e, --gaussianexe  name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
+         -d, --gaussiandir  path to the Gaussian package
+         -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
+         -t, --closeness  Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
+         -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
+         -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate.
+         -h, --help  short usage description
 
+    Returns
+    -------
+    None
+        Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
+    """
+    #print(argumentList)
+    options = "hm:s:o:c:b:g:u:re:d:a:t:l:p:"
+    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod"]
+    arguments, values = getopt.getopt(argumentList, options, long_options)
+    solutexyz=""
+    solvent='water'
+    slu_netcharge=0
+    cube_size=54
+    charge_method="bcc"
+    slu_spinmult=1
+    outputFile=""
+    srun_use=False
+    amberhome=None
+    gaussianexe=None
+    gaussiandir=None
+    closeness=0.8
+    solvent_off=""
+    solvent_frcmod=""
+    #print(arguments)
+    #print(values)
+    for currentArgument, currentValue in arguments:
+        if  currentArgument in ("-h", "--help"):
+            print('Usage: autosolvate boxgen_multicomponent [OPTIONS]')
+            print('  -m, --main                 solute xyz file')
+            print('  -s, --solvent_lists        solvent xyz files, separated by slash. (ex. water.pdb/acetonitrile.pdb)')
+            # print('  -o, --output               prefix of the output file names')                                     # not currently supporting this option
+            print('  -c, --charge               formal charge of solute')            
+            print('  -u, --spinmultiplicity     spin multiplicity of solute')
+            print('  -g, --chargemethod         name of charge fitting method (bcc, resp)')                             # currently only support bcc 
+            print('  -b, --cubesize             size of solvent cube in angstroms') 
+            # print('  -r, --srunuse              option to run inside a slurm job')                                    # not currently supporting this option         
+            # print('  -e, --gaussianexe          name of the Gaussian quantum chemistry package executable')           # not currently supporting gaussian
+            # print('  -d, --gaussiandir          path to the Gaussian package')                                        # not currently supporting gaussian
+            # print('  -a, --amberhome            path to the AMBER molecular dynamics package root directory')         # not currently supporting amberhome 
+            print('  -t, --closeness            Solute-solvent closeness setting')                  
+            # print('  -l, --solventoff           path to the custom solvent .off library file')                        # not currently supporting this option 
+            # print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')                             # not currently supporting this option     
+            print('  -h, --help                 short usage description')
+            exit()
+        elif currentArgument in ("-m", "--main"):
+            print ("Main/solutexyz", currentValue)
+            solutexyz=str(currentValue)     
+        elif currentArgument in ("-s", "--solvent"):
+            print ("Solvent:", currentValue)
+            solvent=str(currentValue)
+        elif currentArgument in ("-o", "--output"):
+            print ("Output:", currentValue)
+            outputFile=str(currentValue)
+        elif currentArgument in ("-c", "--charge"):
+            print ("Charge:", currentValue)
+            slu_netcharge=int(currentValue)
+        elif currentArgument in ("-b", "--cubesize"):
+            print ("Cubesize:", currentValue)
+            cube_size=float(currentValue)
+        elif currentArgument in ("-g", "--chargemethod"):
+            print ("Chargemethod:", currentValue)
+            charge_method=str(currentValue)
+        elif currentArgument in ("-u", "--spinmultiplicity"):
+            print ("Spinmultiplicity:", currentValue)
+            slu_spinmult=int(currentValue)
+        elif currentArgument in ("-r", "--srunuse"):
+            print("usign srun")
+            srun_use=True
+        elif currentArgument in ("-e","--gaussianexe"):
+            print("Gaussian executable name:", currentValue)
+            gaussianexe = currentValue
+        elif currentArgument in ("-d","--gaussiandir"):
+            print("Gaussian package directory:", currentValue)
+            gaussiandir = currentValue
+        elif currentArgument in ("-a","--amberhome"):
+            print("Amber home directory:", currentValue)
+            amberhome = currentValue
+        elif currentArgument in ("-t", "--closeness"):
+            print("Solute-Solvente closeness parameter", currentValue)
+            closeness = currentValue
+        elif currentArgument in ("-l", "--solventoff"):
+            print("Custom solvent .off library path:", currentValue)
+            solvent_off = currentValue
+        elif currentArgument in ("-p", "--solventfrcmod"):
+            print("Custom solvent .frcmmod file path:", currentValue)
+            solvent_frcmod = currentValue
+
+    if solutexyz == "":
+        print("Error! Solute xyzfile must be provided!\nExiting...")
+        exit()
+    elif not os.path.exists(solutexyz):
+        print("Error! Solute xyzfile path ", solutexyz, " does not exist!\nExiting...")
+        exit()
+
+    try:
+        _, ext = os.path.splitext(solutexyz)
+        pybel.readfile(ext[1:], solutexyz).__next__()
+    except:
+        print("Error! Solute structure file format issue!")
+        print(solutexyz," cannot be opened with openbabel.\n Exiting...")
+        exit()
+
+    global WORKING_DIR
+    WORKING_DIR = os.getcwd()
+    
     builder = MixtureBuilder()
-    builder.add_solute('naphthalene_neutral.xyz')
-    builder.add_solvent('acetonitrile.pdb')
-    builder.add_solvent('water.pdb')
+    builder.add_solute(solutexyz, charge=slu_netcharge, spinmult=slu_spinmult) 
+    for s in solvent.split("/"):
+        builder.add_solvent(s)
     builder.build()
 
 

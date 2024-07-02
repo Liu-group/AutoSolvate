@@ -225,6 +225,7 @@ class Molecule(System):
             name            = "",
             residue_name    = "MOL",
             folder          = WORKING_DIR,
+            amber_solvent   = False,
             ) -> None:
         """
         The data class for holding all files of a molecule.
@@ -243,19 +244,24 @@ class Molecule(System):
             The residue name of the molecule, by default "MOL".
         folder : str, optional
             The folder to store all files of the molecule, by default is the current working directory.
+        amber_solvent : bool, optional
+            A flag to indicate whether the molecule will use amber predefined parameters, by default False.
         """
 
-        self.name           = process_system_name(name, xyzfile, support_input_format=Molecule._SUPPORT_INPUT_FORMATS)
         self.folder         = os.path.abspath(folder)
         self.charge         = charge
         self.multiplicity   = multiplicity
         self.spinmult       = multiplicity
         self.residue_name   = residue_name
         self.number         = 0
-        self.read_coordinate(xyzfile)
+        self.amber_solvent = amber_solvent 
+        self.name           = name
         super(Molecule, self).__init__(name = self.name)
         self.logger.name = self.__class__.__name__
-        # super(Molecule, self).__post_init__()
+
+        if not self.amber_solvent:
+            self.name           = process_system_name(name, xyzfile, support_input_format=Molecule._SUPPORT_INPUT_FORMATS)
+            self.read_coordinate(xyzfile)
 
     def read_coordinate(self, fname:str):
         ext = os.path.splitext(fname)[-1][1:]
@@ -263,12 +269,77 @@ class Molecule(System):
         for e in Molecule._SUPPORT_INPUT_FORMATS:
             if e == ext:
                 continue
-            nname = os.path.splitext(fname)[0] + "." + e
-            subprocess.run(f"obabel -i {ext} {fname} -o {e} -O {nname} ---errorlevel 0", shell = True)
-            setattr(self, e, nname)
+            newpath = self.reference_name + "." + e
+            subprocess.run(f"obabel -i {ext} {fname} -o {e} -O {newpath} ---errorlevel 0", shell = True)
+            setattr(self, e, newpath)
+
+    def generate_pdb(self):
+        if not self.check_exist("pdb") and self.name != "water":
+            prep2pdb4amber_solvent(self)
+            self.logger.info(f"AMBER predefined solvent {self.name} is used.")
+            self.logger.info(f"Converted the predefined prep file {self.prep} to pdb file {self.pdb}")
+        elif self.name == "water":
+            assign_water_pdb(self)
+            self.logger.info(f"AMBER predefined water is used.")
+            self.logger.info(f"Write the reference pdb file for {self.name} to {self.pdb}")
+            self.logger.info(f"Water model used: TIP3P")
+
+    def update(self):
+        if not self.amber_solvent:
+            super(Molecule, self).update()
 
 
 
+# if one want to use other water forcefield, one may need to change the residue name of water to other, such as PL3 for POL3 model. 
+AMBER_WATER             = Molecule(name = "water",
+                                   xyzfile = None,
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "WAT",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+
+AMBER_METHANOL          = Molecule(name = "methanol",
+                                   xyzfile = None, 
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "MOH",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+AMBER_METHANOL.frcmod = "frcmod.meoh"
+AMBER_METHANOL.prep = "meoh.in"
+
+AMBER_CHLOROFORM        = Molecule(name = "chloroform",
+                                   xyzfile = None,
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "CL3",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+AMBER_CHLOROFORM.frcmod = "frcmod.chcl3"
+AMBER_CHLOROFORM.prep = "chcl3.in"
+
+AMBER_NMA              = Molecule(name = "nma",
+                                   xyzfile = None,
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "NMA",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+AMBER_NMA.frcmod = "frcmod.nma"
+AMBER_NMA.prep = "nma.in"
+
+AMBER_SOLVENT_LIST        = [AMBER_WATER, AMBER_METHANOL, AMBER_CHLOROFORM, AMBER_NMA]  
+AMBER_SOLVENT_DICT        = { 
+                            AMBER_WATER.name:       AMBER_WATER,
+                            AMBER_METHANOL.name:    AMBER_METHANOL,
+                            AMBER_CHLOROFORM.name:  AMBER_CHLOROFORM,
+                            AMBER_NMA.name:         AMBER_NMA,
+                            }
 
 if __name__ == "__main__":
     pass

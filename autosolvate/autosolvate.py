@@ -136,9 +136,9 @@ class solventBoxBuilder(object):
         ]
     
     def get_solvent(self, solvent:str, slv_xyz:str = "", solvent_frcmod:str = "", solvent_off:str = "", slv_generate:bool = False, slv_count:int = 210*8, solvent_box_name:str = "SLVBOX"):
-        if solvent in AMBER_SOLVENT_DICT:
+        if solvent in AMBER_SOLVENTBOX_DICT:
             # amber solvents
-            self_solvent = AMBER_SOLVENT_DICT[solvent]
+            self_solvent = AMBER_SOLVENTBOX_DICT[solvent]
         elif solvent in custom_solv_dict:
             # solvent data prepared by autosolvate
             solvPrefix = custom_solv_dict[solvent]
