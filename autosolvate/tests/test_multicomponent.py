@@ -93,12 +93,10 @@ def test_multicomponent(tmpdir):
     assert path_exist
     assert hp.compare_pdb(f"{inpfname}.pdb", hp.get_reference_dir(f"multicomponent/{inpfname}-processed.pdb"))
 
-
-
 def test_mixture_builder():
     test_name = "test_mixture_builder" 
     builder = MixtureBuilder(folder=os.getcwd()) 
-    builder.add_solute(hp.get_input_dir("naphthalene_neutral.xyz"), name="napthalene", residue_name="NAP", charge=0, spinmult=1, number=1)
+    builder.add_solute(hp.get_input_dir("naphthalene_neutral.xyz"), name="naphthalene", residue_name="NAP", charge=0, spinmult=1, number=1)
    
     # predefined solvents do not need to specify the xyz file.
     builder.add_solvent(name="acetonitrile", residue_name="C3N", charge=0, spinmult=1, number=200)
@@ -106,24 +104,51 @@ def test_mixture_builder():
     builder.build() 
 
     solute_path_exist = True
-    solute_path_exist *= os.path.exists("napthalene.mol2")
-    solute_path_exist *= os.path.exists("napthalene.frcmod")
+    solute_path_exist *= os.path.exists("naphthalene.mol2")
+    solute_path_exist *= os.path.exists("naphthalene.frcmod")
     assert solute_path_exist
 
     # predefined solvent will not generate the mol2 and frcmod files.
     path_exist = True
-    path_exist *= os.path.exists("napthalene-acetonitrile-water.pdb") 
-    path_exist *= os.path.exists("napthalene-acetonitrile-water.prmtop") 
-    path_exist *= os.path.exists("napthalene-acetonitrile-water.inpcrd") 
+    path_exist *= os.path.exists("naphthalene-acetonitrile-water.pdb") 
+    path_exist *= os.path.exists("naphthalene-acetonitrile-water.prmtop") 
+    path_exist *= os.path.exists("naphthalene-acetonitrile-water.inpcrd") 
 
     assert path_exist 
     assert hp.compare_pdb(
-                "napthalene-acetonitrile-water.pdb", 
-                hp.get_reference_dir(f"multicomponent/napthalene-acetonitrile-water.pdb"), 
+                "naphthalene-acetonitrile-water.pdb", 
+                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.pdb"), 
                 threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the number of atoms and residues.
                 ) 
     assert hp.compare_inpcrd_prmtop(
-                "napthalene-acetonitrile-water.prmtop", 
-                hp.get_reference_dir(f"multicomponent/napthalene-acetonitrile-water.prmtop"), 
+                "naphthalene-acetonitrile-water.prmtop", 
+                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.prmtop"), 
+                threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the topology and force field parameters.
+                ) 
+    
+def test_mixture_builder_file_input():
+    test_name = "test_mixture_builder_file_input" 
+    startmulticomponent_fromfile(hp.get_input_dir("mixturebuilder_input1.json"))
+    
+    solute_path_exist = True
+    solute_path_exist *= os.path.exists("naphthalene.mol2")
+    solute_path_exist *= os.path.exists("naphthalene.frcmod")
+    assert solute_path_exist
+
+    # predefined solvent will not generate the mol2 and frcmod files.
+    path_exist = True
+    path_exist *= os.path.exists("naphthalene-acetonitrile-water.pdb") 
+    path_exist *= os.path.exists("naphthalene-acetonitrile-water.prmtop") 
+    path_exist *= os.path.exists("naphthalene-acetonitrile-water.inpcrd") 
+
+    assert path_exist 
+    assert hp.compare_pdb(
+                "naphthalene-acetonitrile-water.pdb", 
+                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.pdb"), 
+                threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the number of atoms and residues.
+                ) 
+    assert hp.compare_inpcrd_prmtop(
+                "naphthalene-acetonitrile-water.prmtop", 
+                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.prmtop"), 
                 threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the topology and force field parameters.
                 ) 

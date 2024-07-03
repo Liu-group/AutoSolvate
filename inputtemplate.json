@@ -1,0 +1,72 @@
+{
+    "cubesize": 20, 
+    "charge_method": "bcc",
+    "solute": {
+        "xyzfile": "naphtalene.xyz",
+        "charge": 0,
+        "spinmult": 1
+    },
+    "solute_multicomponent": {
+        "xyz": "PAHs.xyz"
+    },
+    "solute_ionpair": {
+        "pdb": "ionpair.pdb",
+        "fragment_charge":{
+            "SUF": -2,
+            "TPA": 1
+        },
+        "fragment_spinmult":{
+            "SUF": 1,
+            "TPA": 1
+        }
+    },
+    "solvent_amber_water": {
+        "name": "water"
+    },
+    "solvent_amber_methanol": {
+        "name": "methanol"
+    },
+    "solvent_autosolvate_prepared": {
+        "name": "acetonitrile"
+    },
+    "solvents": [
+        {
+            "name": "water",
+            "number": 100
+        },
+        {
+            "name": "methanol",
+            "number": 100
+        },
+        {
+            "name": "acetonitrile",
+            "number": 100
+        },
+        {
+            "mol2": "toluene.mol2",
+            "frcmod": "toluene.frcmod",
+            "number": 100
+        },
+        {
+            "prep": "chcl3.prep",
+            "frcmod": "chcl3.frcmod", 
+            "number": 100
+        },
+        {
+            "xyz": "toluene.xyz",
+            "charge": 0,
+            "spinmult": 1,
+            "number": 100
+        },
+        {
+            "xyz": "BMIM.pdb", 
+            "charge": 1,
+            "spinmult": 1,
+            "number": 100
+        },
+        {
+            "itp": "BMIM.itp",
+            "number": 100
+        }
+    ]
+}

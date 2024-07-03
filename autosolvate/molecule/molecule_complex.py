@@ -89,12 +89,11 @@ class MoleculeComplex(System):
     def read_coordinate(self, fname:str):
         ext = os.path.splitext(fname)[-1][1:]
         setattr(self, ext, fname)
-        for e in Molecule._SUPPORT_INPUT_FORMATS:
-            if e == ext:
-                continue
-            nname = os.path.splitext(fname)[0] + "." + e
-            subprocess.run(f"obabel -i {ext} {fname} -o {e} > {nname}", shell = True)
-            setattr(self, e, nname)
+        if ext != "pdb":
+            subprocess.run(f"obabel -i {ext} {fname} -o pdb -O {self.reference_name}.pdb ---errorlevel 0", shell = True)
+            # subprocess.run(f"obabel -i {ext} {fname} -o pdb -O {self.reference_name}.pdb", shell = True)
+            # os.system(f"obabel -i {ext} {fname} -o pdb -O {self.reference_name}.pdb")
+            self.pdb = f"{self.reference_name}.pdb"
 
     def check_protein_fragment(self, fragment_obmol:ob.OBMol, fragment_index = 0):
         for j in range(fragment_obmol.NumResidues()):
@@ -145,7 +144,7 @@ class MoleculeComplex(System):
             fragres = fragment_obmol.GetResidue(0)
             fragresname = fragres.GetName()
             # This is a water molecule or an amino acid moleucle.
-            if fragresname == "HOH" or fragresname in AMINO_ACID_RESIDUES:
+            if fragresname == "HOH" or fragresname == "WAT" or fragresname in AMINO_ACID_RESIDUES:
                 self.fragmols.append(ob.OBMol(fragment_obmol))
                 self.fragresiduenames.append(fragresname)
                 logger.info(f"Fragment {i} is a known molecule with res name {fragresname}. ")

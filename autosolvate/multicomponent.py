@@ -14,6 +14,9 @@
 import getopt, sys, os
 import subprocess
 from typing import List, Tuple, Iterable
+import json
+import logging
+import inspect
 
 from .molecule import *
 from .dockers import *
@@ -22,39 +25,40 @@ from .utils import *
 from autosolvate.autosolvate import *
 
 class MulticomponentParamsBuilder():
+    """
+    Create amber parameter files for a single xyz or pdb file with multiple separate fragments
+
+    Parameters
+    ----------
+    xyzfile : str
+        structure file name, can be any structural files that openbabel recognizes.
+    name : array_like, Optional. default: the base name of the provided structure file.
+        Not used
+    residue_name : array_like, Optional. default: Residue name provided in pdb file or assigned as UAA, UAB, UAC, etc.
+        Residue names for each fragments. A list of strings of three capital letters. Its length should equal to the number of fragments in xyzfile. If this parameter is not given, the residues will be assigned by "U" plus "AB","AC",..."AZ", "BA"...
+    charge : dict | array_like, Optional. default: 0
+        Charge for each fragment. A list of integer with its length equal to the number of fragments, or a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral. 
+    spinmult : dict | array_like, Optional. default: 0
+        Multiplicity for each fragment. A list of integer with its length equal to the number of fragments, or a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet. 
+    outputFile : str, Optional, default='water_solvated'
+        Filename-prefix for outputfiles
+    pre_optimize_fragments : bool, Optional, default: False
+        do geometry optimization with MMFF94 forcefield in OpebBabel before running antechamber
+    srun_use : bool, Optional, default='False
+        Run all commands with a srun prefix
+    gaussianexe : str, Optional, default: g16
+        name of the Gaussian executeble
+    gaussiandir : str, Optional, default: $GAUSSIANDIR
+        path of Gaussian
+    amberhome : str, Optional, default: $AMBERHOME
+        path of amber
+    deletefiles : bool, Optional, default: False
+        Delete all temporary files except the .prmtop and .inpcrd file of the pdb file provided.
+    """
     def __init__(self, 
                  xyzfile: str, name="", residue_name="SLU", charge=0, spinmult=1, 
                  charge_method="resp", folder = WORKING_DIR, **kwargs): 
-        """
-        Create amber parameter files for a single xyz or pdb file with multiple separate fragments
 
-        Parameters
-        ----------
-        xyzfile : str
-            structure file name, can be any structural files that openbabel recognizes.
-        name : array_like, Optional. default: the base name of the provided structure file.
-            Not used
-        residue_name : array_like, Optional. default: Residue name provided in pdb file or assigned as UAA, UAB, UAC, etc.
-            Residue names for each fragments. A list of strings of three capital letters. Its length should equal to the number of fragments in xyzfile. If this parameter is not given, the residues will be assigned by "U" plus "AB","AC",..."AZ", "BA"...
-        charge : dict | array_like, Optional. default: 0
-            Charge for each fragment. A list of integer with its length equal to the number of fragments, or a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral. 
-        spinmult : dict | array_like, Optional. default: 0
-            Multiplicity for each fragment. A list of integer with its length equal to the number of fragments, or a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet. 
-        outputFile : str, Optional, default='water_solvated'
-            Filename-prefix for outputfiles
-        pre_optimize_fragments : bool, Optional, default: False
-            do geometry optimization with MMFF94 forcefield in OpebBabel before running antechamber
-        srun_use : bool, Optional, default='False
-            Run all commands with a srun prefix
-        gaussianexe : str, Optional, default: g16
-            name of the Gaussian executeble
-        gaussiandir : str, Optional, default: $GAUSSIANDIR
-            path of Gaussian
-        amberhome : str, Optional, default: $AMBERHOME
-            path of amber
-        deletefiles : bool, Optional, default: False
-            Delete all temporary files except the .prmtop and .inpcrd file of the pdb file provided.
-        """
         
         self.folder = folder
         self.mol = MoleculeComplex(xyzfile, name=name, residue_name=residue_name, charges=charge, multiplicities=spinmult, folder = self.folder)
@@ -166,6 +170,22 @@ class MulticomponentSolventBoxBuilder():
 
 
 class MixtureBuilder():
+    """
+    Create amber parameter files for a single solute with mixed solvents
+
+    Use 'add_solute' to add solute and 'add_solvent' to add solvent.
+
+    Parameters
+    ----------
+    folder : str, Optional, default: current working directory
+        working directory
+    cube_size : int, Optional, default: 54
+        size of solvent cube in angstroms
+    closeness : float, Optional, default: 2.0
+        Solute-solvent closeness setting, corresponding to the tolerance parameter in packmol in Å, 
+    charge_method : str, Optional, default: "bcc"
+        name of charge fitting method (bcc, resp)
+    """
     def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc"):
         self.solutes = []
         self.solvents = []
@@ -182,35 +202,142 @@ class MixtureBuilder():
             PackmolDocker(workfolder = self.folder),
             TleapDocker(workfolder = self.folder)
         ]
+        self.logger = logging.getLogger(name = self.__class__.__name__)
+        self.output_handler             = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")
+        self.output_formater            = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
+        self.output_handler.setFormatter(self.output_formater)
+        if len(self.logger.handlers) == 0:
+            self.logger.addHandler(self.output_handler)
 
-    def add_solute(self, xyzfile:str, name="", residue_name="", charge=0, spinmult=1, number = 1, **kwargs):
 
-        # use the first three letters of the xyzfile name as the residue name if not provided 
-        if not residue_name: 
-            residue_name = try_ones_best_to_get_residue_name(xyzfile, name)
-        molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
+    def add_complex_solute(self, xyzfile:str, fragment_charge = 0, fragment_spinmult = 1, number = 1, **kwargs):
+        """
+        add a molecular complex as the solute 
 
-        if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
+        Parameters
+        ----------
+        xyzfile : str
+            structure file name, can be any type within ["xyz", "pdb", "mol2"]. frcmod are not supported for molecular complex.
+        fragment_charge : dict | array_like, Optional, default: 0
+            Charge for each fragment. A dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral.
+        fragment_spinmult : dict | array_like, Optional, default: 1
+            Multiplicity for each fragment. A dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet.
+        number : int, Optional, default: 1
+            number of the solute in the system. Be cautious about this as the solute may have more than 1 fragments.
+        **kwargs : dict
+            Other arguments that need to be included in the solute. Remained for future development.
+        """
+        molecule = MoleculeComplex(xyzfile, charges=fragment_charge, multiplicities=fragment_spinmult, folder = self.folder)
+        for fragment in molecule.newmolecules:
+            for docker in self.single_molecule_pipeline:
+                docker.run(fragment)
+        TleapDocker(workfolder = self.folder).run(molecule)
+        molecule.number = number
+        self.solutes.append(molecule)
+        
+    def add_solute(self, xyzfile:str, name="", residue_name="SLU", charge=0, spinmult=1, number = 1, **kwargs):
+        """
+        add a solute molecule
+
+        Parameters
+        ----------
+        xyzfile : str
+            structure file name, can be any type within ["xyz", "pdb", "mol2"]
+        name : str, Optional, default: the base name of the provided structure file
+            name of the solute
+        residue_name : str, Optional, default: "SLU"
+            residue name of the solute. Note if an mol2 or prep file is provided, the residue name will be read from the file.
+        charge : int, Optional, default: 0
+            charge of the solute
+        spinmult : int, Optional, default: 1
+            spin multiplicity of the solute
+        number : int, Optional, default: 1
+            number of the solute in the system.
+        **kwargs : dict
+            additional files needed for the solute, including "mol2", "frcmod", "lib", "prep".
+            If the user want to skip the antechamber and leap steps, the user need to provide the "mol2" and "frcmod" files by adding the following arguments:
+            mol2 : str  
+                the path of the mol2 file of the solute
+            frcmod : str
+                the path of the frcmod file of the solute
+        """
+
+        if ("mol2" in kwargs and os.path.isfile(kwargs["mol2"])) and \
+           ("frcmod" in kwargs and os.path.isfile(kwargs["frcmod"])):
+            molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
             molecule.mol2 = kwargs["mol2"]
-        if "frcmod" in kwargs and os.path.isfile(kwargs["frcmod"]):
             molecule.frcmod = kwargs["frcmod"]
-        if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
-            molecule.lib = kwargs["lib"]
-        molecule.update()
-
-        if not molecule.check_exist("frcmod") or not (molecule.check_exist("mol2") or molecule.check_exist("lib")):
+            molecule.get_residue_name()
+            molecule.update()
+        else:
+            molecule = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
             for docker in self.single_molecule_pipeline:
                 docker.run(molecule)
         molecule.number = number
         self.solutes.append(molecule)
 
-    def add_solvent(self, xyzfile:str = "", name="", residue_name="", charge=0, spinmult=1, number = 210*8, slv_generate = False, **kwargs):
-        if name in AMBER_SOLVENT_DICT and not slv_generate: # predefined amber solvent
+    def get_solvent_type(self, xyzfile = "", name = "", **kwargs):
+        solvent_type = "generate"
+        if name in AMBER_SOLVENT_DICT:
+            if (("prep" in kwargs and os.path.isfile(kwargs["prep"])) or \
+                ("mol2" in kwargs and os.path.isfile(kwargs["mol2"]))) and \
+                ("frcmod" in kwargs and os.path.isfile(kwargs["frcmod"])):
+                solvent_type = "custom"
+            else:
+                solvent_type = "amber"
+        elif name in custom_solv_dict:
+            if (("prep" in kwargs and os.path.isfile(kwargs["prep"])) or \
+                ("mol2" in kwargs and os.path.isfile(kwargs["mol2"]))) and \
+                ("frcmod" in kwargs and os.path.isfile(kwargs["frcmod"])):
+                solvent_type = "custom"
+            else:
+                solvent_type = "autosolvate_custom"
+        elif (("prep" in kwargs and os.path.isfile(kwargs["prep"])) or \
+              ("mol2" in kwargs and os.path.isfile(kwargs["mol2"]))) and \
+              ("frcmod" in kwargs and os.path.isfile(kwargs["frcmod"])):
+            solvent_type = "custom"
+        elif os.path.exists(xyzfile):
+            solvent_type = "generate"
+        else:
+            raise ValueError("Solvent not found")
+        return solvent_type
+
+    def add_solvent(self, xyzfile:str = "", name="", residue_name="SLV", charge=0, spinmult=1, number = 210*8, **kwargs):
+
+        """
+        add a type of solvent
+
+        Parameters
+        ----------
+        xyzfile : str
+            structure file name, can be any type within ["xyz", "pdb", "mol2", "prep"]. Can be ignored if the solvent is predefined in AMBER.
+        name : str
+            name of the solvent. Predefined solvents include ["water", "methanol", "chloroform", "nma"].
+        residue_name : str, Optional, default: "SLV"
+            residue name of the solvent. Will be ignored if the solvent is predefined in AMBER. This argument will be ignored if a mol2 or prep file is provided together with a frcmod. 
+        charge : int, Optional, default: 0
+            charge of the solvent
+        spinmult : int, Optional, default: 1
+            spin multiplicity of the solvent
+        number : int, Optional, default: 210*8
+            number of the solvent in the system.
+        **kwargs : dict
+            additional files needed for the solvent, including "mol2", "frcmod", "lib", "prep", will support "itp", "top" in the future.
+            If the user want to skip the antechamber and leap steps, the user need to provide the ["mol2" or "prep"] and "frcmod" files by adding the following arguments:
+            mol2 : str  
+                the path of the mol2 file of the solvent
+            frcmod : str
+                the path of the frcmod file of the solvent
+        """
+
+        solvent_type = self.get_solvent_type(xyzfile, name, **kwargs)
+        if solvent_type == "amber":
+            self.logger.info(f"Adding predefined solvent {name}")
             self_solvent = AMBER_SOLVENT_DICT[name]
             self_solvent.folder = self.folder
             self_solvent.generate_pdb()
-        elif name in custom_solv_dict:                      # custom solvent in autosolvate
-            # solvent data prepared by autosolvate
+        elif solvent_type == "autosolvate_custom":
+            self.logger.info(f"Adding autosolvate custom solvent {name}")
             solvPrefix = custom_solv_dict[name]
             solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
                 os.path.join('data',solvPrefix,solvPrefix+".frcmod"))
@@ -221,9 +348,8 @@ class MixtureBuilder():
             self_solvent = Molecule(solvent_pdb_path, 0, 1, name, residue_name = custom_solv_residue_name[name], folder = self.folder)
             self_solvent.frcmod = solvent_frcmod_path
             self_solvent.prep   = solvent_prep_path
-        elif os.path.exists(xyzfile) and slv_generate:      # user defined solvent
-            # generate solvent box
-            residue_name = try_ones_best_to_get_residue_name(xyzfile, name)
+        elif solvent_type == "custom":
+            self.logger.info(f"Adding user provided custom solvent {name}")
             self_solvent = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
             if "mol2" in kwargs and os.path.isfile(kwargs["mol2"]):
                 self_solvent.mol2 = kwargs["mol2"]
@@ -231,11 +357,15 @@ class MixtureBuilder():
                 self_solvent.frcmod = kwargs["frcmod"]
             if "lib" in kwargs and os.path.isfile(kwargs["lib"]):
                 self_solvent.lib = kwargs["lib"]
+            if "prep" in kwargs and os.path.isfile(kwargs["prep"]):
+                self_solvent.prep = kwargs["prep"]
+            self_solvent.get_residue_name()
             self_solvent.update()
-
-            if not self_solvent.check_exist("frcmod") or not (self_solvent.check_exist("mol2") or self_solvent.check_exist("lib")):
-                for docker in self.single_molecule_pipeline:
-                    docker.run(self_solvent)
+        elif solvent_type == "generate":
+            self.logger.info(f"Adding solvent {name} whose forcefield parameters will be generated with GAFF")
+            self_solvent = Molecule(xyzfile, charge=charge, multiplicity=spinmult, folder = self.folder, name = name, residue_name=residue_name)
+            for docker in self.single_molecule_pipeline:
+                docker.run(self_solvent)
         else:
             raise ValueError("Solvent not found")
         self_solvent.number = number
@@ -263,7 +393,40 @@ class MixtureBuilder():
                                 folder = self.folder)
         for docker in self.custom_solvation:
             docker.run(system)
-            
+
+def startmulticomponent_fromfile(jsonpath:str):
+    with open(jsonpath, "r") as f:
+        data = json.load(f)
+    data["folder"] = os.getcwd()
+    signature = inspect.signature(MixtureBuilder.__init__)
+    function_params = signature.parameters
+    filtered_data = {k: v for k, v in data.items() if k in function_params}
+    builder = MixtureBuilder(**filtered_data)
+
+    if "solute" in data:
+        data["solute"] = add_missing_xyzfile_keyword(data["solute"])
+        if check_multicomponent(data["solute"]["xyzfile"]):
+            builder.add_complex_solute(**data["solute"])
+        else:
+            builder.add_solute(**data["solute"])
+    if "solvent" in data:
+        data["solvent"] = add_missing_xyzfile_keyword(data["solvent"])
+        builder.add_solvent(**data["solvent"])
+    if "solutes" in data and type(data["solutes"]) == list:
+        for i in range(len(data["solutes"])):
+            data["solutes"][i] = add_missing_xyzfile_keyword(data["solutes"][i])
+            if check_multicomponent(data["solutes"][i]["xyzfile"]):
+                builder.add_complex_solute(**data["solutes"][i])
+            else:
+                builder.add_solute(**data["solutes"][i])
+    if "solvents" in data and type(data["solvents"]) == list:
+        for i in range(len(data["solvents"])):
+            data["solvents"][i] = add_missing_xyzfile_keyword(data["solvents"][i])
+            builder.add_solvent(**data["solvents"][i])
+    builder.build()
+
+    
+
 def startmulticomponent(argumentList):
     r"""
     Wrap function that parses command line options for autosolvate multicomponent module,
@@ -405,5 +568,4 @@ def startmulticomponent(argumentList):
 
 
 if __name__ == "__main__":
-    inst = MulticomponentParamsBuilder("PAHs.pdb", deletefiles=True)
-    inst.build()
+    startmulticomponent(sys.argv[1:])

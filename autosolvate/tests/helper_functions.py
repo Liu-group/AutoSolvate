@@ -188,9 +188,9 @@ def compare_inpcrd_prmtop(out, ref, threshold = 1.0e-6):
 def compare_boxgen(out, ref):
     compareExist = True
     for suffix in [".pdb", ".prmtop", ".inpcrd"]:
-        compare_exist *= os.path.exists(os.path.splitext(out)[0] + suffix)
+        compareExist *= os.path.exists(os.path.splitext(out)[0] + suffix)
     comparePdb = compare_pdb(out, ref)
-    compareInpcrd, comparePrmtop = compare_pdb(out, ref)
+    compareInpcrd, comparePrmtop = compare_inpcrd_prmtop(out, ref)
     return comparePdb, compareInpcrd, comparePrmtop
 
 

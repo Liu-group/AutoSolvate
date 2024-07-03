@@ -347,24 +347,34 @@ def edit_system_pdb(box: object) -> None:
             f.write(line)
         f.close()
 
-def prep2pdb4amber_solvent(mol: object) -> None:
+def prep2pdb(mol: object) -> None:
     r'''
-    Output a pdb file for a amber predefined solvent (methanol, chloroform, nma)
+    Output a pdb file from a prep file using tleap
     '''
     outputfolder = mol.folder
-    resname = mol.residue_name
-    pdbname = mol.name + '.pdb'
     pdbpath = mol.reference_name + '.pdb'
     if not os.path.exists(outputfolder):
         os.makedirs(outputfolder)
     if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
         os.remove(pdbpath)
+    residue_name = extract_residue_name_from_prep(mol.prep)
     with open(os.path.join(mol.folder, "leap_convert.cmd"), "w") as f: 
         f.write(f"loadAmberPrep {mol.prep}\n")
-        f.write(f"singlemol = combine { {mol.residue_name} }\n")
-        f.write(f"savepdb singlemol {pdbpath}\n")
+        f.write(f"savepdb {residue_name} {pdbpath}\n")
     os.system(f"tleap -f {os.path.join(mol.folder, 'leap_convert.cmd')}")
     mol.pdb = pdbpath
+
+def prep2pdb_withexactpath(preppath:str, pdbpath:str, resname:str="MOL") -> None:
+    r'''
+    Output a pdb file from a prep file using tleap
+    '''
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    residue_name = extract_residue_name_from_prep(preppath)
+    with open("leap_convert.cmd", "w") as f: 
+        f.write(f"loadAmberPrep {preppath}\n")
+        f.write(f"savepdb {residue_name} {pdbpath}\n")
+    os.system("tleap -f leap_convert.cmd")
     
 def assign_water_pdb(mol: object) -> None:
     '''assign a reference pdb file for water'''
@@ -386,7 +396,7 @@ END
     mol.pdb = pdbpath
 
 def get_residue_name_from_pdb(file_path:str) -> str:
-    residue_name = None
+    residue_name = ""
     with open(file_path, 'r') as file:
         for line in file:
             if line.startswith('ATOM') or line.startswith('HETATM'):
@@ -395,7 +405,31 @@ def get_residue_name_from_pdb(file_path:str) -> str:
     return residue_name
 
 
+# processing input dictionary
+def add_missing_xyzfile_keyword(data:dict, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep")) -> dict:
+    if "xyzfile" in data:
+        return data
+    for key, value in data.items():
+        if key in support_input_format and not "xyzfile" in data and isinstance(value, str) and os.path.isfile(value):
+            data["xyzfile"] = value
+            break
+    return data
+        
+
+
+
 # other functions
+def extract_residue_name_from_prep(prep_file:str) -> str:
+    """ChatGPT按照ch3cn.prep文件的格式写的，不保证通用性，可能有问题"""
+    with open(prep_file, 'r') as file:
+        lines = file.readlines()
+    
+    for line in lines:
+        if "INT" in line:
+            parts = line.split()
+            return parts[0]
+    return "MOL"
+
 def process_system_name(name:str, xyzfile:str, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib"), check_exist = True):
     if not os.path.isfile(xyzfile) and check_exist:
         raise ValueError("The input file {:s} does not exist".format(xyzfile))
@@ -473,7 +507,7 @@ def try_ones_best_to_get_residue_name(self, xyzfile:str, name:str):
         if len(xyzbasename) >= 3:
             residue_name = xyzbasename[:3].upper()
         elif len(xyzbasename) < 3:
-            residue_name = "SLU"
+            residue_name = "MOL"
     return residue_name
 
 

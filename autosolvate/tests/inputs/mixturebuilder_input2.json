@@ -1,0 +1,26 @@
+{
+    "cube_size": 30,
+    "charge_method": "bcc",
+    "solute": {
+        "xyzfile": "inputs/ionpair.pdb",
+        "fragment_charge": {
+            "SUF": -2,
+            "TPA": 1
+        }
+    },
+    "solvents":[
+        {
+            "name": "acetonitrile", 
+            "number": 150,
+            "frcmod": "inputs/acetonitrile.frcmod",
+            "prep": "inputs/acetonitrile.prep",
+            "residue_name": "C3N"
+        },
+        {
+            "name": "toluene",
+            "number": 150,
+            "xyzfile": "inputs/toluene.pdb",
+            "residue_name": "TOL"
+        }
+    ]
+}

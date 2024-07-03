@@ -111,13 +111,13 @@ class TransitionMetalComplex(System):
         self.metal_legand_bonds = self.get_bond_connect_with_metal()
         for metal_residue_name in self.metal_residue_names:
             if not os.path.exists(f"{self.origin_folder}/{metal_residue_name}.mol2"):
-                logger.error(f"Metal residue {metal_residue_name}.mol2 does not exist.")
+                self.logger.error(f"Metal residue {metal_residue_name}.mol2 does not exist.")
                 raise FileNotFoundError
             self.logger.info(f"Find mol2 for {metal_residue_name}: {self.origin_folder}/{metal_residue_name}.mol2")
             self.metal_mol2_files.append(f"{self.origin_folder}/{metal_residue_name}.mol2")
         for legand_residue_name in self.legand_residue_names:
             if not os.path.exists(f"{self.origin_folder}/{legand_residue_name}.mol2"):
-                logger.error(f"Legand residue {legand_residue_name}.mol2 does not exist.")
+                self.logger.error(f"Legand residue {legand_residue_name}.mol2 does not exist.")
                 raise FileNotFoundError
             self.logger.info(f"Find mol2 for {legand_residue_name}: {self.origin_folder}/{legand_residue_name}.mol2")
             self.legand_mol2_files.append(f"{self.origin_folder}/{legand_residue_name}.mol2")
@@ -168,8 +168,8 @@ class TransitionMetalComplex(System):
         for key in tmpdict.keys():
             self.logger.info(f"The system contains {len(tmpdict[key])} {key}" + f" with indices {tmpdict[key]}")
             if len(tmpdict[key]) != len(tmpdict[list(tmpdict.keys())[0]]):
-                logger.error(f"The number of {key} is different from others!")
-                logger.error(f"This may indicate an incomplete transition metal complex structure")
+                self.logger.error(f"The number of {key} is different from others!")
+                self.logger.error(f"This may indicate an incomplete transition metal complex structure")
                 raise ValueError
         for i in range(len(tmpdict[list(tmpdict.keys())[0]])):
             tmc_res_index = {}
