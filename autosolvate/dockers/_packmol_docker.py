@@ -112,6 +112,7 @@ class PackmolDocker(GeneralDocker):
             # doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
             if not os.path.exists(os.path.join(self.workfolder, os.path.basename(solute.pdb))):
                 shutil.copy(solute.pdb, os.path.join(self.workfolder, os.path.basename(solute.pdb)))
+                # this is actually a bug in packmol. The path to the pdb file cannot be too long. One have to copy the file to the working directory
             doc.write('{:<15} {}                                 \n'.format('structure', os.path.basename(solute.pdb)))
             doc.write('{:<15} {:<5}                              \n'.format('number',    1))
             doc.write('{:<10} {posx} {posy} {posz} {com} {com} {com}\n'.format('fixed', posx=solute_pos[0], posy=solute_pos[1], posz=solute_pos[2], com=0.0))

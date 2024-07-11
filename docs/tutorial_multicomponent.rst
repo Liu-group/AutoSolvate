@@ -4,16 +4,6 @@ The following tutorial illustrates the basic usage of **Autosolvate Multicompone
 
 There will be one example systems: naphthalene in mixed water and acetonitrile solvent. The tutorial will be broken down into three steps:
 
-.. note::   
-
-   Note::
-
-      Note to Autosolvate Developers
-
-      I have not tested if the download links work properly in this document because I can not add this .rst file to https://autosolvate.readthedocs.io/en/latest/. 
-
-      Please test and make sure all the download link work properly.
-
 
 
 Prerequisites

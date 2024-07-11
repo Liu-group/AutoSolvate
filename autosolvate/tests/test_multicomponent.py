@@ -11,8 +11,6 @@ from ..multicomponent import *
 from . import helper_functions as hp
 
 
-
-
 def test_ionpair_solvation(tmpdir):
     """
     @TODO:
@@ -46,9 +44,6 @@ def test_ionpair_solvation(tmpdir):
         path_main_exist *= os.path.exists(f"{name}.{suffix}")
     assert path_main_exist
 
-#     assert hp.compare_pdb(f"water_solvated.pdb", hp.get_reference_dir(f"multicomponent/water_solvated.pdb"))
-#     assert hp.compare_inpcrd_prmtop(f"water_solvated.prmtop", hp.get_reference_dir(f"multicomponent/water_solvated.prmtop"))
-
 def test_ionpair_solvation_custom_solvent(tmpdir):
     testName = "test_custom_ionpair_solvation"
     solutexyz = hp.get_input_dir("ionpair.pdb")
@@ -72,8 +67,6 @@ def test_ionpair_solvation_custom_solvent(tmpdir):
     for suffix in ("lib", "pdb"):
         path_main_exist *= os.path.exists(f"{name}.{suffix}")
     assert path_main_exist
-
-
 
 def test_multicomponent(tmpdir):
     testName = "test_multicomponent"
@@ -125,10 +118,11 @@ def test_mixture_builder():
                 hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.prmtop"), 
                 threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the topology and force field parameters.
                 ) 
-    
+
 def test_mixture_builder_file_input():
     test_name = "test_mixture_builder_file_input" 
-    startmulticomponent_fromfile(hp.get_input_dir("mixturebuilder_input1.json"))
+    inputfilepath = hp.get_input_dir("mixturebuilder_input1.json")
+    startmulticomponent(["-f", inputfilepath])
     
     solute_path_exist = True
     solute_path_exist *= os.path.exists("naphthalene.mol2")
@@ -152,3 +146,18 @@ def test_mixture_builder_file_input():
                 hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.prmtop"), 
                 threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the topology and force field parameters.
                 ) 
+
+def test_mixture_builder_cmd_input():
+    """This is a legacy feature, designed solely to respect the habits of users of the older version. It is not recommended for use."""
+    test_name = "test_mixture_builder_cmd_input"
+    solute_xyz = hp.get_input_dir("naphthalene_neutral.xyz")  
+    startmulticomponent([
+        "-m", solute_xyz,
+        "-o", "mybox",
+        "-c", "0",
+        "-u", "1",
+        "-s", "water",
+        "-b", "20",
+        "-t", "0.8",
+    ])
+    assert os.path.exists("mybox.prmtop")

@@ -405,15 +405,7 @@ def get_residue_name_from_pdb(file_path:str) -> str:
     return residue_name
 
 
-# processing input dictionary
-def add_missing_xyzfile_keyword(data:dict, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep")) -> dict:
-    if "xyzfile" in data:
-        return data
-    for key, value in data.items():
-        if key in support_input_format and not "xyzfile" in data and isinstance(value, str) and os.path.isfile(value):
-            data["xyzfile"] = value
-            break
-    return data
+
         
 
 

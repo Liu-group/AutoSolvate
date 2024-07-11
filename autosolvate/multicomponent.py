@@ -17,6 +17,7 @@ from typing import List, Tuple, Iterable
 import json
 import logging
 import inspect
+import argparse
 
 from .molecule import *
 from .dockers import *
@@ -33,7 +34,7 @@ class MulticomponentParamsBuilder():
     xyzfile : str
         structure file name, can be any structural files that openbabel recognizes.
     name : array_like, Optional. default: the base name of the provided structure file.
-        Not used
+        
     residue_name : array_like, Optional. default: Residue name provided in pdb file or assigned as UAA, UAB, UAC, etc.
         Residue names for each fragments. A list of strings of three capital letters. Its length should equal to the number of fragments in xyzfile. If this parameter is not given, the residues will be assigned by "U" plus "AB","AC",..."AZ", "BA"...
     charge : dict | array_like, Optional. default: 0
@@ -186,7 +187,7 @@ class MixtureBuilder():
     charge_method : str, Optional, default: "bcc"
         name of charge fitting method (bcc, resp)
     """
-    def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc"):
+    def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc", prefix = None):
         self.solutes = []
         self.solvents = []
         self.folder = folder
@@ -208,7 +209,7 @@ class MixtureBuilder():
         self.output_handler.setFormatter(self.output_formater)
         if len(self.logger.handlers) == 0:
             self.logger.addHandler(self.output_handler)
-
+        self.systemprefix = prefix
 
     def add_complex_solute(self, xyzfile:str, fragment_charge = 0, fragment_spinmult = 1, number = 1, **kwargs):
         """
@@ -375,18 +376,14 @@ class MixtureBuilder():
         self.solvents.append(self_solvent)
 
     def build(self):
-        system_name = "-".join([m.name for m in self.solutes] + [m.name for m in self.solvents])
+        if not self.systemprefix:
+            system_name = "-".join([m.name for m in self.solutes] + [m.name for m in self.solvents])
+        else:
+            system_name = self.systemprefix
+        self.solutes:List[Molecule] 
+        self.solvents:List[Molecule]
         solute_numbers = [m.number for m in self.solutes]
         solvent_numbers = [m.number for m in self.solvents]
-        '''
-        @DEBUG 
-        comment left by Patrick Jun 12 2024.  
-        the old way to define 'system_name' will cause bug, please have the person who wrote this to fix it.
-        '''
-        '''
-        @DEBUG
-        bug fixed by Fangning Ren on July 1 2024
-        '''
         system = SolvatedSystem(system_name, solute = self.solutes, solvent = self.solvents,
                                 cubesize=self.boxsize, closeness=self.closeness, 
                                 solute_number = solute_numbers, solvent_number = solvent_numbers,
@@ -394,10 +391,8 @@ class MixtureBuilder():
         for docker in self.custom_solvation:
             docker.run(system)
 
-def startmulticomponent_fromfile(jsonpath:str):
-    with open(jsonpath, "r") as f:
-        data = json.load(f)
-    data["folder"] = os.getcwd()
+def startmulticomponent_fromdata(data:dict):
+    data["folder"] = WORKING_DIR
     signature = inspect.signature(MixtureBuilder.__init__)
     function_params = signature.parameters
     filtered_data = {k: v for k, v in data.items() if k in function_params}
@@ -425,35 +420,79 @@ def startmulticomponent_fromfile(jsonpath:str):
             builder.add_solvent(**data["solvents"][i])
     builder.build()
 
-    
+def startmulticomponent_fromfile(file:str):
+    with open(file, "r") as f:
+        data = json.load(f)
+    startmulticomponent_fromdata(data)
 
-def startmulticomponent(argumentList):
+def create_parser_multicomponent():
+    parser = argparse.ArgumentParser(
+        description='Add solvent box to a given solute and generate related force field parameters.',
+        epilog='''
+        suggest usage: autosolvate multicomponent -f input.json \n
+
+        if an input file is provided, all command line options will be ignored. \n
+
+        If using command line as the traditional way, it will only generate a single solute with single solvent. \n
+        
+        This is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use.
+        ''',
+    )
+
+    parser.add_argument('-f', '--file',            type=str,  help='json file containing the input parameters. Will ignore all other options if provided. Required when using multiple solvents')
+    parser.add_argument('-m', '--main',            type=str,  default='',      help='solute xyz file')
+    parser.add_argument('-o', '--output',          type=str,  default='',      help='prefix of the output file names')
+    parser.add_argument('-c', '--charge',          type=int,  default=0,       help='formal charge of solute')
+    parser.add_argument('-u', '--spinmultiplicity',type=int,  default=1,       help='spin multiplicity of solute')
+    parser.add_argument('-s', '--solvent',         type=str,  default='water', help='solvent xyz files, Will use single solvent if provided.')
+    parser.add_argument('-g', '--chargemethod',    type=str,  default='bcc',   help='name of charge fitting method (bcc, resp)')
+    parser.add_argument('-b', '--cubesize',        type=float,default=54.0,    help='size of solvent cube in angstroms')
+    parser.add_argument('-t', '--closeness',       type=float,default=2.0,     help='solute-solvent closeness setting. Automation is not possible for mixed solvent')    
+    parser.add_argument('-r', '--srunuse',         action='store_true',        help='option to run inside a slurm job')
+    parser.add_argument('-e', '--gaussianexe',     type=str,                   help='name of the Gaussian quantum chemistry package executable')
+    parser.add_argument('-d', '--gaussiandir',     type=str,                   help='path to the Gaussian package')
+    parser.add_argument('-a', '--amberhome',       type=str,                   help='path to the AMBER molecular dynamics package root directory')
+    return parser
+
+
+def startmulticomponent(args):
     r"""
     Wrap function that parses command line options for autosolvate multicomponent module,
     generate solvent box and related force field parameters.
     
     Parameters
     ----------
-    argumentList: list
-       The list contains the command line options to specify solute, solvent, and other options
-       related to structure and force field parameter generation.
+    None
 
        Command line option definitions
-         -m, --main  solute xyz file
-         -s, --solvent  name of solvent (water, methanol, chloroform, nma)
-         -o, --output  prefix of the output file names
-         -c, --charge  formal charge of solute
-         -u, --spinmultiplicity  spin multiplicity of solute
-         -g, --chargemethod  name of charge fitting method (bcc, resp)
-         -b, --cubesize  size of solvent cube in angstroms
-         -r, --srunuse  option to run inside a slurm job
-         -e, --gaussianexe  name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
-         -d, --gaussiandir  path to the Gaussian package
-         -a, --amberhome  path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
-         -t, --closeness  Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
-         -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
-         -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate.
-         -h, --help  short usage description
+         -f, --file  
+            json file containing the input parameters, Required when using multiple solvents
+         -m, --main  
+            solute xyz file, not suggested to use when using multiple solvents
+         -o, --output  
+            prefix of the output file names
+         -c, --charge  
+            formal charge of solute
+         -u, --spinmultiplicity  
+            spin multiplicity of solute
+         -s, --solvent  
+            solvent xyz files, Will use single solvent if provided. Not suggested to use when using multiple solvents
+         -g, --chargemethod  
+            name of charge fitting method (bcc, resp)
+         -b, --cubesize  
+            size of solvent cube in angstroms
+         -t, --closeness  
+            Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
+         -r, --srunuse  
+            option to run inside a slurm job
+         -e, --gaussianexe  
+            name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
+         -d, --gaussiandir  
+            path to the Gaussian package
+         -a, --amberhome  
+            path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
+         -h, --help  
+            short usage description
 
     Returns
     -------
@@ -461,111 +500,27 @@ def startmulticomponent(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "hm:s:o:c:b:g:u:re:d:a:t:l:p:"
-    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod"]
-    arguments, values = getopt.getopt(argumentList, options, long_options)
-    solutexyz=""
-    solvent='water'
-    slu_netcharge=0
-    cube_size=54
-    charge_method="bcc"
-    slu_spinmult=1
-    outputFile=""
-    srun_use=False
-    amberhome=None
-    gaussianexe=None
-    gaussiandir=None
-    closeness=0.8
-    solvent_off=""
-    solvent_frcmod=""
-    #print(arguments)
-    #print(values)
-    for currentArgument, currentValue in arguments:
-        if  currentArgument in ("-h", "--help"):
-            print('Usage: autosolvate boxgen_multicomponent [OPTIONS]')
-            print('  -m, --main                 solute xyz file')
-            print('  -s, --solvent_lists        solvent xyz files, separated by slash. (ex. water.pdb/acetonitrile.pdb)')
-            # print('  -o, --output               prefix of the output file names')                                     # not currently supporting this option
-            print('  -c, --charge               formal charge of solute')            
-            print('  -u, --spinmultiplicity     spin multiplicity of solute')
-            print('  -g, --chargemethod         name of charge fitting method (bcc, resp)')                             # currently only support bcc 
-            print('  -b, --cubesize             size of solvent cube in angstroms') 
-            # print('  -r, --srunuse              option to run inside a slurm job')                                    # not currently supporting this option         
-            # print('  -e, --gaussianexe          name of the Gaussian quantum chemistry package executable')           # not currently supporting gaussian
-            # print('  -d, --gaussiandir          path to the Gaussian package')                                        # not currently supporting gaussian
-            # print('  -a, --amberhome            path to the AMBER molecular dynamics package root directory')         # not currently supporting amberhome 
-            print('  -t, --closeness            Solute-solvent closeness setting')                  
-            # print('  -l, --solventoff           path to the custom solvent .off library file')                        # not currently supporting this option 
-            # print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')                             # not currently supporting this option     
-            print('  -h, --help                 short usage description')
-            exit()
-        elif currentArgument in ("-m", "--main"):
-            print ("Main/solutexyz", currentValue)
-            solutexyz=str(currentValue)     
-        elif currentArgument in ("-s", "--solvent"):
-            print ("Solvent:", currentValue)
-            solvent=str(currentValue)
-        elif currentArgument in ("-o", "--output"):
-            print ("Output:", currentValue)
-            outputFile=str(currentValue)
-        elif currentArgument in ("-c", "--charge"):
-            print ("Charge:", currentValue)
-            slu_netcharge=int(currentValue)
-        elif currentArgument in ("-b", "--cubesize"):
-            print ("Cubesize:", currentValue)
-            cube_size=float(currentValue)
-        elif currentArgument in ("-g", "--chargemethod"):
-            print ("Chargemethod:", currentValue)
-            charge_method=str(currentValue)
-        elif currentArgument in ("-u", "--spinmultiplicity"):
-            print ("Spinmultiplicity:", currentValue)
-            slu_spinmult=int(currentValue)
-        elif currentArgument in ("-r", "--srunuse"):
-            print("usign srun")
-            srun_use=True
-        elif currentArgument in ("-e","--gaussianexe"):
-            print("Gaussian executable name:", currentValue)
-            gaussianexe = currentValue
-        elif currentArgument in ("-d","--gaussiandir"):
-            print("Gaussian package directory:", currentValue)
-            gaussiandir = currentValue
-        elif currentArgument in ("-a","--amberhome"):
-            print("Amber home directory:", currentValue)
-            amberhome = currentValue
-        elif currentArgument in ("-t", "--closeness"):
-            print("Solute-Solvente closeness parameter", currentValue)
-            closeness = currentValue
-        elif currentArgument in ("-l", "--solventoff"):
-            print("Custom solvent .off library path:", currentValue)
-            solvent_off = currentValue
-        elif currentArgument in ("-p", "--solventfrcmod"):
-            print("Custom solvent .frcmmod file path:", currentValue)
-            solvent_frcmod = currentValue
+    parser = create_parser_multicomponent()
+    args = parser.parse_args(args)
+    cmd_dict = vars(args)
+    if "file" in cmd_dict and cmd_dict["file"] and os.path.exists(cmd_dict["file"]):
+        if not os.path.exists(cmd_dict["file"]):
+            raise FileNotFoundError(f"File {cmd_dict['file']} not found")
+        with open(cmd_dict["file"], "r") as f:
+            data = json.load(f)
+    else:
+        cmd_dict.pop("file")
+        data = convert_cmd_to_dict(cmd_dict)
+    data = correct_keyword(data)
+    check_inputs(data)
 
-    if solutexyz == "":
-        print("Error! Solute xyzfile must be provided!\nExiting...")
-        exit()
-    elif not os.path.exists(solutexyz):
-        print("Error! Solute xyzfile path ", solutexyz, " does not exist!\nExiting...")
-        exit()
-
-    try:
-        _, ext = os.path.splitext(solutexyz)
-        pybel.readfile(ext[1:], solutexyz).__next__()
-    except:
-        print("Error! Solute structure file format issue!")
-        print(solutexyz," cannot be opened with openbabel.\n Exiting...")
-        exit()
-
+    json.dump(data, open("/home/fren5/AutoSolvate-update/autosolvate.json", "w"), indent=4)
+    json.dump(data, open("autosolvate.json", "w"), indent=4)
     global WORKING_DIR
     WORKING_DIR = os.getcwd()
+    startmulticomponent_fromdata(data)
     
-    builder = MixtureBuilder()
-    builder.add_solute(solutexyz, charge=slu_netcharge, spinmult=slu_spinmult) 
-    for s in solvent.split("/"):
-        builder.add_solvent(s)
-    builder.build()
-
 
 if __name__ == "__main__":
-    startmulticomponent(sys.argv[1:])
+    startmulticomponent()
+    

@@ -1,4 +1,5 @@
 from .tools import *
+from .inputparser import *
 from .tools_fffit import *
 from .frcmod import *
 from .check_executables import *

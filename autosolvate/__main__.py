@@ -7,7 +7,7 @@ from autosolvate.GUI.tk_autosolvate import *
 from autosolvate.autosolvate import *
 from autosolvate.generatetrajs import *
 from autosolvate.clustergen import *
-from autosolvate.FFmetalcomplex import *
+# from autosolvate.FFmetalcomplex import *
 from autosolvate.multicomponent import *
 
 ## Main function
@@ -27,8 +27,9 @@ def main(args=None):
         print('Usage: autosolvate [OPTIONS]')
         print('  [NO OPTION]                launches GUI')
         print('  boxgen [OPTIONS]           generate initial structure')
-        print('  boxgen_metal[OPTIONS]      generate initial structure for organometallic compounds')
-        print('  mdrun [OPTIONS]            automated QM/MM trajectory generatio')
+        print('  boxgen_metal[OPTIONS]      generate initial structure and forcefield for organometallic compounds')
+        print('  boxgen_multicomponent [OPTIONS] generate initial structure for multicomponent systems')
+        print('  mdrun [OPTIONS]            automated QM/MM trajectory generation')
         print('  clustergen [OPTIONS]       extract microsolvated clusters ')
         print('  -h, --help                 short usage description')
         print()
