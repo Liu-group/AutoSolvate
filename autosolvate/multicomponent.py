@@ -454,7 +454,6 @@ def create_parser_multicomponent():
     parser.add_argument('-a', '--amberhome',       type=str,                   help='path to the AMBER molecular dynamics package root directory')
     return parser
 
-
 def startmulticomponent(args):
     r"""
     Wrap function that parses command line options for autosolvate multicomponent module,
@@ -514,8 +513,6 @@ def startmulticomponent(args):
     data = correct_keyword(data)
     check_inputs(data)
 
-    json.dump(data, open("/home/fren5/AutoSolvate-update/autosolvate.json", "w"), indent=4)
-    json.dump(data, open("autosolvate.json", "w"), indent=4)
     global WORKING_DIR
     WORKING_DIR = os.getcwd()
     startmulticomponent_fromdata(data)

@@ -7,7 +7,7 @@ from autosolvate.GUI.tk_autosolvate import *
 from autosolvate.autosolvate import *
 from autosolvate.generatetrajs import *
 from autosolvate.clustergen import *
-# from autosolvate.FFmetalcomplex import *
+from autosolvate.FFmetalcomplex import *
 from autosolvate.multicomponent import *
 
 ## Main function

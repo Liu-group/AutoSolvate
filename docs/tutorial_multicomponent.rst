@@ -44,28 +44,25 @@ naphthalene_neutral.xyz:
 
 acetonitrile.pdb:
 ::
-   COMPND      Acetonitrile
-   ATOM      1  N1  SLV     1      14.182  11.288  13.720
-   ATOM      2  C2  SLV     1      13.673  12.188  13.299
-   ATOM      3  C3  SLV     1      13.153  13.383  12.698
-   ATOM      4  H4  SLV     1      13.342  13.429  11.678
-   ATOM      5  H5  SLV     1      12.069  13.440  12.762
-   ATOM      6  H6  SLV     1      13.602  14.242  13.212
-   TER 
-
+   ATOM      1  N1  ACE     1      14.182  11.288  13.720  1.00  0.00
+   ATOM      2  C2  ACE     1      13.673  12.188  13.299  1.00  0.00
+   ATOM      3  C3  ACE     1      13.153  13.383  12.698  1.00  0.00
+   ATOM      4  H4  ACE     1      13.342  13.429  11.678  1.00  0.00
+   ATOM      5  H5  ACE     1      12.069  13.440  12.762  1.00  0.00
+   ATOM      6  H6  ACE     1      13.602  14.242  13.212  1.00  0.00
+   TER   
+   END   
 
 .. image:: _images/tutorial5_2.png
    :width: 300
 
 water.pdb:
 :: 
-
-  COMPND      Water
-  HETATM    1  O           1       0.251  -0.360  -0.046  1.00  0.00
-  HETATM    2  H           1       0.249   0.684   0.231  1.00  0.00
-  HETATM    3  H           1       0.586  -0.954   0.791  1.00  0.00
-  TER       4              1 
-  END   
+   ATOM      1  O   WAT     1       0.251  -0.360  -0.046  1.00  0.00
+   ATOM      2  H   WAT     1       0.249   0.684   0.231  1.00  0.00
+   ATOM      3  H1  WAT     1       0.586  -0.954   0.791  1.00  0.00
+   TER   
+   END
 
 .. note::
 
