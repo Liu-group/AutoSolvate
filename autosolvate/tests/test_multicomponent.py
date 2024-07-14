@@ -44,30 +44,6 @@ def test_ionpair_solvation(tmpdir):
         path_main_exist *= os.path.exists(f"{name}.{suffix}")
     assert path_main_exist
 
-def test_ionpair_solvation_custom_solvent(tmpdir):
-    testName = "test_custom_ionpair_solvation"
-    solutexyz = hp.get_input_dir("ionpair.pdb")
-    name = "ionpair"
-    inst = MulticomponentSolventBoxBuilder(
-        xyzfile = solutexyz,
-        slu_charge={"SUF":-2, "TPA":1},
-        solvent="acetonitrile",
-        cube_size=50,
-        charge_method="bcc",
-        folder = os.getcwd(),
-        custom_ionpair = True
-    )
-    inst.build()
-    path_fragment_exist = True
-    for res in ("TPA", "SUF"):
-        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.pdb")
-        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.lib")
-    assert path_fragment_exist
-    path_main_exist = True
-    for suffix in ("lib", "pdb"):
-        path_main_exist *= os.path.exists(f"{name}.{suffix}")
-    assert path_main_exist
-
 def test_multicomponent(tmpdir):
     testName = "test_multicomponent"
     inpfname = "PAHs"
@@ -86,42 +62,9 @@ def test_multicomponent(tmpdir):
     assert path_exist
     assert hp.compare_pdb(f"{inpfname}.pdb", hp.get_reference_dir(f"multicomponent/{inpfname}-processed.pdb"))
 
-def test_mixture_builder():
-    test_name = "test_mixture_builder" 
-    builder = MixtureBuilder(folder=os.getcwd()) 
-    builder.add_solute(hp.get_input_dir("naphthalene_neutral.xyz"), name="naphthalene", residue_name="NAP", charge=0, spinmult=1, number=1)
-   
-    # predefined solvents do not need to specify the xyz file.
-    builder.add_solvent(name="acetonitrile", residue_name="C3N", charge=0, spinmult=1, number=200)
-    builder.add_solvent(name="water", residue_name="WAT", charge=0, spinmult=1, number=600)
-    builder.build() 
-
-    solute_path_exist = True
-    solute_path_exist *= os.path.exists("naphthalene.mol2")
-    solute_path_exist *= os.path.exists("naphthalene.frcmod")
-    assert solute_path_exist
-
-    # predefined solvent will not generate the mol2 and frcmod files.
-    path_exist = True
-    path_exist *= os.path.exists("naphthalene-acetonitrile-water.pdb") 
-    path_exist *= os.path.exists("naphthalene-acetonitrile-water.prmtop") 
-    path_exist *= os.path.exists("naphthalene-acetonitrile-water.inpcrd") 
-
-    assert path_exist 
-    assert hp.compare_pdb(
-                "naphthalene-acetonitrile-water.pdb", 
-                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.pdb"), 
-                threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the number of atoms and residues.
-                ) 
-    assert hp.compare_inpcrd_prmtop(
-                "naphthalene-acetonitrile-water.prmtop", 
-                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.prmtop"), 
-                threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the topology and force field parameters.
-                ) 
-
 def test_mixture_builder_file_input():
     test_name = "test_mixture_builder_file_input" 
-    inputfilepath = hp.get_input_dir("mixturebuilder_input1.json")
+    inputfilepath = hp.get_input_dir("step1_input.json")
     startmulticomponent(["-f", inputfilepath])
     
     solute_path_exist = True
@@ -131,21 +74,40 @@ def test_mixture_builder_file_input():
 
     # predefined solvent will not generate the mol2 and frcmod files.
     path_exist = True
-    path_exist *= os.path.exists("naphthalene-acetonitrile-water.pdb") 
-    path_exist *= os.path.exists("naphthalene-acetonitrile-water.prmtop") 
-    path_exist *= os.path.exists("naphthalene-acetonitrile-water.inpcrd") 
+    path_exist *= os.path.exists("naphthalene-water-acetonitrile.pdb") 
+    path_exist *= os.path.exists("naphthalene-water-acetonitrile.prmtop") 
+    path_exist *= os.path.exists("naphthalene-water-acetonitrile.inpcrd") 
 
     assert path_exist 
     assert hp.compare_pdb(
-                "naphthalene-acetonitrile-water.pdb", 
-                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.pdb"), 
+                "naphthalene-water-acetonitrile.pdb", 
+                hp.get_reference_dir(f"multicomponent/naphthalene-water-acetonitrile.pdb"), 
                 threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the number of atoms and residues.
                 ) 
     assert hp.compare_inpcrd_prmtop(
-                "naphthalene-acetonitrile-water.prmtop", 
-                hp.get_reference_dir(f"multicomponent/naphthalene-acetonitrile-water.prmtop"), 
+                "naphthalene-water-acetonitrile.prmtop", 
+                hp.get_reference_dir(f"multicomponent/naphthalene-water-acetonitrile.prmtop"), 
                 threshold = np.inf, # I set it to inf because packmol has some randomness in the output. This function will check the topology and force field parameters.
                 ) 
+    
+def test_ionpair_solvation_file_input(tmpdir):
+    testName = "test_ionpair_solvation_file_input"
+    inputfilepath = hp.get_input_dir("ionpair_input.json")
+    startmulticomponent(["-f", inputfilepath])
+    path_fragment_exist = True
+    for res in ("TPA", "SUF"):
+        path_fragment_exist *= os.path.exists(f"ionpair-{res.lower()}.pdb")
+        path_fragment_exist *= os.path.exists(f"ionpair-{res.lower()}.lib")
+    assert path_fragment_exist
+    path_main_exist = True
+    for suffix in ("lib", "pdb"):
+        path_main_exist *= os.path.exists(f"ionpair.{suffix}")
+    assert path_main_exist
+    assert hp.compare_inpcrd_prmtop(
+        "ionpair-acetonitrile-toluene.prmtop",
+        hp.get_reference_dir("multicomponent/ionpair-acetonitrile-toluene.prmtop"),
+        threshold=np.inf,
+    )
 
 def test_mixture_builder_cmd_input():
     """This is a legacy feature, designed solely to respect the habits of users of the older version. It is not recommended for use."""

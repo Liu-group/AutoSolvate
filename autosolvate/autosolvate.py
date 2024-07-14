@@ -43,6 +43,7 @@ class AmberParamsBuilder(object):
     1. Generate standard pdb
     2. AnteChamber or Gaussian charge fitting
     3. Tleap create Lib
+    Others work with similar function: acpype
     """
     def __init__(self, xyzfile:str, name = "", resname = "", charge = 0, spinmult = 1, 
                  charge_method="resp", folder = WORKING_DIR, **kwargs):

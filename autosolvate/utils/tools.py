@@ -4,10 +4,12 @@ r'''
 '''
 import os   
 import numpy as np
-from openbabel import pybel
-from openbabel import openbabel as ob
 import subprocess 
 from typing import List, Tuple, Dict, Union, Optional, Any, Callable, Iterable
+
+from openbabel import pybel
+from openbabel import openbabel as ob
+import parmed as pmd
 
 from ..Common import * 
 
@@ -346,35 +348,6 @@ def edit_system_pdb(box: object) -> None:
                 f.write("TER\n")
             f.write(line)
         f.close()
-
-def prep2pdb(mol: object) -> None:
-    r'''
-    Output a pdb file from a prep file using tleap
-    '''
-    outputfolder = mol.folder
-    pdbpath = mol.reference_name + '.pdb'
-    if not os.path.exists(outputfolder):
-        os.makedirs(outputfolder)
-    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
-        os.remove(pdbpath)
-    residue_name = extract_residue_name_from_prep(mol.prep)
-    with open(os.path.join(mol.folder, "leap_convert.cmd"), "w") as f: 
-        f.write(f"loadAmberPrep {mol.prep}\n")
-        f.write(f"savepdb {residue_name} {pdbpath}\n")
-    os.system(f"tleap -f {os.path.join(mol.folder, 'leap_convert.cmd')}")
-    mol.pdb = pdbpath
-
-def prep2pdb_withexactpath(preppath:str, pdbpath:str, resname:str="MOL") -> None:
-    r'''
-    Output a pdb file from a prep file using tleap
-    '''
-    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
-        os.remove(pdbpath)
-    residue_name = extract_residue_name_from_prep(preppath)
-    with open("leap_convert.cmd", "w") as f: 
-        f.write(f"loadAmberPrep {preppath}\n")
-        f.write(f"savepdb {residue_name} {pdbpath}\n")
-    os.system("tleap -f leap_convert.cmd")
     
 def assign_water_pdb(mol: object) -> None:
     '''assign a reference pdb file for water'''
@@ -405,22 +378,92 @@ def get_residue_name_from_pdb(file_path:str) -> str:
     return residue_name
 
 
-
-        
-
-
-
-# other functions
+# process amber prep file
 def extract_residue_name_from_prep(prep_file:str) -> str:
-    """ChatGPT按照ch3cn.prep文件的格式写的，不保证通用性，可能有问题"""
+    # The format of the unique residue name:
+    #   - 5 -      NAMRES , INTX , KFORM
     with open(prep_file, 'r') as file:
         lines = file.readlines()
-    
     for line in lines:
-        if "INT" in line:
+        if ("INT" in line) or ("XYZ" in line):
             parts = line.split()
             return parts[0]
     return "MOL"
+
+def prep2pdb(mol: object) -> None:
+    r'''
+    Output a pdb file from a prep file using tleap
+    '''
+    outputfolder = mol.folder
+    pdbpath = mol.reference_name + '.pdb'
+    if not os.path.exists(outputfolder):
+        os.makedirs(outputfolder)
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    residue_name = extract_residue_name_from_prep(mol.prep)
+    with open(os.path.join(mol.folder, "leap_convert.cmd"), "w") as f: 
+        f.write(f"loadAmberPrep {mol.prep}\n")
+        f.write(f"savepdb {residue_name} {pdbpath}\n")
+        f.write("quit\n")
+    os.system(f"tleap -s -f {os.path.join(mol.folder, 'leap_convert.cmd')} > {os.path.join(mol.folder, 'leap_convert.log')}")
+    mol.pdb = pdbpath
+
+def prep2pdb_withexactpath(preppath:str, pdbpath:str = "") -> None:
+    r'''
+    Output a pdb file from a prep file using tleap
+    '''
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    if not pdbpath:
+        pdbpath = os.path.splitext(preppath)[0] + ".pdb"
+    residue_name = extract_residue_name_from_prep(preppath)
+    with open("leap_convert.cmd", "w") as f: 
+        f.write(f"loadAmberPrep {preppath}\n")
+        f.write(f"savepdb {residue_name} {pdbpath}\n")
+        f.write("quit\n")
+    os.system("tleap -s -f leap_convert.cmd > leap_convert.log")
+
+def extract_residue_name_from_lib(lib_file:str) -> str:
+    # Read the lib/off file with parmed and extract the residue name
+    lib = pmd.load_file(lib_file)
+    lib:pmd.amber.offlib.AmberOFFLibrary
+    if len(lib.keys()) > 1:
+        raise ValueError(f"The library file {lib_file} contains multiple residues")
+    return list(lib.keys())[0]
+
+def lib2pdb(mol: object) -> None:
+    r'''
+    Output a pdb file from a lib file using tleap
+    '''
+    outputfolder = mol.folder
+    pdbpath = mol.reference_name + '.pdb'
+    if not os.path.exists(outputfolder):
+        os.makedirs(outputfolder)
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    if mol.check_exist("lib"):
+        lib = pmd.load_file(mol.lib)
+        res = list(lib.keys())[0]
+        lib[res].save(pdbpath)
+    elif mol.check_exist("off"):
+        lib = pmd.load_file(mol.off)
+        res = list(lib.keys())[0]
+        lib[res].save(pdbpath)
+    mol.pdb = pdbpath
+
+def lib2pdb_withexactpath(libpath:str, pdbpath:str = "") -> None:
+    r'''
+    Output a pdb file from a lib file using tleap
+    '''
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    if not pdbpath:
+        pdbpath = os.path.splitext(libpath)[0] + ".pdb"
+    lib = pmd.load_file(libpath)
+    res = list(lib.keys())[0]
+    lib[res].save(pdbpath)
+
+
 
 def process_system_name(name:str, xyzfile:str, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib"), check_exist = True):
     if not os.path.isfile(xyzfile) and check_exist:

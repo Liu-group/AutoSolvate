@@ -92,7 +92,8 @@ class System(object):
             else:
                 if __name in self._FILEATTR_FILEPATH_DICT:
                     self._FILEATTR_FILEPATH_DICT[__name] = __value
-                    self.logger.warning("The '{:s}' file of system '{:s}' is set to a non-existent path '{:s}'".format(__name, self.name, __value))
+                    if not (hasattr(self, "amber_solvent") and self.amber_solvent):
+                        self.logger.warning("The '{:s}' file of system '{:s}' is set to a non-existent path '{:s}'".format(__name, self.name, __value))
                 else:
                     self.logger.debug("set the '{:s}' attribute of system '{:s}' as {:s}".format(__name, self.name, __value))
         else:
@@ -120,7 +121,7 @@ class System(object):
                 self.logger.debug("The '{:s}' file of system '{:s}' is not defined".format(ext, self.name))
             elif not isinstance(self.__getattribute__(ext), str):
                 flag *= False
-                self.logger.debug("The '{:s}' attribute of system '{:s}' does noe exist".format(ext, self.name))
+                self.logger.debug("The '{:s}' attribute of system '{:s}' does not exist".format(ext, self.name))
             elif not os.path.isfile(self.__getattribute__(ext)):
                 flag *= False
                 self.logger.debug("The '{:s}' file of system '{:s}' does not exist".format(ext, self.name))
@@ -296,6 +297,13 @@ class Molecule(System):
                 shutil.move(self.pdb, self.reference_name + "-bak.pdb")
             self.logger.info(f"Converted the prep file {self.prep} to pdb file {self.pdb}")
             prep2pdb(self)
+        elif self.check_exist("lib") or self.check_exist("off"):
+            newpath = self.reference_name + ".pdb"
+            if self.check_exist("pdb"):
+                self.logger.warning(f"The existing pdb file {self.pdb} will be ignored as amber lib/off file is provided.")
+                shutil.move(self.pdb, self.reference_name + "-bak.pdb")
+            self.logger.info(f"Converted the lib file {self.lib} to pdb file {self.pdb}")
+            lib2pdb(self)
         elif self.check_exist("mol2"):
             newpath = self.reference_name + ".pdb"
             if self.check_exist("pdb"):
@@ -318,9 +326,12 @@ class Molecule(System):
         Note if the mol2, or prep file is provided, the 'residue_name' attribute will be updated according to these files instead of the argument 'residue_name'.
         """
         new_residue_name = ""
-        if self.check_exist("prep"):    # 这里必须要改。都已经知道residue name了就没有必要从prep文件里获取了。必须找到从prep文件中直接读取residue name的方法，或者找到把prep文件转换成pdb文件并且不借助residue name的方法。
-            prep2pdb_withexactpath(self.prep, self.reference_name + "-fromprep.pdb", self.residue_name)
-            new_residue_name = get_residue_name_from_pdb(self.reference_name + "-fromprep.pdb")
+        if self.check_exist("prep"):
+            new_residue_name = extract_residue_name_from_prep(self.prep)
+        elif self.check_exist("lib"):
+            new_residue_name = extract_residue_name_from_lib(self.lib)
+        elif self.check_exist("off"):
+            new_residue_name = extract_residue_name_from_lib(self.off)
         elif self.check_exist("mol2"):
             newpath = self.reference_name + "-frommol2.pdb"
             subprocess.run(f"obabel -i mol2 {self.mol2} -o pdb -O {newpath} ---errorlevel 0", shell = True)

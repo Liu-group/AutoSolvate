@@ -65,8 +65,6 @@ class MoleculeComplex(System):
         self.residue_name   = "SYS" if not residue_name else residue_name
         self.number         = 0
         self.read_coordinate(xyzfile)
-        super(MoleculeComplex, self).__init__(name = self.name)
-        self.logger.name = self.__class__.__name__
 
         self.mol_obmol          = pybel.readfile("pdb", self.pdb).__next__().OBMol
         self.fragresiduenames   = []    # name of each fragment
@@ -81,6 +79,9 @@ class MoleculeComplex(System):
         self.multiplicity       = 1     # multiplicity of the system
 
         self.aminoacidresidues  = AMINO_ACID_RESIDUES
+
+        super(MoleculeComplex, self).__init__(name = self.name)
+        self.logger.name = self.__class__.__name__
 
         if reorder_pdb:
             reorderPDB(self.pdb, self.pdb)

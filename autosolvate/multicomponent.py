@@ -11,6 +11,11 @@
 # author: Fangning Ren (2022-02-04) 
 # path: autosolvate/multicomponent.py
 #--------------------------------------------------------------------------------------------------#
+# Update 2024-07-12:
+#   1. Add a MixtureBuilder class to generate mixed solventbox for both single solute and molecular pairs
+#   2. Now accept pre-generated prep, lib, and off files if the frcmod file is provided. 
+#   3. Mixed solvent with amber defined solvent such as TIP3P water, methanol are enabled. 
+#--------------------------------------------------------------------------------------------------#
 import getopt, sys, os
 import subprocess
 from typing import List, Tuple, Iterable
@@ -27,7 +32,9 @@ from autosolvate.autosolvate import *
 
 class MulticomponentParamsBuilder():
     """
-    Create amber parameter files for a single xyz or pdb file with multiple separate fragments
+    Create amber parameter files for a single xyz or pdb file with multiple separate fragments.
+
+    Warning: If you want to create the forcefield for transition metal complexes please use the ```boxgen_metal``` module instead of ```boxgen_multicomponent```.
 
     Parameters
     ----------
@@ -186,6 +193,8 @@ class MixtureBuilder():
         Solute-solvent closeness setting, corresponding to the tolerance parameter in packmol in Å, 
     charge_method : str, Optional, default: "bcc"
         name of charge fitting method (bcc, resp)
+    prefix : str, Optional, default: None
+        prefix of the output file names. Default will be <solute_name>_<solvent_name_1>_...-<solvent_name_n>
     """
     def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc", prefix = None):
         self.solutes = []
@@ -218,7 +227,7 @@ class MixtureBuilder():
         Parameters
         ----------
         xyzfile : str
-            structure file name, can be any type within ["xyz", "pdb", "mol2"]. frcmod are not supported for molecular complex.
+            structure file name, can be any type within ["xyz", "pdb", "mol2"]. "prep", "lib", "off" are not supported for molecular complex.
         fragment_charge : dict | array_like, Optional, default: 0
             Charge for each fragment. A dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral.
         fragment_spinmult : dict | array_like, Optional, default: 1
@@ -255,12 +264,13 @@ class MixtureBuilder():
         number : int, Optional, default: 1
             number of the solute in the system.
         **kwargs : dict
-            additional files needed for the solute, including "mol2", "frcmod", "lib", "prep".
+            additional files needed for the solute, including "mol2", "frcmod", "lib", "prep", and "off". Will support "itp", "top" in the future.
             If the user want to skip the antechamber and leap steps, the user need to provide the "mol2" and "frcmod" files by adding the following arguments:
-            mol2 : str  
-                the path of the mol2 file of the solute
-            frcmod : str
-                the path of the frcmod file of the solute
+            
+        mol2 : str  
+            the path of the mol2 file of the solute
+        frcmod : str
+            the path of the frcmod file of the solute
         """
 
         if ("mol2" in kwargs and os.path.isfile(kwargs["mol2"])) and \
@@ -380,9 +390,9 @@ class MixtureBuilder():
             system_name = "-".join([m.name for m in self.solutes] + [m.name for m in self.solvents])
         else:
             system_name = self.systemprefix
-        self.solutes:List[Molecule] 
+        self.solutes :List[Molecule] 
         self.solvents:List[Molecule]
-        solute_numbers = [m.number for m in self.solutes]
+        solute_numbers  = [m.number for m in self.solutes ]
         solvent_numbers = [m.number for m in self.solvents]
         system = SolvatedSystem(system_name, solute = self.solutes, solvent = self.solvents,
                                 cubesize=self.boxsize, closeness=self.closeness, 
@@ -428,15 +438,7 @@ def startmulticomponent_fromfile(file:str):
 def create_parser_multicomponent():
     parser = argparse.ArgumentParser(
         description='Add solvent box to a given solute and generate related force field parameters.',
-        epilog='''
-        suggest usage: autosolvate multicomponent -f input.json \n
-
-        if an input file is provided, all command line options will be ignored. \n
-
-        If using command line as the traditional way, it will only generate a single solute with single solvent. \n
-        
-        This is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use.
-        ''',
+        epilog="suggest usage: autosolvate multicomponent -f input.json \nif an input file is provided, all command line options will be ignored. \nIf using command line as the traditional way, it will only generate a single solute with single solvent. \nThis is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use."
     )
 
     parser.add_argument('-f', '--file',            type=str,  help='json file containing the input parameters. Will ignore all other options if provided. Required when using multiple solvents')
@@ -459,43 +461,39 @@ def startmulticomponent(args):
     Wrap function that parses command line options for autosolvate multicomponent module,
     generate solvent box and related force field parameters.
     
-    Parameters
+    Command Line Options
     ----------
-    None
-
-       Command line option definitions
-         -f, --file  
-            json file containing the input parameters, Required when using multiple solvents
-         -m, --main  
-            solute xyz file, not suggested to use when using multiple solvents
-         -o, --output  
+        -f, --file 
+            json file containing the input parameters, Required when using multiple solvents. Will ignore all other options if provided.
+        -m, --main  
+            solute xyz file, An Legacy feature, designed for the compatibility with the older version. It is not recommended for further use.
+        -o, --output  
             prefix of the output file names
-         -c, --charge  
+        -c, --charge  
             formal charge of solute
-         -u, --spinmultiplicity  
+        -u, --spinmultiplicity  
             spin multiplicity of solute
-         -s, --solvent  
-            solvent xyz files, Will use single solvent if provided. Not suggested to use when using multiple solvents
-         -g, --chargemethod  
+        -s, --solvent  
+            solvent xyz files, Will use single solvent if provided. Not available for using multiple solvents
+        -g, --chargemethod  
             name of charge fitting method (bcc, resp)
-         -b, --cubesize  
+        -b, --cubesize  
             size of solvent cube in angstroms
-         -t, --closeness  
-            Solute-solvent closeness setting, for acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
-         -r, --srunuse  
+        -t, --closeness  
+            Solute-solvent closeness setting. Default 2.0 Å for mixed solvent. For acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to 'automated' will automatically set this parameter based on solvent.
+        -r, --srunuse  
             option to run inside a slurm job
-         -e, --gaussianexe  
+        -e, --gaussianexe  
             name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting
-         -d, --gaussiandir  
+        -d, --gaussiandir  
             path to the Gaussian package
-         -a, --amberhome  
+        -a, --amberhome  
             path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME
-         -h, --help  
+        -h, --help  
             short usage description
 
     Returns
     -------
-    None
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
