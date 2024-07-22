@@ -68,16 +68,11 @@ class genFF():
             print('Error: Invalid inputs spin multiplicity')
             sys.exit()
         
-        if self.method.upper() in support_method:
-            print('Use ', self.method,'to carry out QM calculation')
-        else:
-            raise TypeError('Erorr',self.method,'is not supported')
-        
-
-        if self.basisset.upper() in support_basisset:
-            print('Use ', self.basisset,'to carry out QM calculation')
-        else:
-            print('Erorr',self.basisset,'is not supported')
+        if self.software in ['gms']:
+            if self.basisset.upper() in support_basisset:
+                print('Use ', self.basisset,'to carry out QM calculation')
+            else:
+                print('Erorr',self.basisset,'is not supported if QM software is GAMESS-US')
         
         try:
             int(self.metal_charge)
@@ -109,7 +104,25 @@ class genFF():
         
         if self.software not in ['orca','gau','g03','g09','gms']:
             raise TypeError('Error: Invalid software of QM, please use : orca, gau, g03, g09')
-
+        
+        if self.solvent_off != '':
+            if self.solvent_frcmod == '':
+                raise TypeError('Error: No solvent frcmod file is provided, when solventoff file is provided')
+            else:
+                if os.path.exists(self.solvent_off) and os.path.exists(self.solvent_frcmod):
+                    print('find ' + self.solvent_off + ' ' + self.solvent_frcmod + '!')
+                    with open(self.solvent_off,'r') as f:
+                        offdata = f.readlines()
+                        solventname = offdata[1].strip()[1:-1]
+                        if self.solvent != solventname:
+                            raise TypeError('The solvent name does not fit the name in off file')
+                else:
+                    raise TypeError('Error: cant find off or frcmod solvent file')
+                
+        if self.solvent_frcmod != '':
+             if self.solvent_off == '':
+                 raise TypeError('Error: No solvent off file is provided, when solventfrmod file is provided')
+            
     def check_freq_result(self):
         finish = 'notconverged'
         if self.software == 'orca':
@@ -659,7 +672,7 @@ def startFFgen(argumentList):
                 -i  --method            method of QM default:B3LYP
                 -l  --solventoff        path to the custom solvent .off library file
                 -p  --solventfrcmod     path to the custom solvent .frcmod file
-                -j  --basisset          basisset used in QM calculation, default: DEF2-TZVP (for GAMES-US only 6-31G,6-31G*,LANL2DZ are supported)
+                -j  --basisset          Basis set used in QM calculation. Default: DEF2-TZVP (for Gaussian and Orca). For GAMESS-US, only 6-31G, 6-31G*, and LANL2DZ are supported.
                 -a  --amberhome         path of AmberTools bin default: $AMBERHOME/bin/
                 -w  --opt               use(Y) or not use(N) the QM optimized structure for charge calculation default: Y
                 -s  --solvent           name of solvent (water, methanol, chloroform, nma, acetonitrile)
