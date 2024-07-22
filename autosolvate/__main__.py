@@ -8,7 +8,7 @@ from autosolvate.autosolvate import *
 from autosolvate.generatetrajs import *
 from autosolvate.clustergen import *
 from autosolvate.FFmetalcomplex import *
-
+from autosolvate.multicomponent import *
 
 ## Main function
 #  @param args Argument namespace
@@ -51,6 +51,10 @@ def main(args=None):
         print('AutoSolvate is starting in command line mode!')
         print('Running the module to extract microsolvated clusters from MD trajectories with solvent box.')
         startclustergen(args[1:])
+    elif args[0] == 'boxgen_multicomponent':
+        print('AutoSolvate is starting in command line mode!')
+        print('Running the module to generate solvent box and force field parameters for multicomponent systems.')
+        startmulticomponent(args[1:]) 
     else:
         print('Invalid syntax for AutoSolvate command line interface.')
         print('Please run \'autosolvate -h\' to check out the basic usage.')
