@@ -16,6 +16,18 @@ from rdkit import Chem
 
 atom_zoo = ['H','C','N','O','CL','BR','I','P','S','F']
 
+
+metals  = [
+    "Li", "Na", "K", "Rb", "Cs", "Fr",  
+    "Be", "Mg", "Ca", "Sr", "Ba", "Ra",  
+    "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",  
+    "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",  
+    "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",  
+    "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn" 
+]
+
+cheat_metal = {1:'CU',2:'Fe',3:'Fe',4: 'Mn',}
+
 valence_electrons = {
     'H': 1,
     'C': 4,
@@ -170,15 +182,64 @@ class AutoMCPB():
         complex_mol = mol3D()
         complex_mol.readfromxyz(self.xyzfile)
         metal_list = complex_mol.findMetal()
+        self.cheat_metal = None
         if len(metal_list) > 1:
-            print("Error: AutoMCPB can't deal with multi-metal systems")
+            print("Error: autosolvate can't deal with multi-metal systems")
             sys.exit()
         elif len(metal_list) == 0:
-            print('Error: AutoMCPB There is no metal in the xyz file, please check the xyz input file.')
+            print('Warning: There is no metal in the xyz file or molsimplify can not support this metal.')
+            metalall = []
+            with open(self.xyzfile) as f:
+                data = f.readlines()
+                for ID, line in enumerate(data[2:]):
+                    if len(line.strip()) > 0:
+                        atomtype = str.capitalize(line.split()[0])
+                        if atomtype in metals:
+                            metalall.append(atomtype)
+            if len(metalall) == 0:
+                print('Error: There is no metal in the xyz file')
+                sys.exit()
+            elif len(metalall) > 1:
+                print("Error: autosolvate can't deal with multi-metal systems")
+                sys.exit()
+            elif len(metalall) == 1:
+                print('Find one metal atom',metalall[0])
+                self.metal_name = metalall[0].upper()
+                self.cheat_metal = metalall[0].upper()
+                prefix = os.path.splitext(self.xyzfile)[0]
+                ### generate cheat_metal_xyz ###
+                cheat_metalxyz = open(prefix + '_cheat.xyz','w')
+                cheat_metalname = cheat_metal[int(self.metal_charge)]
+                with open(self.xyzfile,'r') as f:
+                    data = f.readlines()
+                    cheat_metalxyz.write(data[0])
+                    cheat_metalxyz.write(data[1])
+                    for line in data[2:]:
+                        if len(line.strip()) > 0:
+                            atomtype = str.capitalize(line.split()[0]).strip()
+                            if atomtype.upper() == self.metal_name:
+                                new_string = line.replace(atomtype,cheat_metalname.capitalize())
+                                print(new_string)
+                                cheat_metalxyz.write(new_string)
+                            else:
+                                cheat_metalxyz.write(line)
+                
+                cheat_metalxyz.close()
+                self.xyzfile = prefix + '_cheat.xyz'
+                print('now,the xyzfile is ', self.xyzfile)
+                cheat_complex_mol = mol3D()
+                print(self.xyzfile)
+                cheat_complex_mol.readfromxyz(self.xyzfile)
+                metal_list = cheat_complex_mol.findMetal()
+                self.metal_ID = metal_list[0]
+                self.metal_name =  cheat_metalname.upper()
+                print(self.metal_name)
+                self.coordinates_reader_xyz()
+                
         elif len(metal_list) == 1:
+            self.cheat_metal = None
             self.metal_ID = metal_list[0]
             metal_type = self.atomsinfo[self.metal_ID].atomtype
-          #  print('Find Metal ID:' + str(self.metal_ID) + ' ' + metal_type)
             self.metal_name = metal_type
     
     def check_atoms(self):
@@ -194,7 +255,7 @@ class AutoMCPB():
         check = 'Yes'
         for atom in self.atomsinfo:
             if atom.atomtype not in atom_zoo + [self.metal_name] :
-                print('Error: AutoMCPB does not support the atom ' + atom.atomtype)
+                print('Error: autosolvate does not support the atom ' + atom.atomtype)
                 check = 'No'
                 sys.exit()
         
@@ -222,6 +283,7 @@ class AutoMCPB():
         if len(liglist) == 0:
             print('Error: No ligand is identified')
             sys.exit()
+            
     def modifiy_pdb(self,inputpdb,mol2,outputpdb):
         r"""
         change the format of pdb files to be suitable for GAFF
@@ -716,7 +778,6 @@ class AutoMCPB():
          #       connections = self.coorination_or_covalent(ligand, self.filename + '_final.xyz', ligand + '_' + str.upper(self.metal_name) + '.xyz')
          #       for connections_info in connections:
          #           f.write(ligand + ' ' + connections_info + '\n')
-            
     
     def get_totalcharge(self):
         totalcharge = 0
@@ -777,6 +838,94 @@ class AutoMCPB():
             else:
                 raise TypeError('Erorr, can not find',mcpbinfo)
     
+    def change_thecheat_atom(self):
+        if self.cheat_metal != None:
+            prefix = os.path.splitext(self.xyzfile)[0].split('_cheat')[0]
+            ##generate real mol2 file##
+            newpdb = open(self.cheat_metal.upper()+'.pdb','w')
+            with open(self.metal_name.upper() + '.pdb','r') as f:
+                for line in f:
+                    if 'ATOM' or 'HETATM' in line.split()[0]:
+                        newline = line.replace(self.metal_name.upper(),self.cheat_metal.upper())
+                        newpdb.write(newline)
+            newpdb.close()
+            cmd = 'rm ' + self.metal_name.upper() + '.pdb'
+            subprocess.call(cmd,shell=True)
+            
+            cmd = 'rm ' + self.metal_name.upper() + '_temp.pdb'
+            subprocess.call(cmd,shell=True)           
+        
+            cmd =self.amberhome +'metalpdb2mol2.py -i ' + self.cheat_metal.upper()+'.pdb' + ' -o ' + self.cheat_metal.upper() + '.mol2' + ' -c ' + str(self.metal_charge)
+            subprocess.call(cmd, shell=True)
+            
+            cmd = 'rm ' + self.metal_name.upper() + '.mol2'
+            subprocess.call(cmd,shell=True)
+            
+            ### generate real final.pdb ###
+            finalpdbname = prefix + '_final.pdb'
+            cmd = 'cp ' + finalpdbname + ' ' + prefix + '_final_old.pdb'
+            subprocess.call(cmd,shell=True)
+            
+            finalpdb = open(finalpdbname,'w')
+            with open(prefix + '_final_old.pdb','r') as f:
+                data = f.readlines()
+                for line in data:
+                    if 'ATOM' or 'HETATM' in line.split()[0]:
+                        if self.metal_name.upper() in line[12:16]:
+                            newline = line[:6] + line[6:].replace(self.metal_name.upper(),self.cheat_metal.upper())
+                            finalpdb.write(newline)
+                        else:
+                            finalpdb.write(line)
+            finalpdb.close()
+            
+            ### generate real info file ###
+            
+            infofile = prefix + '.info'
+            cmd = 'cp ' + infofile  + ' ' + prefix + '_old.info'
+            subprocess.call(cmd,shell=True)
+            
+            finalinfo = open(infofile,'w')
+            with open(prefix + '_old.info','r') as f:
+                data = f.readlines()
+                for line in data:
+                    if self.metal_name.upper() in line:
+                        newline = line.replace(self.metal_name.upper(),self.cheat_metal.upper())
+                        finalinfo.write(newline)
+                    else:
+                        finalinfo.write(line)
+            finalinfo.close()
+            
+            ### generate real MCPB input ###
+            MCPBin = prefix + '_MCPB.in'
+            cmd = 'cp ' + MCPBin + ' ' + prefix + '_MCPB_old.in'
+            subprocess.call(cmd,shell=True)
+            
+            finalMCPBinput = open(MCPBin,'w')
+            with open(prefix + '_MCPB_old.in','r') as f:
+                data = f.readlines()
+                for line in data:
+                    if 'ion_mol2files' in line:
+                        newline = 'ion_mol2files ' + self.cheat_metal.upper() + '.mol2\n'
+                        finalMCPBinput.write(newline)
+                    else:
+                        finalMCPBinput.write(line)
+            finalMCPBinput.close()
+            
+            if self.software == 'orca':
+                MCPBin = prefix + '_MCPB_orca.in'
+                cmd = 'cp ' + MCPBin + ' ' + prefix + '_MCPB_orca_old.in'
+                subprocess.call(cmd,shell=True)
+                
+                finalMCPBinput = open(MCPBin,'w')
+                with open(prefix + '_MCPB_old.in','r') as f:
+                    data = f.readlines()
+                    for line in data:
+                        if 'ion_mol2files' in line:
+                            newline = 'ion_mol2files ' + self.cheat_metal.upper() + '.mol2\n'
+                            finalMCPBinput.write(newline)
+                        else:
+                            finalMCPBinput.write(line)
+                finalMCPBinput.close()
     
     def run_MCPB_1(self):
         if self.round in ['1']:
@@ -1098,6 +1247,7 @@ class AutoMCPB():
             self.generate_MCPB_input()
             self.get_connection_info()
             self.check_MCPBinp()
+            self.change_thecheat_atom()
             self.run_MCPB_1()
 
         elif self.round in ['2','2b','2e','2s','2z']:
