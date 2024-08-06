@@ -26,7 +26,7 @@ metals  = [
     "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn" 
 ]
 
-cheat_metal = {1:'CU',2:'Fe',3:'Fe',4: 'Mn',}
+cheat_metal = {1:'CU',2:'Fe',3:'Fe',4: 'Mn'}
 
 valence_electrons = {
     'H': 1,
@@ -184,7 +184,7 @@ class AutoMCPB():
         metal_list = complex_mol.findMetal()
         self.cheat_metal = None
         if len(metal_list) > 1:
-            print("Error: autosolvate can't deal with multi-metal systems")
+            raise TypeError("Error: autosolvate can't deal with multi-metal systems")
             sys.exit()
         elif len(metal_list) == 0:
             print('Warning: There is no metal in the xyz file or molsimplify can not support this metal.')
@@ -197,16 +197,17 @@ class AutoMCPB():
                         if atomtype in metals:
                             metalall.append(atomtype)
             if len(metalall) == 0:
-                print('Error: There is no metal in the xyz file')
+                raise TypeError('Error: There is no metal in the xyz file')
                 sys.exit()
             elif len(metalall) > 1:
-                print("Error: autosolvate can't deal with multi-metal systems")
+                raise TypeError("Error: autosolvate can't deal with multi-metal systems")
                 sys.exit()
             elif len(metalall) == 1:
                 print('Find one metal atom',metalall[0])
                 self.metal_name = metalall[0].upper()
                 self.cheat_metal = metalall[0].upper()
                 prefix = os.path.splitext(self.xyzfile)[0]
+                print('Use', cheat_metal[int(self.metal_charge)], 'instead of', metalall[0],'to generate ligand files')
                 ### generate cheat_metal_xyz ###
                 cheat_metalxyz = open(prefix + '_cheat.xyz','w')
                 cheat_metalname = cheat_metal[int(self.metal_charge)]
@@ -219,7 +220,7 @@ class AutoMCPB():
                             atomtype = str.capitalize(line.split()[0]).strip()
                             if atomtype.upper() == self.metal_name:
                                 new_string = line.replace(atomtype,cheat_metalname.capitalize())
-                                print(new_string)
+                            #    print(new_string)
                                 cheat_metalxyz.write(new_string)
                             else:
                                 cheat_metalxyz.write(line)
@@ -228,12 +229,12 @@ class AutoMCPB():
                 self.xyzfile = prefix + '_cheat.xyz'
                 print('now,the xyzfile is ', self.xyzfile)
                 cheat_complex_mol = mol3D()
-                print(self.xyzfile)
+            #    print(self.xyzfile)
                 cheat_complex_mol.readfromxyz(self.xyzfile)
                 metal_list = cheat_complex_mol.findMetal()
                 self.metal_ID = metal_list[0]
                 self.metal_name =  cheat_metalname.upper()
-                print(self.metal_name)
+              #  print(self.metal_name)
                 self.coordinates_reader_xyz()
                 
         elif len(metal_list) == 1:
@@ -377,7 +378,7 @@ class AutoMCPB():
             mol = [mol for mol in suppl][0]
             
             if mol == None:
-                print('Error: RDKit can not read the ligand, please check the ligand',ligandxyz)
+                raise TypeError('Error: RDKit can not read the ligand, please check the ligand',ligandxyz)
                 sys.exit()
             else:
              #   print('In ',ligandxyz.split('.xyz')[0],':')
@@ -878,6 +879,10 @@ class AutoMCPB():
                             finalpdb.write(line)
             finalpdb.close()
             
+            pdbin = prefix + '_final.pdb'
+            xyzout = prefix + '_final.xyz'
+            write(xyzout, read(pdbin))   
+            
             ### generate real info file ###
             
             infofile = prefix + '.info'
@@ -926,6 +931,8 @@ class AutoMCPB():
                         else:
                             finalMCPBinput.write(line)
                 finalMCPBinput.close()
+            
+            
     
     def run_MCPB_1(self):
         if self.round in ['1']:
