@@ -187,7 +187,7 @@ for more details about  generate the force field for Fe(bpy)3 in customized solv
 
 .. code-block:: bash
 
-    autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -l dmso.off -p dmso.frcmod
+    autosolvate boxgen_metal -m Febpy3.xyz -k 2 -u 1 -e orca -y 32 -d /opt/orca/5.0.2/orca -l dmso.off -p dmso.frcmod -s d
 
 The rest steps are the same with Example 2.
 
