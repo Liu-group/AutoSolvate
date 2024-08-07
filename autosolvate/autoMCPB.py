@@ -18,15 +18,15 @@ atom_zoo = ['H','C','N','O','CL','BR','I','P','S','F']
 
 
 metals  = [
-    "Li", "Na", "K", "Rb", "Cs", "Fr",  
-    "Be", "Mg", "Ca", "Sr", "Ba", "Ra",  
+    "Li", "Na", "K", "Rb", "Cs", "Fr", "Pb",
+    "Be", "Mg", "Ca", "Sr", "Ba", "Ra",  "Sn","La"
     "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",  
     "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",  
     "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",  
     "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn" 
 ]
 
-cheat_metal = {1:'CU',2:'Fe',3:'Fe',4: 'Mn'}
+cheat_metal = {1:'Cu',2:'Fe',3:'Fe',4:'Mn'}
 
 valence_electrons = {
     'H': 1,
@@ -100,6 +100,13 @@ def check_ligand(sdf):
             else:
                 ligand_charge = ligand_charge - abs(longpair)
     return check, ligand_charge
+
+
+def ligandbreakdown_graph(xyzfile):
+    prefix = os.path.splitext(xyzfile)[0]
+    sdf = prefix + '.sdf'
+    cmd = 'obabel ' + xyzfile + ' -O ' + prefix
+    pass
 
 
 class AtomInfo():
@@ -181,7 +188,7 @@ class AutoMCPB():
         """
         complex_mol = mol3D()
         complex_mol.readfromxyz(self.xyzfile)
-        metal_list = complex_mol.findMetal()
+        metal_list = complex_mol.findMetal(transition_metals_only=False)
         self.cheat_metal = None
         if len(metal_list) > 1:
             raise TypeError("Error: autosolvate can't deal with multi-metal systems")
@@ -231,7 +238,8 @@ class AutoMCPB():
                 cheat_complex_mol = mol3D()
             #    print(self.xyzfile)
                 cheat_complex_mol.readfromxyz(self.xyzfile)
-                metal_list = cheat_complex_mol.findMetal()
+                metal_list = cheat_complex_mol.findMetal(transition_metals_only=False)
+                print(metal_list)
                 self.metal_ID = metal_list[0]
                 self.metal_name =  cheat_metalname.upper()
               #  print(self.metal_name)
@@ -274,7 +282,7 @@ class AutoMCPB():
         """
         complex_mol = mol3D()
         complex_mol.readfromxyz(self.xyzfile)
-        ligands_breakdown_infos = ligand_breakdown(complex_mol)
+        ligands_breakdown_infos = ligand_breakdown(complex_mol,transition_metals_only=False)
         liglist = ligands_breakdown_infos[0]
        # denticity = ligands_breakdown_infos[1]
         ligcons =  ligands_breakdown_infos[2]
@@ -282,8 +290,9 @@ class AutoMCPB():
         self.ligcons = ligcons
         #self.denticity = denticity
         if len(liglist) == 0:
-            print('Error: No ligand is identified')
-            sys.exit()
+            print('Warning: No ligand is identified by molsimplyfy, try to use graph search to break ligand')
+            
+          #  sys.exit()
             
     def modifiy_pdb(self,inputpdb,mol2,outputpdb):
         r"""
@@ -389,7 +398,7 @@ class AutoMCPB():
                         total_radical_number = total_radical_number + radical
                 ligand_metal = mol3D()
                 ligand_metal.readfromxyz(sdf + '_' + self.metal_name + '.xyz')
-                ligand_metal_breakdown_infos = ligand_breakdown(ligand_metal)
+                ligand_metal_breakdown_infos = ligand_breakdown(ligand_metal,transition_metals_only=False)
 
                 charge_of_ligand =total_radical_number*(-1)
         else:
@@ -681,10 +690,10 @@ class AutoMCPB():
         xyzout = self.filename + '_final.xyz'
         write(xyzout, read(pdbin))        
         new_complex_mol = mol3D()
-        new_complex_mol.readfromxyz(self.filename + '_final.xyz')
-        metalID = new_complex_mol.findMetal()
+        new_complex_mol.readfromxyz(self.filename + '_final.xyz',)
+        metalID = new_complex_mol.findMetal(transition_metals_only=False)
         self.new_complex_mol = new_complex_mol
-        pairs = ligand_breakdown(new_complex_mol)[2]
+        pairs = ligand_breakdown(new_complex_mol,transition_metals_only=False)[2]
 
         add_bonded_pairs = 'add_bonded_pairs '
         for denticitys in pairs:
@@ -696,7 +705,7 @@ class AutoMCPB():
         
     def generate_MCPB_input(self):
         metalname = self.atomsinfo[self.metal_ID].atomtype
-        metalID = self.new_complex_mol.findMetal()
+        metalID = self.new_complex_mol.findMetal(transition_metals_only=False)
         ion_ids = 'ion_ids ' + str(metalID[0]+1)
         self.ion_ids = ion_ids
         original_pdb = 'original_pdb '+ self.filename + '_final.pdb'
