@@ -1,13 +1,3 @@
-'''
-Perform RESP charge fitting using GAMESS with Python3 and openbabel in AutoSolvate
-'''
-
-from openbabel import openbabel as ob
-from openbabel import pybel
-import os, re, subprocess, shutil, glob, sys
-from abc import ABC, abstractmethod
-from autosolvate.resp_classes.resp_abstract import RespABC
-
 class RespGAMESS(RespABC):
     def __init__(self, **kwargs):
         print("*"*40)
@@ -16,6 +6,7 @@ class RespGAMESS(RespABC):
         self.srun_use = kwargs["srun_use"] if "srun_use" in kwargs else True # GAMESS script usually requires srun_use
         self.nnodes = kwargs["nnodes"] if "nnodes" in kwargs else 1 # Gamess need
         self.ncpus = kwargs["ncpus"] if "ncpus" in kwargs else 1
+        self.version = kwargs["gamessversion"] if "gamessversion" in kwargs else "01"
         RespABC.__init__(self, **kwargs)
         self.potential = None
 
@@ -35,18 +26,6 @@ class RespGAMESS(RespABC):
                print("Error! Gamess executable path",gamess_path)
                print("Does not exist! Exiting...")
                exit()
-        gmsexe_fnames = glob.glob(os.path.join(self.qm_dir,'gamess.*.x'))
-        gmsexe_versions = []
-        if len(gmsexe_fnames) > 0:
-            gmsexe_versions = [ fname[-4:-2] for fname in gmsexe_fnames]
-        else:
-            print("Error! No GAMESS executable file with name gamess.XX.x found under")
-            print("the given path: ", self.qm_dir, " Exiting...")
-            exit()
-            
-        self.version = kwargs["gamessversion"] if "gamessversion" in kwargs else gmsexe_versions[-1]
-        print("gms_versions: ", gmsexe_versions)
-        # By default, use the latest version of gamess under the directory.
             
 
     def findLineStartWith(self, lines, string):
@@ -143,7 +122,6 @@ class RespGAMESS(RespABC):
  $ELPOT  IEPOT=1 WHERE=PDC OUTPUT=PUNCH $END
  $PDC    PTSEL=CONNOLLY CONSTR=NONE $END
  $GUESS  GUESS=HUCKEL $END
- $SYSTEM MWORDS=125 $END
 """.format(scf=scf, charge=charge, multiplicity=multiplicity)
      
         # Header for no optimization case.
@@ -156,7 +134,6 @@ class RespGAMESS(RespABC):
  $ELPOT  IEPOT=1 WHERE=PDC OUTPUT=PUNCH $END
  $PDC    PTSEL=CONNOLLY CONSTR=NONE $END
  $GUESS  GUESS=HUCKEL $END
- $SYSTEM MWORDS=125 $END
 """.format(scf=scf, charge=charge, multiplicity=multiplicity)
      
      
@@ -292,29 +269,49 @@ class RespGAMESS(RespABC):
         print("-"*40)
         print("Running GAMESS. This may take a while...".center(40," "))
         print("-"*40)
+        if not "GAMESS_VERSION" in os.environ:
+            gamess_version=2022
+        else:
+            gamess_version = int(os.environ["GAMESS_VERSION"])
 
-        gamess_inp = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.inp"))
-        gamess_log = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.log"))
-        gamess_dat = os.path.join(self.molname + "_gamess.dat")
-        
-        
-        cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
-            + gamess_inp + " " \
-            + self.version + " " \
-            + str(self.nnodes * self.ncpus) + " " \
-            + str(self.ncpus) + " " \
-            + "0" + " " \
-            + "0" + " " \
-            + str(os.path.abspath(self.resp_scr_dir)) + " " \
-            + str(os.path.abspath(self.resp_scr_dir)) + " " \
-            + str(os.path.abspath(self.qm_dir)) \
-            + " > " + gamess_log
+        # Note down the current directory
+        current_dir = os.getcwd()
+        gamess_log = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir), self.molname + "_gamess.log"))
+
+        if gamess_version<2022:
+            self.version='00'
+            gamess_inp = self.molname+"_gamess.inp"
+            gamess_dat = self.molname + "_gamess.dat"
+            os.chdir(os.path.abspath(self.resp_scr_dir))
+            cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
+                  + gamess_inp + " " \
+                  + self.version + " " \
+                  + str(self.nnodes * self.ncpus) + " " \
+                  + " > " + gamess_log
+        else:
+            gamess_inp = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.inp"))
+
+
+
+            cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
+                + gamess_inp + " " \
+                + self.version + " " \
+                + str(self.nnodes * self.ncpus) + " " \
+                + str(self.ncpus) + " " \
+                + "0" + " " \
+                + "0" + " " \
+                + str(os.path.abspath(self.resp_scr_dir)) + " " \
+                + str(os.path.abspath(self.resp_scr_dir)) + " " \
+                + str(os.path.abspath(self.qm_dir)) \
+                + " > " + gamess_log
 
         if self.srun_use:
             cmd='srun -n 1 '+cmd
 
         print(cmd)
         subprocess.call(cmd, shell=True)
+        # Bring back the current working directory to earlier directory before the GAMESS cmd was run
+        os.chdir(current_dir)
         if not os.path.isfile(gamess_log):
             print("GAMESS failed to generate log file")
             sys.stdout.flush()
@@ -330,9 +327,13 @@ class RespGAMESS(RespABC):
              raise Exception("GAMESS ESP calcualtion failed."
                              + f" Please check the log file: {gamess_log}"
                              + " for details")
-        line_dat = lineid + self.findLineContains(gamess_log_content[lineid:], gamess_dat)
-        dat_path = gamess_log_content[line_dat].split(" ")[-1].strip('\n')
-       
+        if gamess_version<2022:
+            dat_path = os.path.join(os.path.abspath(self.resp_scr_dir),"scr",gamess_dat)
+            
+        else:
+            line_dat = lineid + self.findLineContains(gamess_log_content[lineid:], gamess_dat)
+            dat_path = gamess_log_content[line_dat].split(" ")[-1].strip('\n')
+        shutil.copy(dat_path,os.path.abspath(self.resp_scr_dir))
         line_node = self.findLineStartWith(gamess_log_content, "This job is running on host")
         node_name = gamess_log_content[line_node].split(" ")[-1].strip('\n')
         if self.srun_use:
@@ -447,5 +448,3 @@ class RespGAMESS(RespABC):
         mol2_filename = self.molname + ".mol2"
         print("Copying the generated mol2 file ", mol2_filename, " to rundir", self.rundir)
         shutil.copy(os.path.join(self.resp_scr_dir, mol2_filename), self.rundir)
-
-
