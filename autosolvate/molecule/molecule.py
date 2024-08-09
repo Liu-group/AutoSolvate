@@ -92,7 +92,8 @@ class System(object):
             else:
                 if __name in self._FILEATTR_FILEPATH_DICT:
                     self._FILEATTR_FILEPATH_DICT[__name] = __value
-                    self.logger.warning("The '{:s}' file of system '{:s}' is set to a non-existent path '{:s}'".format(__name, self.name, __value))
+                    if not (hasattr(self, "amber_solvent") and self.amber_solvent):
+                        self.logger.warning("The '{:s}' file of system '{:s}' is set to a non-existent path '{:s}'".format(__name, self.name, __value))
                 else:
                     self.logger.debug("set the '{:s}' attribute of system '{:s}' as {:s}".format(__name, self.name, __value))
         else:
@@ -120,7 +121,7 @@ class System(object):
                 self.logger.debug("The '{:s}' file of system '{:s}' is not defined".format(ext, self.name))
             elif not isinstance(self.__getattribute__(ext), str):
                 flag *= False
-                self.logger.debug("The '{:s}' attribute of system '{:s}' does noe exist".format(ext, self.name))
+                self.logger.debug("The '{:s}' attribute of system '{:s}' does not exist".format(ext, self.name))
             elif not os.path.isfile(self.__getattribute__(ext)):
                 flag *= False
                 self.logger.debug("The '{:s}' file of system '{:s}' does not exist".format(ext, self.name))
@@ -215,7 +216,7 @@ class System(object):
 # @dataclass 
 class Molecule(System): 
     #constants 
-    _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz'] 
+    _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz', 'mol2', 'prep']
     # other
     def __init__(
             self, 
@@ -223,8 +224,9 @@ class Molecule(System):
             charge:         int, 
             multiplicity:   int,
             name            = "",
-            residue_name    = "MOL",
+            residue_name    = "",
             folder          = WORKING_DIR,
+            amber_solvent   = False,
             ) -> None:
         """
         The data class for holding all files of a molecule.
@@ -232,7 +234,7 @@ class Molecule(System):
         Parameters
         ----------
         xyzfile : str
-            The file path of the xyz file of the molecule, can also be a pdb file.
+            The file path of the structure file of the molecule, can be in xyz, pdb, mol2 or prep format.
         charge : int
             The charge of the molecule.
         multiplicity : int
@@ -240,35 +242,169 @@ class Molecule(System):
         name : str, optional
             The name of the molecule, by default "" will be the basename of the xyzfile.
         residue_name : str, optional
-            The residue name of the molecule, by default "MOL".
+            The residue name of the molecule, ignored if the xyzfile is provided as mol2 or prep format, by default will be assigned according to the filename.
         folder : str, optional
             The folder to store all files of the molecule, by default is the current working directory.
+        amber_solvent : bool, optional
+            A flag to indicate whether the molecule will use amber predefined parameters, by default False.
         """
 
-        self.name           = process_system_name(name, xyzfile, support_input_format=Molecule._SUPPORT_INPUT_FORMATS)
         self.folder         = os.path.abspath(folder)
         self.charge         = charge
         self.multiplicity   = multiplicity
         self.spinmult       = multiplicity
         self.residue_name   = residue_name
         self.number         = 0
-        self.read_coordinate(xyzfile)
+        self.amber_solvent = amber_solvent 
+        self.name           = name
         super(Molecule, self).__init__(name = self.name)
         self.logger.name = self.__class__.__name__
-        # super(Molecule, self).__post_init__()
 
-    def read_coordinate(self, fname:str):
-        ext = os.path.splitext(fname)[-1][1:]
-        setattr(self, ext, fname)
+        if not self.amber_solvent:
+            if not self.name:
+                self.name = process_system_name(name, xyzfile, support_input_format=Molecule._SUPPORT_INPUT_FORMATS, check_exist=False)  
+            self.process_input_xyz(xyzfile)
+            self.generate_pdb()
+
+    def process_input_xyz(self, xyzfile:str) -> None:
         for e in Molecule._SUPPORT_INPUT_FORMATS:
-            if e == ext:
-                continue
-            nname = os.path.splitext(fname)[0] + "." + e
-            subprocess.run(f"obabel -i {ext} {fname} -o {e} -O {nname} ---errorlevel 0", shell = True)
-            setattr(self, e, nname)
+            ext = os.path.splitext(xyzfile)[-1]
+            if e in ext:
+                self.__setattr__(e, xyzfile)
+                break
+        else:
+            raise ValueError(f"Unsupported input format for the molecule: {xyzfile}")
+
+    def generate_pdb(self):
+        """
+        Convert the input structure file to pdb file if the provided coordinate file is not in pdb format.
+        If the pdb file for the same molecule already exists, it will be ignored.
+        This behavior is to keep the residue name of the molecule consistent.
+        """
+        if self.name == "water" and self.amber_solvent:
+            assign_water_pdb(self)
+            self.logger.info(f"AMBER predefined water is used.")
+            self.logger.info(f"Write the reference pdb file for {self.name} to {self.pdb}")
+            self.logger.info(f"Water model used: TIP3P")
+        elif self.amber_solvent:
+            prep2pdb(self)
+            self.logger.info(f"Predefined solvent {self.name} is used.")
+            self.logger.info(f"Converted the predefined prep file {self.prep} to pdb file {self.pdb}")
+        elif self.check_exist("prep"):
+            newpath = self.reference_name + ".pdb"
+            if self.check_exist("pdb"):
+                self.logger.warning(f"The existing pdb file {self.pdb} will be ignored as amber prep file is provided.")
+                shutil.move(self.pdb, self.reference_name + "-bak.pdb")
+            self.logger.info(f"Converted the prep file {self.prep} to pdb file {self.pdb}")
+            prep2pdb(self)
+        elif self.check_exist("lib") or self.check_exist("off"):
+            newpath = self.reference_name + ".pdb"
+            if self.check_exist("pdb"):
+                self.logger.warning(f"The existing pdb file {self.pdb} will be ignored as amber lib/off file is provided.")
+                shutil.move(self.pdb, self.reference_name + "-bak.pdb")
+            self.logger.info(f"Converted the lib file {self.lib} to pdb file {self.pdb}")
+            lib2pdb(self)
+        elif self.check_exist("mol2"):
+            newpath = self.reference_name + ".pdb"
+            if self.check_exist("pdb"):
+                self.logger.warning(f"The existing pdb file {self.pdb} will be ignored as mol2 file is provided.")
+                shutil.move(self.pdb, self.reference_name + "-bak.pdb")
+            self.logger.info(f"Converted the mol2 file {self.mol2} to pdb file {self.pdb}")
+            subprocess.run(f"obabel -i mol2 {self.mol2} -o pdb -O {newpath} ---errorlevel 0", shell = True)
+            self.pdb = newpath
+        elif self.check_exist("pdb"):
+            pass
+        elif self.check_exist("xyz"):
+            newpath = self.reference_name + ".pdb"
+            subprocess.run(f"obabel -i xyz {self.xyz} -o pdb -O {newpath} ---errorlevel 0", shell = True)
+            self.pdb = newpath
+
+    def get_residue_name(self):
+        """
+        Get the residue name from the provided pdb, mol2, or prep file.
+        Note that the residue name of the molecule will be automatically assigned if the residue name is not found.
+        Note if the mol2, or prep file is provided, the 'residue_name' attribute will be updated according to these files instead of the argument 'residue_name'.
+        """
+        new_residue_name = ""
+        if self.check_exist("prep"):
+            new_residue_name = extract_residue_name_from_prep(self.prep)
+        elif self.check_exist("lib"):
+            new_residue_name = extract_residue_name_from_lib(self.lib)
+        elif self.check_exist("off"):
+            new_residue_name = extract_residue_name_from_lib(self.off)
+        elif self.check_exist("mol2"):
+            newpath = self.reference_name + "-frommol2.pdb"
+            subprocess.run(f"obabel -i mol2 {self.mol2} -o pdb -O {newpath} ---errorlevel 0", shell = True)
+            new_residue_name = get_residue_name_from_pdb(newpath)
+        elif self.residue_name:
+            new_residue_name = self.residue_name
+        else:
+            self.logger.warning(f"Cannot find the residue name of molecule {self.name}, trying to automatically assign one.")
+            new_residue_name = try_ones_best_to_get_residue_name(self, self.pdb, self.name)
+        if not new_residue_name:
+            new_residue_name = "MOL"
+        if self.residue_name != new_residue_name:
+            self.logger.warning(f"Residue name of {self.name} changed: {self.residue_name} -> {new_residue_name}")
+            self.logger.warning(f"This behavior is to keep the residue name of the molecule consistent.")
+            self.residue_name = new_residue_name
+        self.logger.info(f"Residue name of {self.name} is set to {self.residue_name}")
+
+    def update(self):
+        if not self.amber_solvent:
+            super(Molecule, self).update()
 
 
 
+# if one want to use other water forcefield, one may need to change the residue name of water to other, such as PL3 for POL3 model. 
+AMBER_WATER             = Molecule(name = "water",
+                                   xyzfile = None,
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "WAT",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+
+AMBER_METHANOL          = Molecule(name = "methanol",
+                                   xyzfile = None, 
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "MOH",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+AMBER_METHANOL.frcmod = "frcmod.meoh"
+AMBER_METHANOL.prep = "meoh.in"
+
+AMBER_CHLOROFORM        = Molecule(name = "chloroform",
+                                   xyzfile = None,
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "CL3",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+AMBER_CHLOROFORM.frcmod = "frcmod.chcl3"
+AMBER_CHLOROFORM.prep = "chcl3.in"
+
+AMBER_NMA              = Molecule(name = "nma",
+                                   xyzfile = None,
+                                   charge = 0,
+                                   multiplicity = 1,
+                                   residue_name = "NMA",
+                                   folder = WORKING_DIR,
+                                   amber_solvent = True, 
+                                  )
+AMBER_NMA.frcmod = "frcmod.nma"
+AMBER_NMA.prep = "nma.in"
+
+AMBER_SOLVENT_LIST        = [AMBER_WATER, AMBER_METHANOL, AMBER_CHLOROFORM, AMBER_NMA]  
+AMBER_SOLVENT_DICT        = { 
+                            AMBER_WATER.name:       AMBER_WATER,
+                            AMBER_METHANOL.name:    AMBER_METHANOL,
+                            AMBER_CHLOROFORM.name:  AMBER_CHLOROFORM,
+                            AMBER_NMA.name:         AMBER_NMA,
+                            }
 
 if __name__ == "__main__":
     pass

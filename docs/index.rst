@@ -26,6 +26,8 @@ Quickstart
 #. To start using AutoSolvate, you may read the :doc:`installation` page.
 #. To learn to use the command line interface (CLI), you may read the :doc:`tutorial`.
 #. To learn to use the graphical user interface (GUI), you may read the :doc:`tutorialGUI`.
+#. To build a mixed solvent system, you may read the :doc:`tutorialMulticomponent`.
+#. To generate the forcefield for metal complexes, you may read the :doc:`tutorial_for_metalcomplexes`.
 #. To import AutoSolvate as a Python API, you may refer to the :doc:`api`.
  
 
@@ -37,6 +39,8 @@ Quickstart
    tutorial
    tutorialGUI
    advancedTutorial
+   tutorialMulticomponent
+   tutorial_for_metalcomplexes
    api
    citation
 

@@ -24,7 +24,7 @@ class AntechamberDocker(GeneralDocker):
                  charge_method:         str = 'bcc', 
                  out_format:            str = 'mol2',
                  workfolder:            str = WORKING_DIR,
-                 exeoutfile:            str = None,
+                 exeoutfile:            str = "antechamber.log",
                  eq:                    int = 2,
                  pl:                    int = -1,
                  

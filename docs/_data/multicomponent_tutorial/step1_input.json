@@ -1,0 +1,21 @@
+{
+    "cubesize": 30,
+    "solute": {
+       "xyzfile": "naphthalene_neutral.xyz",
+       "name": "naphthalene",
+       "residue_name": "NAP"
+    },
+    "solvents":[
+       {
+             "name": "water",
+             "number": 397
+       },
+       {
+             "name": "acetonitrile", 
+             "number": 175,
+             "prep": "acetonitrile.prep",
+             "frcmod": "acetonitrile.frcmod"
+       }
+
+    ]
+ }  

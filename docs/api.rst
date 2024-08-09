@@ -4,19 +4,14 @@ API Documentation
 .. autosummary::
    :toctree: autosummary
 
-   autosolvate.startboxgen
-   autosolvate.solventBoxBuilder
-   autosolvate.solventBoxBuilder.build
-   autosolvate.solventBoxBuilder.getSolutePDB
-   autosolvate.solventBoxBuilder.getFrcmod
-   autosolvate.solventBoxBuilder.getHeadTail
-   autosolvate.solventBoxBuilder.writeTleapcmd1
-   autosolvate.solventBoxBuilder.createLib
-   autosolvate.solventBoxBuilder.writeTleapcmd_add_solvent
-   autosolvate.solventBoxBuilder.processPackmolPDB
-   autosolvate.solventBoxBuilder.packSLUSLV
-   autosolvate.solventBoxBuilder.writeTleapcmd_custom_solvated
-   autosolvate.solventBoxBuilder.createAmberParm
+   autosolvate.autosolvate.startboxgen
+   autosolvate.autosolvate.solventBoxBuilder
+   autosolvate.autosolvate.AmberParamsBuilder
+   autosolvate.multicomponent.startmulticomponent
+   autosolvate.multicomponent.startmulticomponent_fromfile
+   autosolvate.multicomponent.MulticomponentParamsBuilder
+   autosolvate.multicomponent.MulticomponentSolventBoxBuilder
+   autosolvate.multicomponent.MixtureBuilder
    autosolvate.generatetrajs.startmd
    autosolvate.generatetrajs.writeMMminInput
    autosolvate.generatetrajs.writeMMheatInput

@@ -52,7 +52,7 @@ class GeneralDocker(ABC):
             self.logger.info("CMD: {}".format(cmd))
             subprocess.run(cmd, shell = True, stdout=exeout, stderr=sys.stdout)
         else:
-            exeout = open(self.exeoutfile, "w")
+            exeout = open(self.exeoutfile, "a")
             self.logger.info("CMD: {}".format(cmd))
             subprocess.run(cmd, shell = True, stdout=exeout, stderr=sys.stdout)
             exeout.close()
