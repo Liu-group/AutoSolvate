@@ -6,6 +6,7 @@ from molSimplify.Classes.mol3D import mol3D
 from molSimplify.Classes.ligand import ligand_breakdown
 import io
 from contextlib import redirect_stdout, redirect_stderr
+import networkx
 
 import os
 import re
@@ -17,14 +18,17 @@ from rdkit import Chem
 atom_zoo = ['H','C','N','O','CL','BR','I','P','S','F']
 
 
-metals  = [
-    "Li", "Na", "K", "Rb", "Cs", "Fr", "Pb",
-    "Be", "Mg", "Ca", "Sr", "Ba", "Ra",  "Sn","La"
-    "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",  
-    "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",  
-    "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",  
-    "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn" 
+metals = [
+    "Li", "Be", "Na", "Mg", "Al", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", 
+    "Co", "Ni", "Cu", "Zn", "Ga", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", 
+    "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", 
+    "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", 
+    "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "Fr", "Ra", "Ac", 
+    "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", 
+    "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", 
+    "Lv", "Ts"
 ]
+
 
 cheat_metal = {1:'Cu',2:'Fe',3:'Fe',4:'Mn'}
 
@@ -102,12 +106,33 @@ def check_ligand(sdf):
     return check, ligand_charge
 
 
-def ligandbreakdown_graph(xyzfile):
+def ligandbreakdown_BFGS(xyzfile,metalID):
     prefix = os.path.splitext(xyzfile)[0]
     sdf = prefix + '.sdf'
-    cmd = 'obabel ' + xyzfile + ' -O ' + prefix
-    pass
-
+    print(sdf)
+    cmd = 'obabel ' + xyzfile + ' -O ' + sdf
+    subprocess.call(cmd,shell=True)
+    with open(sdf,'r') as f:
+        data = f.readlines()
+        linker_dic = {}
+        type_dic = {}
+        connected = []
+        atomnumbers = int(data[3].split()[0])
+        bondsnumber = int(data[3].split()[1])
+        connectioninfo = data[4+atomnumbers:bondsnumber+4+atomnumbers]
+        atomtypes = data[4:4+atomnumbers]
+        G = networkx.Graph()
+        for line in connectioninfo:
+            atomx = int(line.split()[0]) - 1
+            atomy = int(line.split()[1]) - 1
+            if metalID not in [atomx,atomy]:
+                G.add_edge(atomx, atomy)
+        molecules = list(networkx.connected_components(G))
+        molecules_all = []
+        for i in molecules:
+            molecules_all.append(list(i))
+        return molecules_all
+            
 
 class AtomInfo():
     def __init__(self,atomnum,atomtype,coordinate):
@@ -286,13 +311,16 @@ class AutoMCPB():
         liglist = ligands_breakdown_infos[0]
        # denticity = ligands_breakdown_infos[1]
         ligcons =  ligands_breakdown_infos[2]
-        self.liglist = liglist
-        self.ligcons = ligcons
+        if len(liglist) > 0:
+            self.liglist = liglist
+            self.ligcons = ligcons
         #self.denticity = denticity
-        if len(liglist) == 0:
-            print('Warning: No ligand is identified by molsimplyfy, try to use graph search to break ligand')
+        elif len(liglist) == 0:
+            print('Warning: No ligand is identified by molsimplify, try to use graph search to break ligand')
+            liglist = ligandbreakdown_BFGS(self.xyzfile,int(self.metal_ID))
+            self.ligcons = 'NA'
+            self.liglist = liglist
             
-          #  sys.exit()
             
     def modifiy_pdb(self,inputpdb,mol2,outputpdb):
         r"""
@@ -671,9 +699,10 @@ class AutoMCPB():
             ligandname = 'LG' + str(ID)
             cmd = cmd + ' ' + ligandname + '.pdb '
         cmd = cmd + '> ' + temppdb
+        print('combine ' + cmd)
         subprocess.call(cmd,shell=True)
         cmd =self.amberhome + 'pdb4amber -i ' + temppdb + ' -o ' +  self.filename + '_final.pdb'
-        with open(ligandname + '_pdb4amber.log', 'w') as f:
+        with open(temppdb + '_pdb4amber.log', 'w') as f:
             subprocess.call(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)
 
     def get_bonded_pairs(self):
@@ -686,25 +715,36 @@ class AutoMCPB():
         -------
         None
         """
-        pdbin = self.filename + '_final.pdb'
-        xyzout = self.filename + '_final.xyz'
-        write(xyzout, read(pdbin))        
-        new_complex_mol = mol3D()
-        new_complex_mol.readfromxyz(self.filename + '_final.xyz',)
-        metalID = new_complex_mol.findMetal(transition_metals_only=False)
-        self.new_complex_mol = new_complex_mol
-        pairs = ligand_breakdown(new_complex_mol,transition_metals_only=False)[2]
+        if self.ligcons != 'NA':
+            pdbin = self.filename + '_final.pdb'
+            xyzout = self.filename + '_final.xyz'
+            write(xyzout, read(pdbin))        
+            new_complex_mol = mol3D()
+            new_complex_mol.readfromxyz(self.filename + '_final.xyz',)
+            metalID = new_complex_mol.findMetal(transition_metals_only=False)
+            self.new_complex_mol = new_complex_mol
+            pairs = ligand_breakdown(new_complex_mol,transition_metals_only=False)[2]
 
-        add_bonded_pairs = 'add_bonded_pairs '
-        for denticitys in pairs:
-            for denticity in denticitys:
-                metal_denticity = str(metalID[0]+1) + '-' + str(denticity+1) + ' '
-                add_bonded_pairs = add_bonded_pairs + metal_denticity
-        
-        self.add_bonded_pairs = add_bonded_pairs
+            add_bonded_pairs = 'add_bonded_pairs '
+            for denticitys in pairs:
+                for denticity in denticitys:
+                    metal_denticity = str(metalID[0]+1) + '-' + str(denticity+1) + ' '
+                    add_bonded_pairs = add_bonded_pairs + metal_denticity
+            
+            self.add_bonded_pairs = add_bonded_pairs
+        else:
+            self.add_bonded_pairs = ''
         
     def generate_MCPB_input(self):
         metalname = self.atomsinfo[self.metal_ID].atomtype
+        if self.ligcons == 'NA':
+            pdbin = self.filename + '_final.pdb'
+            xyzout = self.filename + '_final.xyz'
+            write(xyzout, read(pdbin))        
+            new_complex_mol = mol3D()
+            new_complex_mol.readfromxyz(self.filename + '_final.xyz',)
+            metalID = new_complex_mol.findMetal(transition_metals_only=False)
+            self.new_complex_mol = new_complex_mol
         metalID = self.new_complex_mol.findMetal(transition_metals_only=False)
         ion_ids = 'ion_ids ' + str(metalID[0]+1)
         self.ion_ids = ion_ids
@@ -727,7 +767,8 @@ class AutoMCPB():
             f.write('group_name ' + self.filename + '\n')
             f.write('cutoff 2.8\n')
             f.write(ion_ids + '\n')
-            f.write(self.add_bonded_pairs + '\n')
+            if self.ligcons != 'NA':
+                f.write(self.add_bonded_pairs + '\n')
             f.write(ion_mol2files+ '\n')
             f.write(naa_mol2files+ '\n')
             f.write(frcmod_files + '\n')
@@ -1273,7 +1314,12 @@ class AutoMCPB():
         elif self.round in ['4','4b','4n1','4n2']:
             self.run_MCPB_4()
         elif self.round in ['5','check','CHECK']:
-            self.checkingFF()
+            self.coordinates_reader_xyz()
+            self.metal_list()
+            self.check_atoms()
+            self.ligand_identify()
+            if self.ligcons != 'NA':
+                self.checkingFF()
 
 def startautoMCPB(argumentList):
     options = "hn:c:u:m:f:s:x:A:"

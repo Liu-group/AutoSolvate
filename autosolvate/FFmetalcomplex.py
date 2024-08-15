@@ -460,17 +460,19 @@ class genFF():
         os.makedirs(self.folder, exist_ok=True)
         os.system('cp ' + self.xyzfile + ' ' + self.folder)
         cwd = os.getcwd()
-        print(cwd)
+      #  print(cwd)
         os.chdir(self.folder)
 
         print('******************** start to generate inputs for MCPB.py -s 1 ********************')
         step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
                        mode=self.mode,chargefile=self.chargefile,round='1',software=self.software)
         step1.build()
+        
         print('******************** Finish generating inputs for MCPB.py -s 1 ********************')
         print('******************** start to QM calculations for', self.software + '_small_opt', self.software + '_small_fc',self.software + '_large_mk','********************')
         step2 = QM_gen.QM_inputs_gen(filename=self.filename,software=self.software,caltype='opt',multi=self.spinmult,method=self.method,
                             basisset=self.basisset,metal='default',totalcharge=self.totalcharge,nprocs=self.nprocs,opt=self.opt)
+       # print(self.filename,'!!!!!!!!!!!!!!!!')
         step2.build()
         self.runQM_opt()
         step3 = QM_gen.QM_inputs_gen(filename=self.filename,software=self.software,caltype='fc',multi=self.spinmult,method=self.method,
