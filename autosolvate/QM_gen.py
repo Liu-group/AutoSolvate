@@ -10,7 +10,7 @@ from . import GAMESS_input_gen
 
 metalbasisset = ['LANL2DZ','SBKJC']
 vdw = {"H":1.1,"Li":2.2,"Be":1.9,"B":1.8,"C":1.7,"N":1.55,"O":1.52,"F":1.47,"Na":2.4,"Mg":2.2,"Al":2.1,"Si":2.1,
-        "P":1.8,"S":1.8,"Cl":1.75,"K":2.8,"Ca":2.31,"Sc":2.3,"Ti":2.15,"V":2.05,
+        "P":1.8,"S":1.8,"Cl":1.75,"K":2.8,"Ca":2.31,"Sc":2.3,"Ti":2.15,"V":2.05,"Pb":2.02,
         "Cr":2.05,"Mn":2.05,"Fe":2.05,"Co":2.0,"Ni":2.0,"Cu":2.0,"Zn":2.1,"Ga":2.1,
         "As":2.05,"Se":1.9,"Br":1.83,"Rb":2.9,"Sr":2.55,"Y":2.4,"Zr":2.3,"Nb":2.15,
         "Mo":2.1,"Tc":2.05,"Ru":2.05,"Rh":2.0,"Pd":2.05,"Ag":2.1,"Cd":2.2,"In":2.2,"I":1.98,"W":2.1,"Os":2.1,"Ir":2.1}
@@ -117,7 +117,7 @@ def get_crds_from_orcaopt(orcaout,trjxyz):
 
 
 class QM_inputs_gen():
-    def __init__(self, filename,software,caltype,multi,method,basisset,totalcharge,metal,nprocs,opt):
+    def __init__(self, filename,software,caltype,multi,method,basisset,totalcharge,metal,nprocs,opt,maxcore):
         self.software = software
         self.caltype = caltype
         self.multi = multi
@@ -129,6 +129,7 @@ class QM_inputs_gen():
         self.metal = metal
         self.nprocs = nprocs
         self.opt = opt
+        self.maxcore = maxcore
 
         if self.totalcharge in ['default','Default'] :
             with open(self.info, 'r') as f:
@@ -255,6 +256,7 @@ class QM_inputs_gen():
         ofile.write('! ' + method + ' ' + basisset + ' OPT\n')
         ofile.write('\n')
         ofile.write("%pal\nnprocs " + str(nprocs) + "\nend\n\n")
+        ofile.write('%maxcore ' + self.maxcore + '\n\n')
         ofile.write('* xyz ' + str(totalcharge) + ' ' + str(multi) + '\n')
         for line in crds:
             atomname = line[0]
@@ -269,6 +271,7 @@ class QM_inputs_gen():
         ofile = open(out,'w')
         ofile.write('! ' + method + ' ' + basisset + ' Freq\n\n')
         ofile.write("%pal\nnprocs " + str(nprocs) + "\nend\n\n")
+        ofile.write('%maxcore ' + self.maxcore + '\n\n')
         ofile.write('* xyz ' + str(totalcharge) + ' ' + str(multi) + '\n')
         for line in crds:
             atomname = line[0]
@@ -283,6 +286,7 @@ class QM_inputs_gen():
         ofile = open(out,'w')
         ofile.write('! ' + method + ' ' + basisset + ' keepdens\n\n')
         ofile.write("%pal\nnprocs " + str(nprocs) + "\nend\n\n")
+        ofile.write('%maxcore ' + self.maxcore + '\n\n')
         ofile.write('* xyz ' + str(totalcharge) + ' ' + str(multi) + '\n')
         for line in crds:
             atomname = line[0]

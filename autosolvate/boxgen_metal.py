@@ -41,8 +41,8 @@ class solventBoxBuilderMetal(object):
         self.solvent_frcmod=solvent_frcmod
         self.solvent_off = solvent_off
         self.cube_size = cube_size
-        self.slu_pos = self.cube_size/2.0
-        self.pbcbox_size = self.cube_size+2
+        self.slu_pos = str(float(self.cube_size)/2.0)
+        self.pbcbox_size = str(float(self.cube_size)+2)
         self.amberhome = amberhome
         self.closeness = closeness
         
@@ -64,7 +64,7 @@ class solventBoxBuilderMetal(object):
             self.closeness = 0.5
         self.waterbox_size = 8.0
         self.cube_size = cube_size
-        self.volumne = (self.cube_size * 10**(-10))**3
+        self.volumne = (float(self.cube_size) * 10**(-10))**3
         if self.solvent not in ['acetonitrile','water','methanol','nma','chloroform']:
             print("Warning: solvent not supported for automated counting determination, using the default number")
             slv_count = 210*8

@@ -162,7 +162,7 @@ class AutoMCPB():
 
     
     """
-    def __init__(self, filename, metal_charge, chargefile,mode,spinmult,round,software,amberhome): #liglist='', denticity='',ligcons='',atomsinfo='',ligand_charge='',metal_name=''):
+    def __init__(self, filename, metal_charge, chargefile,mode,spinmult,round,software,amberhome,cutoff): #liglist='', denticity='',ligcons='',atomsinfo='',ligand_charge='',metal_name=''):
         self.metal_charge = metal_charge
         self.filename = filename
         self.xyzfile = filename + '.xyz'
@@ -172,6 +172,7 @@ class AutoMCPB():
         self.round = round
         self.software = software
         self.amberhome = amberhome
+        self.cutoff = cutoff
 
     def coordinates_reader_xyz(self):
         r"""
@@ -765,7 +766,7 @@ class AutoMCPB():
             f.write('software_version ' + self.software +'\n')
             f.write(original_pdb + '\n')
             f.write('group_name ' + self.filename + '\n')
-            f.write('cutoff 2.8\n')
+            f.write('cut_off ' + str(self.cutoff) + '\n')
             f.write(ion_ids + '\n')
             if self.ligcons != 'NA':
                 f.write(self.add_bonded_pairs + '\n')
@@ -1322,8 +1323,8 @@ class AutoMCPB():
                 self.checkingFF()
 
 def startautoMCPB(argumentList):
-    options = "hn:c:u:m:f:s:x:A:"
-    long_options = ["help",'filename=','metal_charge=','spin=','mode=','chargefile=','round=','software=','amberhome=']
+    options = "hn:c:u:m:f:s:x:A:e"
+    long_options = ["help",'filename=','metal_charge=','spin=','mode=','chargefile=','round=','software=','amberhome=','cutoff=']
     arguments, values = getopt.getopt(argumentList,options,long_options)
     filename = None
     metal_charge = None
@@ -1333,6 +1334,7 @@ def startautoMCPB(argumentList):
     software = 'gms'
     round = '1'
     amberhome = '$AMBERHOME/bin/'
+    cutoff = '2.8'
    # print(arguments)
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-h", "--help"):
@@ -1348,7 +1350,8 @@ def startautoMCPB(argumentList):
                                         LG1 -1 # ligand name charge 
                 -s, --round             round of MCPB.py
                 -x, --software            g09,g16 or gms
-                -A, --amberhome         path of AmberTools bin 
+                -A, --amberhome         path of AmberTools bin
+                -e  --cutoff            cutoff of MCPB 
                 '''
             print(message)
             sys.exit()
@@ -1370,9 +1373,12 @@ def startautoMCPB(argumentList):
             software = str(currentValue)
         elif currentArgument in ('-A','--amberhome'):
             amberhome = str(currentValue)
+        elif currentArgument in ('-e','--cutoff'):
+            cutoff = str(currentValue)
 
 
-    builder = AutoMCPB(filename=filename,metal_charge=metal_charge, spinmult=spinmult,
+
+    builder = AutoMCPB(filename=filename,metal_charge=metal_charge, spinmult=spinmult,cutoff=cutoff,
                        mode=mode,chargefile=chargefile,round=round,software=software,amberhome=amberhome)
 
     builder.build()

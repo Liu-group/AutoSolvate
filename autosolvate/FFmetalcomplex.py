@@ -13,8 +13,8 @@ support_basisset = ['6-31G','6-31G*','LANL2DZ','6-31GS']
 
 
 class genFF():
-    def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,folder,
-                 mode,spinmult,software,basisset,method,cubesize,closeness,
+    def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,folder,maxcore,
+                 mode,spinmult,software,basisset,method,cubesize,closeness,cutoff,
                  totalcharge,nprocs,QMexe,amberhome,solvent_off,solvent_frcmod,opt):
         self.metal_charge = metal_charge
         self.filename = filename
@@ -37,6 +37,8 @@ class genFF():
         self.closeness = closeness
         self.slv_count = slv_count
         self.folder = folder
+        self.cutoff = cutoff
+        self.maxcore = maxcore
 
     
     def inputCheck(self):
@@ -465,23 +467,23 @@ class genFF():
 
         print('******************** start to generate inputs for MCPB.py -s 1 ********************')
         step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
-                       mode=self.mode,chargefile=self.chargefile,round='1',software=self.software)
+                       mode=self.mode,chargefile=self.chargefile,round='1',software=self.software,cutoff=self.cutoff)
         step1.build()
         
         print('******************** Finish generating inputs for MCPB.py -s 1 ********************')
         print('******************** start to QM calculations for', self.software + '_small_opt', self.software + '_small_fc',self.software + '_large_mk','********************')
         step2 = QM_gen.QM_inputs_gen(filename=self.filename,software=self.software,caltype='opt',multi=self.spinmult,method=self.method,
-                            basisset=self.basisset,metal='default',totalcharge=self.totalcharge,nprocs=self.nprocs,opt=self.opt)
+                            basisset=self.basisset,metal='default',totalcharge=self.totalcharge,nprocs=self.nprocs,opt=self.opt,maxcore=self.maxcore)
        # print(self.filename,'!!!!!!!!!!!!!!!!')
         step2.build()
         self.runQM_opt()
         step3 = QM_gen.QM_inputs_gen(filename=self.filename,software=self.software,caltype='fc',multi=self.spinmult,method=self.method,
-                            basisset=self.basisset,metal='default',totalcharge=self.totalcharge,nprocs=self.nprocs,opt=self.opt)
+                            basisset=self.basisset,metal='default',totalcharge=self.totalcharge,nprocs=self.nprocs,opt=self.opt,maxcore=self.maxcore)
         step3.build()
         self.runQM_freq()
 
         step4 = QM_gen.QM_inputs_gen(filename=self.filename,software=self.software,caltype='mk',multi=self.spinmult,method=self.method,
-                            basisset=self.basisset,metal='default',totalcharge=self.totalcharge,nprocs=self.nprocs,opt=self.opt)
+                            basisset=self.basisset,metal='default',totalcharge=self.totalcharge,nprocs=self.nprocs,opt=self.opt,maxcore=self.maxcore)
         step4.build()
         #print('#######################')
         self.runQM_mk()
@@ -497,7 +499,7 @@ class genFF():
 
         if checkfreq == 'converged':
             step5=autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
-                        mode=self.mode,chargefile=self.chargefile,round='2',software=self.software)
+                        mode=self.mode,chargefile=self.chargefile,round='2',software=self.software,cutoff=self.cutoff)
             step5.build()
         #    print('nnnnnnnnnnnnnn')
         elif checkfreq == 'notconverged':
@@ -514,7 +516,7 @@ class genFF():
         if checkmk == 'converged':
             if self.software != 'orca':
                 step6 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
-                mode=self.mode,chargefile=self.chargefile,round='3',software=self.software,amberhome=self.amberhome)
+                mode=self.mode,chargefile=self.chargefile,round='3',software=self.software,amberhome=self.amberhome,cutoff=self.cutoff)
                 step6.build()
             else:
                 if self.opt == 'Y':
@@ -557,14 +559,14 @@ class genFF():
             raise TypeError('Erorr: charge calculation is not finished!')
             sys.exit()
         if os.path.exists('resp2.chg'):
-            step7 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
+            step7 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,cutoff=self.cutoff,
                         mode=self.mode,chargefile=self.chargefile,round='4',software=self.software,amberhome=self.amberhome)
             step7.build()
         else:
             raise TypeError('Erorr: can not find resp2.chg')
             sys.exit()
         if os.path.exists(self.filename + '_dry.prmtop'):
-            step8 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
+            step8 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,cutoff=self.cutoff,
                         mode=self.mode,chargefile=self.chargefile,round='5',software=self.software,amberhome=self.amberhome)
             step8.build()
         else:
@@ -626,9 +628,9 @@ class genFF():
 """
 
 def startFFgen(argumentList):
-    options = 'hm:k:u:v:f:e:c:y:d:i:l:p:j:a:w:s:b:t:D:'
-    long_options = ["help", 'filename=', 'metal_charge=', 'spin=', 'mode=', 'folder=', 'rundir=',
-                'chargefile=', 'charge=', 'nprocs=', 'method=', 'cubesize=', 'closeness=', 'qmdir=',
+    options = 'hm:k:u:v:f:e:c:y:d:i:l:p:j:a:w:s:b:t:D:x:g:'
+    long_options = ["help", 'filename=', 'metal_charge=', 'spin=', 'mode=', 'folder=', 'rundir=','cutoff='
+                'chargefile=', 'charge=', 'nprocs=', 'method=', 'cubesize=', 'closeness=', 'qmdir=', 'maxcore='
                 'qmexe=', 'basisset=', 'solventoff=', 'solventfrcmod=', 'amberhome=', 'opt=', 'solvent=']
     arguments, values = getopt.getopt(argumentList, options, long_options)
     filename = None
@@ -653,7 +655,8 @@ def startFFgen(argumentList):
     cubesize = 54
     slv_count = 210*8
     folder = './'
-    
+    cutoff = 2.8
+    maxcore = "1000"
 
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-h", "--help"):
@@ -680,7 +683,9 @@ def startFFgen(argumentList):
                 -s  --solvent           name of solvent (water, methanol, chloroform, nma, acetonitrile)
                 -b  --cubesize          size of solvent cube in angstroms default: 54 
                 -t  --closeness         Solute-solvent closeness setting default value is used if the option is not specified
-                -D, --rundir            running directory where temporary files are stored, default: the current folder './'
+                -D  --rundir            running directory where temporary files are stored, default: the current folder './'
+                -x  --cutoff            the cutoff to defined bonded pair in MCPB default: 2.8
+                -g  --maxcore           the memory(M) requrested for orca calculation
 
 
                 '''
@@ -724,10 +729,15 @@ def startFFgen(argumentList):
             closeness = str(currentValue)
         elif currentArgument in ('-D','--rundir'):
             folder = str(currentValue)
+        elif currentArgument in ('-x','--cutoff'):
+            cutoff = str(currentValue)
+        elif currentArgument in ('-g','--maxcore'):
+            maxcore = str(currentValue)
+          #  print('cutoff=',cutoff)
 
 
-    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,closeness=closeness,folder = folder,
-                    mode=mode,chargefile=chargefile,software=software,solvent_frcmod=solvent_frcmod,amberhome=amberhome,cubesize=cubesize,
+    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,closeness=closeness,folder = folder,cutoff= cutoff,
+                    mode=mode,chargefile=chargefile,software=software,solvent_frcmod=solvent_frcmod,amberhome=amberhome,cubesize=cubesize,maxcore= maxcore,
                     totalcharge=totalcharge,nprocs=nprocs,QMexe=QMexe,method=method,solvent_off=solvent_off,opt=opt,solvent=solvent,slv_count=slv_count)
 
     builder.build()
