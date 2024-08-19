@@ -67,7 +67,7 @@ def test_tmc_water_solvated(tmpdir):
     mol_tmc.update()
 
     systemname = tmcname + "_water_solvated"
-    system = SolvatedSystem(systemname, mol_tmc, AMBER_WATER, cubesize=30, folder=mol_tmc.folder)
+    system = SolvatedSystem(systemname, mol_tmc, AMBER_WATER_BOX, cubesize=30, folder=mol_tmc.folder)
     system.set_closeness(automate=True)
     TleapDocker(workfolder=mol_tmc.folder).run(system)
 

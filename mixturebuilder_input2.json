@@ -1,0 +1,26 @@
+{
+    "cube_size": 30,
+    "charge_method": "bcc",
+    "solute": {
+        "xyzfile": "/home/fren5/AutoSolvate-update/AutoSolvate/autosolvate/tests/inputs/ionpair.pdb",
+        "fragment_charge": {
+            "SUF": -2,
+            "TPA": 1
+        }
+    },
+    "solvents":[
+        {
+            "name": "acetonitrile", 
+            "number": 150,
+            "frcmod": "/home/fren5/AutoSolvate-update/AutoSolvate/autosolvate/tests/inputs/acetonitrile.frcmod",
+            "prep": "/home/fren5/AutoSolvate-update/AutoSolvate/autosolvate/tests/inputs/acetonitrile.prep",
+            "residue_name": "C3N"
+        },
+        {
+            "name": "toluene",
+            "number": 150,
+            "xyzfile": "/home/fren5/AutoSolvate-update/AutoSolvate/autosolvate/tests/inputs/toluene.pdb",
+            "residue_name": "TOL"
+        }
+    ]
+}
