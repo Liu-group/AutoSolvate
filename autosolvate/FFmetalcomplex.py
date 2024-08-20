@@ -672,7 +672,7 @@ def startFFgen(argumentList):
                                         LG1 -1 #ligand name charge 
                 -e, --qmexe             name of the quantum chemistry package executable'gau,g09,g16,gms,orca, default:orca
                 -c, --charge            total charge of the whole complex, the default is caluated after charge assignment
-                -y, --nprocs            procs to run orca QM calculation, if -x orca
+                -y, --nprocs            procs to run orca QM calculation, if -e orca
                 -d  --qmdir             full path to QM exe e.g. /opt/orca/5.0.2/orca
                 -i  --method            method of QM default:B3LYP
                 -l  --solventoff        path to the custom solvent .off library file
