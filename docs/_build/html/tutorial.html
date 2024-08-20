@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GUI Tutorial" href="tutorialGUI.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-1-naphthalene-in-water">Example 1: Naphthalene in Water</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-solvate-system">Step 1: Solvate system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-md-simulation">Step 2: MD Simulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-microsolvated-cluster-extraction">Step 3: Microsolvated cluster extraction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example-2-naphthalene-radical-in-chloroform">Example 2: Naphthalene Radical in Chloroform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-3-naphthalene-in-acetonitrile-custom-solvent">Example 3: Naphthalene in Acetonitrile (custom solvent)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this heading"></a></h1>
+<p>The following tutorial illustrates the basic usage of Autosolvate in the command line interface (CLI).</p>
+<p>There will be three example systems: naphthalene in water, naphthalene radical in chloroform, naphthalene in acetonitrile</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
+<p>Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The naphthalene neutral and radical coordinates are provided below so that you can follow along on your own computer:</p>
+<a class="reference internal image-reference" href="_images/tutorial4_1.jpg"><img alt="_images/tutorial4_1.jpg" src="_images/tutorial4_1.jpg" style="width: 400px;" /></a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">18</span>
+<span class="n">naphthalene</span> <span class="n">neutral</span>
+ <span class="n">C</span>     <span class="mf">2.4397703245</span>   <span class="o">-</span><span class="mf">0.7099883961</span>    <span class="mf">0.0000206200</span>
+ <span class="n">C</span>     <span class="mf">2.4397218526</span>    <span class="mf">0.7099981201</span>    <span class="mf">0.0000271508</span>
+ <span class="n">C</span>     <span class="mf">1.2475921776</span>    <span class="mf">1.4061556571</span>    <span class="mf">0.0000203110</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">0.0000128759</span>    <span class="mf">0.7189947033</span>    <span class="mf">0.0000073141</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">1.2476290200</span>    <span class="mf">1.4061688746</span>    <span class="mf">0.0000008829</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">2.4397553974</span>    <span class="mf">0.7100487925</span>   <span class="o">-</span><span class="mf">0.0000117263</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">2.4397460082</span>   <span class="o">-</span><span class="mf">0.7099448889</span>   <span class="o">-</span><span class="mf">0.0000182422</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">1.2476288777</span>   <span class="o">-</span><span class="mf">1.4062156405</span>   <span class="o">-</span><span class="mf">0.0000121401</span>
+ <span class="n">C</span>     <span class="mf">0.0000138676</span>   <span class="o">-</span><span class="mf">0.7190995078</span>    <span class="mf">0.0000006641</span>
+ <span class="n">C</span>     <span class="mf">1.2476602178</span>   <span class="o">-</span><span class="mf">1.4062240260</span>    <span class="mf">0.0000074983</span>
+ <span class="n">H</span>     <span class="mf">1.2448250471</span>   <span class="o">-</span><span class="mf">2.4927306634</span>    <span class="mf">0.0000020169</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">1.2447711187</span>   <span class="o">-</span><span class="mf">2.4927196649</span>   <span class="o">-</span><span class="mf">0.0000168971</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">3.3840069825</span>   <span class="o">-</span><span class="mf">1.2452230520</span>   <span class="o">-</span><span class="mf">0.0000277743</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">3.3839437525</span>    <span class="mf">1.2454155894</span>   <span class="o">-</span><span class="mf">0.0000167697</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">1.2448430780</span>    <span class="mf">2.4926825384</span>    <span class="mf">0.0000062499</span>
+ <span class="n">H</span>     <span class="mf">1.2447883528</span>    <span class="mf">2.4926610011</span>    <span class="mf">0.0000242506</span>
+ <span class="n">H</span>     <span class="mf">3.3839630326</span>    <span class="mf">1.2452901872</span>    <span class="mf">0.0000373621</span>
+ <span class="n">H</span>     <span class="mf">3.3840333383</span>   <span class="o">-</span><span class="mf">1.2452476243</span>    <span class="mf">0.0000259290</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">18</span>
+<span class="n">naphthalene</span> <span class="n">radical</span>
+<span class="n">C</span>     <span class="mf">2.4584929186</span>   <span class="o">-</span><span class="mf">0.6980401434</span>    <span class="mf">0.0000208854</span>
+<span class="n">C</span>     <span class="mf">2.4584830542</span>    <span class="mf">0.6980208281</span>    <span class="mf">0.0000273558</span>
+<span class="n">C</span>     <span class="mf">1.2392834454</span>    <span class="mf">1.4064616303</span>    <span class="mf">0.0000201346</span>
+<span class="n">C</span>    <span class="o">-</span><span class="mf">0.0000127820</span>    <span class="mf">0.7187236077</span>    <span class="mf">0.0000072068</span>
+<span class="n">C</span>    <span class="o">-</span><span class="mf">1.2393189424</span>    <span class="mf">1.4064428097</span>    <span class="mf">0.0000009527</span>
+<span class="n">C</span>    <span class="o">-</span><span class="mf">2.4585398474</span>    <span class="mf">0.6980627613</span>   <span class="o">-</span><span class="mf">0.0000119130</span>
+<span class="n">C</span>    <span class="o">-</span><span class="mf">2.4584830245</span>   <span class="o">-</span><span class="mf">0.6980052848</span>   <span class="o">-</span><span class="mf">0.0000182990</span>
+<span class="n">C</span>    <span class="o">-</span><span class="mf">1.2392726206</span>   <span class="o">-</span><span class="mf">1.4064393494</span>   <span class="o">-</span><span class="mf">0.0000121035</span>
+<span class="n">C</span>     <span class="mf">0.0000166810</span>   <span class="o">-</span><span class="mf">0.7186826023</span>    <span class="mf">0.0000005670</span>
+<span class="n">C</span>     <span class="mf">1.2392855074</span>   <span class="o">-</span><span class="mf">1.4064696461</span>    <span class="mf">0.0000073561</span>
+<span class="n">H</span>     <span class="mf">1.2470800358</span>   <span class="o">-</span><span class="mf">2.4919577916</span>    <span class="mf">0.0000018617</span>
+<span class="n">H</span>    <span class="o">-</span><span class="mf">1.2470920207</span>   <span class="o">-</span><span class="mf">2.4919275393</span>   <span class="o">-</span><span class="mf">0.0000168975</span>
+<span class="n">H</span>    <span class="o">-</span><span class="mf">3.3951566422</span>   <span class="o">-</span><span class="mf">1.2429180456</span>   <span class="o">-</span><span class="mf">0.0000277271</span>
+<span class="n">H</span>    <span class="o">-</span><span class="mf">3.3952681112</span>    <span class="mf">1.2428765068</span>   <span class="o">-</span><span class="mf">0.0000168560</span>
+<span class="n">H</span>    <span class="o">-</span><span class="mf">1.2469606339</span>    <span class="mf">2.4919363439</span>    <span class="mf">0.0000063915</span>
+<span class="n">H</span>     <span class="mf">1.2471333000</span>    <span class="mf">2.4919523490</span>    <span class="mf">0.0000239494</span>
+<span class="n">H</span>     <span class="mf">3.3951743890</span>    <span class="mf">1.2429028846</span>    <span class="mf">0.0000376679</span>
+<span class="n">H</span>     <span class="mf">3.3951863936</span>   <span class="o">-</span><span class="mf">1.2429173191</span>    <span class="mf">0.0000261673</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can download both xyz files here:</p>
+<p><a class="reference download internal" download="" href="_downloads/1406830a8307fc876c90b200c00afed9/naphthalene_neutral.xyz"><code class="xref download docutils literal notranslate"><span class="pre">naphthalene_neutral.xyz</span></code></a></p>
+<p><a class="reference download internal" download="" href="_downloads/48816e2419a2b9b6e5b94926f5bb051e/naphthalene_radical.xyz"><code class="xref download docutils literal notranslate"><span class="pre">naphthalene_radical.xyz</span></code></a></p>
+</div>
+<p>Now that you have the structures, make a directory for each example. We will start with the neutral molecule.</p>
+</section>
+<section id="example-1-naphthalene-in-water">
+<h2>Example 1: Naphthalene in Water<a class="headerlink" href="#example-1-naphthalene-in-water" title="Permalink to this heading"></a></h2>
+<section id="step-1-solvate-system">
+<h3>Step 1: Solvate system<a class="headerlink" href="#step-1-solvate-system" title="Permalink to this heading"></a></h3>
+<p>The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the default settings, use the following command:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen</span> <span class="pre">-m</span> <span class="pre">naphthalene_neutral.xyz</span></code></p>
+<p>Autosolvate will use the default values of water as the solvent, solute charge of 0, solute multiplicity of 1, charge fitting method of resp, box size of 54, and output file name of water_solvated.</p>
+<p>If AutoSolvate is running successfully, the following messages will be printed to your screen:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>AutoSolvate is starting in command line mode!
+Running the module to generate solvent box and force field parameters.
+[&#39;-m&#39;, &#39;nap_neutral.xyz&#39;]
+Main/solutexyz nap_neutral.xyz
+WARNING: Amber home directory is not specified in input options
+WARNING: Checking AMBERHOME environment variable...
+[&#39;echo&#39;, &#39;$AMBERHOME&#39;]
+WARNING: AMBERHOME detected:  $AMBERHOME
+
+Converting xyz to pdb
+Generate frcmod file for the solute
+cleaning up solute.xyz.pdb
+Then write out mol2
+
+Welcome to antechamber 21.0: molecular input file processor.
+
+acdoctor mode is on: check and diagnose problems in the input file.
+The atom type is set to gaff; the options available to the -at flag are
+    gaff, gaff2, amber, bcc, and sybyl.
+-- Check Format for pdb File --
+   Status: pass
+-- Check Unusual Elements --
+   Status: pass
+-- Check Open Valences --
+   Status: pass
+-- Check Geometry --
+     for those bonded
+     for those not bonded
+   Status: pass
+-- Check Weird Bonds --
+   Status: pass
+-- Check Number of Units --
+   Status: pass
+acdoctor mode has completed checking the input file.
+
+Info: Total number of electrons: 68; net charge: 0
+
+Running: /jet/home/agale/miniconda3/envs/autosolvate/bin/sqm -O -i sqm.in -o sqm.out
+
+Finally generate frcmod with parmchk2
+Now create the solute library file
+Generate Amber parameters for the solvated system
+Now add pre-equlibrated solvent box to the solute
+The script has finished successfully
+</pre></div>
+</div>
+<p>Additionally, you should now have the following files in your directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ANTECHAMBER_AC</span><span class="o">.</span><span class="n">AC</span>           <span class="n">ATOMTYPE</span><span class="o">.</span><span class="n">INF</span>              <span class="n">nap_neutral</span><span class="o">.</span><span class="n">xyz</span>   <span class="n">sqm</span><span class="o">.</span><span class="ow">in</span>
+<span class="n">ANTECHAMBER_AC</span><span class="o">.</span><span class="n">AC0</span>          <span class="n">leap_add_solventbox</span><span class="o">.</span><span class="n">cmd</span>   <span class="n">solute</span><span class="o">.</span><span class="n">frcmod</span>     <span class="n">sqm</span><span class="o">.</span><span class="n">out</span>
+<span class="n">ANTECHAMBER_AM1BCC</span><span class="o">.</span><span class="n">AC</span>       <span class="n">leap_add_solventbox</span><span class="o">.</span><span class="n">log</span>   <span class="n">solute</span><span class="o">.</span><span class="n">lib</span>        <span class="n">sqm</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">ANTECHAMBER_AM1BCC_PRE</span><span class="o">.</span><span class="n">AC</span>   <span class="n">leap</span><span class="o">.</span><span class="n">cmd</span>                  <span class="n">solute</span><span class="o">.</span><span class="n">mol2</span>       <span class="n">water_solvated</span><span class="o">.</span><span class="n">inpcrd</span>
+<span class="n">ANTECHAMBER_BOND_TYPE</span><span class="o">.</span><span class="n">AC</span>    <span class="n">leap</span><span class="o">.</span><span class="n">log</span>                  <span class="n">solute</span><span class="o">.</span><span class="n">pdb</span>        <span class="n">water_solvated</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">ANTECHAMBER_BOND_TYPE</span><span class="o">.</span><span class="n">AC0</span>   <span class="n">leap_savelib</span><span class="o">.</span><span class="n">log</span>          <span class="n">solute</span><span class="o">.</span><span class="n">xyz</span><span class="o">.</span><span class="n">pdb</span>    <span class="n">water_solvated</span><span class="o">.</span><span class="n">prmtop</span>
+</pre></div>
+</div>
+<p>The three files that we care about for moving forward to the next step are the ones with the output prefix water_solvated (the last three listed above). The <code class="docutils literal notranslate"><span class="pre">.inpcrd</span></code> file contains the input coordinates, and the <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code> file contains the Amber parameter topology. The <code class="docutils literal notranslate"><span class="pre">.pdb</span></code> file has the coordinates for the solute in the solvent box, so you want to check that both the solvent and the solute are there. The block below shows the first few lines of the <code class="docutils literal notranslate"><span class="pre">.pdb</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CRYST1</span>   <span class="mf">66.461</span>   <span class="mf">66.696</span>   <span class="mf">66.822</span>  <span class="mf">90.00</span>  <span class="mf">90.00</span>  <span class="mf">90.00</span> <span class="n">P</span> <span class="mi">1</span>           <span class="mi">1</span>
+<span class="n">ATOM</span>      <span class="mi">1</span>  <span class="n">C</span>   <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">2.302</span>  <span class="o">-</span><span class="mf">0.634</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">2</span>  <span class="n">C1</span>  <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">2.302</span>   <span class="mf">0.786</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">3</span>  <span class="n">C2</span>  <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">1.110</span>   <span class="mf">1.482</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">4</span>  <span class="n">C3</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">0.138</span>   <span class="mf">0.795</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">5</span>  <span class="n">C4</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">1.386</span>   <span class="mf">1.482</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">6</span>  <span class="n">C5</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">2.578</span>   <span class="mf">0.786</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">7</span>  <span class="n">C6</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">2.578</span>  <span class="o">-</span><span class="mf">0.634</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">8</span>  <span class="n">C7</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">1.386</span>  <span class="o">-</span><span class="mf">1.330</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>      <span class="mi">9</span>  <span class="n">C8</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">0.138</span>  <span class="o">-</span><span class="mf">0.643</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">10</span>  <span class="n">C9</span>  <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">1.110</span>  <span class="o">-</span><span class="mf">1.330</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">11</span>  <span class="n">H</span>   <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">1.107</span>  <span class="o">-</span><span class="mf">2.417</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">12</span>  <span class="n">H1</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">1.383</span>  <span class="o">-</span><span class="mf">2.417</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">13</span>  <span class="n">H2</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">3.522</span>  <span class="o">-</span><span class="mf">1.169</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">14</span>  <span class="n">H3</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">3.522</span>   <span class="mf">1.321</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">15</span>  <span class="n">H4</span>  <span class="n">SLU</span>     <span class="mi">1</span>      <span class="o">-</span><span class="mf">1.383</span>   <span class="mf">2.569</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">16</span>  <span class="n">H5</span>  <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">1.107</span>   <span class="mf">2.569</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">17</span>  <span class="n">H6</span>  <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">3.246</span>   <span class="mf">1.321</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">18</span>  <span class="n">H7</span>  <span class="n">SLU</span>     <span class="mi">1</span>       <span class="mf">3.246</span>  <span class="o">-</span><span class="mf">1.169</span>   <span class="mf">0.016</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">TER</span>
+<span class="n">ATOM</span>     <span class="mi">19</span>  <span class="n">O</span>   <span class="n">WAT</span>     <span class="mi">2</span>      <span class="mf">30.753</span>  <span class="mf">27.440</span>  <span class="mf">26.571</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">20</span>  <span class="n">H1</span>  <span class="n">WAT</span>     <span class="mi">2</span>      <span class="mf">30.672</span>  <span class="mf">26.525</span>  <span class="mf">26.300</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">21</span>  <span class="n">H2</span>  <span class="n">WAT</span>     <span class="mi">2</span>      <span class="mf">30.339</span>  <span class="mf">27.937</span>  <span class="mf">25.865</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">TER</span>
+<span class="n">ATOM</span>     <span class="mi">22</span>  <span class="n">O</span>   <span class="n">WAT</span>     <span class="mi">3</span>      <span class="mf">28.885</span>  <span class="mf">29.218</span>  <span class="mf">28.452</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">23</span>  <span class="n">H1</span>  <span class="n">WAT</span>     <span class="mi">3</span>      <span class="mf">28.109</span>  <span class="mf">28.738</span>  <span class="mf">28.742</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+<span class="n">ATOM</span>     <span class="mi">24</span>  <span class="n">H2</span>  <span class="n">WAT</span>     <span class="mi">3</span>      <span class="mf">29.536</span>  <span class="mf">28.538</span>  <span class="mf">28.277</span>  <span class="mf">1.00</span>  <span class="mf">0.00</span>
+</pre></div>
+</div>
+<p>The fourth column has 18 ‘SLU’ entries, or solvent, and under that there are 6 ‘WAT’ entries, which we can see makes up two water molecules. When you visualize <code class="docutils literal notranslate"><span class="pre">water_solvated.pdb</span></code> you should be able to see the water box containing the solute:</p>
+<a class="reference internal image-reference" href="_images/tutorial4_2.png"><img alt="_images/tutorial4_2.png" src="_images/tutorial4_2.png" style="width: 400px;" /></a>
+<p>With these three files, we are ready to proceed to the next step!</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This example uses default settings for boxgen, but these can be changed or simply made explicit by using more flag options. For example, we can change the charge fitting method to bcc, give the output a more specific name, and explicitly define solvent, charge and multiplicity:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen</span> <span class="pre">-m</span> <span class="pre">naphthalene_neutral.xyz</span> <span class="pre">-s</span> <span class="pre">water</span> <span class="pre">-c</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-g</span> <span class="pre">&quot;bcc&quot;</span> <span class="pre">-o</span> <span class="pre">nap_neutral</span></code></p>
+<p>The semi-empirical charge fitting available through Amber performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of quantum chemistry charge fitting methods. The methods currently available are bcc fitting in Amber and RESP in Gaussian. RESP is the default setting.</p>
+</div>
+</section>
+<section id="step-2-md-simulation">
+<span id="tutstep2"></span><h3>Step 2: MD Simulation<a class="headerlink" href="#step-2-md-simulation" title="Permalink to this heading"></a></h3>
+<p>The second step is running molecular dynamics, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.</p>
+<p>To do a short example run of QM/MM use the following command:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">water_solvated</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-t</span> <span class="pre">300</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-m</span> <span class="pre">10000</span> <span class="pre">-n</span> <span class="pre">10000</span> <span class="pre">-o</span> <span class="pre">100</span> <span class="pre">-s</span> <span class="pre">100</span> <span class="pre">-l</span> <span class="pre">250</span> <span class="pre">-r</span></code></p>
+<p>The mdrun command has several more options than the previous one, but the only required options are filename, charge, and multiplicity (the first three in the command above). Note that this command will run both MM and QMMM. By default, the calculations will proceed in the order MM min &gt; MM heat &gt; MM NPT &gt; QMMM min &gt; QMMM heat &gt; QMMM NVT. Any of these can be skipped by setting the number of steps to 0 ( -m, -n, -l, -o, -s). If you computer does not use srun, please remove the <code class="docutils literal notranslate"><span class="pre">-r</span></code> in the above command. Currently only TeraChem is supported for the QMMM step.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-r</span></code> option should be used only if you run AutoSolvate on a computer cluster with the <a class="reference external" href="https://slurm.schedmd.com/">Slurm Workload Manager</a>. In that case, the command <code class="docutils literal notranslate"><span class="pre">srun</span></code> will be prepended to all commands to run MD simulation.</p>
+<p>If you use a desktop or laptop, it is highly likely that you don’t have Slurm Workload Manaer, and you don’t need the <code class="docutils literal notranslate"><span class="pre">-r</span></code> option.</p>
+<p>If you use AutoSolvate on a computer cluster with other type of Workload managers like <a class="reference external" href="https://en.wikipedia.org/wiki/TORQUE">SGE, Torque</a>, or <a class="reference external" href="https://en.wikipedia.org/wiki/Portable_Batch_System">PBS</a>, the <code class="docutils literal notranslate"><span class="pre">-r</span></code> option won’t work either.</p>
+<p>For more explanations about the <code class="docutils literal notranslate"><span class="pre">-r</span></code> option, please see <a class="reference internal" href="#roption"><span class="std std-ref">this warning message</span></a>.</p>
+</div>
+<p>If AutoSolvate is running successfully, the following messages will be printed to your screen:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>AutoSolvate is starting in command line mode!
+Running the module to automatically run MD simulations of solvated structure.
+[&#39;-f&#39;, &#39;water_solvated&#39;, &#39;-q&#39;, &#39;0&#39;, &#39;-u&#39;, &#39;1&#39;, &#39;-t&#39;, &#39;300&#39;, &#39;-p&#39;, &#39;1&#39;, &#39;-m&#39;, &#39;10000&#39;, &#39;-n&#39;, &#39;10000&#39;, &#39;-o&#39;, &#39;100&#39;, &#39;-s&#39;, &#39;100&#39;, &#39;-l&#39;, &#39;250&#39;, &#39;-r&#39;]
+Filename: water_solvated
+Charge: 0
+Spinmultiplicity: 1
+Temperature in K: 300
+Pressure in bar: 1
+Steps MM heat: 10000
+Steps MM NPT: 10000
+Steps QMMM heat: 100
+Steps QMMM NPT: 100
+Steps QMMM min: 10
+using srun
+MM Energy minimization
+srun: job 5791719 queued and waiting for resources
+srun: job 5791719 has been allocated resources
+MM Heating
+srun: job 5791725 queued and waiting for resources
+srun: job 5791725 has been allocated resources
+MM NPT equilibration
+srun: job 5792049 queued and waiting for resources
+srun: job 5792049 has been allocated resources
+QMMM Energy minimization
+srun: job 5792146 queued and waiting for resources
+srun: job 5792146 has been allocated resources
+QMMM Heating
+srun: job 5792524 queued and waiting for resources
+srun: job 5792524 has been allocated resources
+QMMM NVT Run
+srun: job 5792524 queued and waiting for resources
+srun: job 5792524 has been allocated resources
+</pre></div>
+</div>
+<p>Additionally, these files should all be in your directory now:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">inpfile</span><span class="o">.</span><span class="n">xyz</span>       <span class="n">mmnpt</span><span class="o">.</span><span class="n">info</span>          <span class="n">qmmmmin</span><span class="o">.</span><span class="n">ncrst</span>     <span class="n">water_solvated</span><span class="o">.</span><span class="n">inpcrd</span>
+<span class="n">mmheat</span><span class="o">.</span><span class="ow">in</span>         <span class="n">mmnpt</span><span class="o">.</span><span class="n">out</span>           <span class="n">qmmmmin</span><span class="o">.</span><span class="n">out</span>       <span class="n">water_solvated</span><span class="o">-</span><span class="n">heat</span><span class="o">.</span><span class="n">netcdf</span>
+<span class="n">mmheat</span><span class="o">.</span><span class="n">info</span>       <span class="n">old</span><span class="o">.</span><span class="n">tc_job</span><span class="o">.</span><span class="n">dat</span>      <span class="n">qmmmnvt</span><span class="o">.</span><span class="ow">in</span>        <span class="n">water_solvated</span><span class="o">-</span><span class="n">mmnpt</span><span class="o">.</span><span class="n">netcdf</span>
+<span class="n">mmheat</span><span class="o">.</span><span class="n">ncrst</span>      <span class="n">old</span><span class="o">.</span><span class="n">tc_job</span><span class="o">.</span><span class="n">inp</span>      <span class="n">qmmmnvt</span><span class="o">.</span><span class="n">info</span>      <span class="n">water_solvated</span><span class="o">-</span><span class="n">qmmmheat</span><span class="o">.</span><span class="n">netcdf</span>
+<span class="n">mmheat</span><span class="o">.</span><span class="n">out</span>        <span class="n">ptchrg</span><span class="o">.</span><span class="n">xyz</span>          <span class="n">qmmmnvt</span><span class="o">.</span><span class="n">out</span>       <span class="n">water_solvated</span><span class="o">-</span><span class="n">qmmmmin</span><span class="o">.</span><span class="n">netcdf</span>
+<span class="n">mmmin</span><span class="o">.</span><span class="ow">in</span>          <span class="n">qmmmheat</span><span class="o">.</span><span class="ow">in</span>         <span class="n">qmmm_region</span><span class="o">.</span><span class="n">pdb</span>   <span class="n">water_solvated</span><span class="o">-</span><span class="n">qmmmnvt</span><span class="o">.</span><span class="n">netcdf</span>
+<span class="n">mmmin</span><span class="o">.</span><span class="n">info</span>        <span class="n">qmmmheat</span><span class="o">.</span><span class="n">info</span>       <span class="n">tc_job</span><span class="o">.</span><span class="n">dat</span>
+<span class="n">mmmin</span><span class="o">.</span><span class="n">ncrst</span>       <span class="n">qmmmheat</span><span class="o">.</span><span class="n">ncrst</span>      <span class="n">tc_job</span><span class="o">.</span><span class="n">inp</span>
+<span class="n">mmmin</span><span class="o">.</span><span class="n">out</span>         <span class="n">qmmmheat</span><span class="o">.</span><span class="n">out</span>        <span class="n">tc_job</span><span class="o">.</span><span class="n">tpl</span>
+<span class="n">mm</span><span class="o">.</span><span class="n">ncrst</span>          <span class="n">qmmmmin</span><span class="o">.</span><span class="ow">in</span>          <span class="n">tc_job</span><span class="o">.</span><span class="n">tpl</span><span class="o">.</span><span class="n">bak</span>
+<span class="n">mmnpt</span><span class="o">.</span><span class="ow">in</span>          <span class="n">qmmmmin</span><span class="o">.</span><span class="n">info</span>        <span class="n">tc_job</span><span class="o">.</span><span class="n">tpl</span><span class="o">.</span><span class="n">bak</span>
+</pre></div>
+</div>
+<p>Once everything has finished, the main output is the QM/MM trajectory <code class="docutils literal notranslate"><span class="pre">water_solvated-qmmmnvt.netcdf</span></code>. When you have this file, you can move on to the next step!</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Longer MM and QM/MM steps are necessary to reach equilibration, and the default settings are more appropriate than what is used here for a production run.</p>
+</div>
+<p>The default mdrun will have the following settings:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>MD step</p></th>
+<th class="head"><p>default settings</p></th>
+<th class="head"><p>flag</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MM min</p></td>
+<td><p>300 K, 1 bar</p></td>
+<td><p>-t, -p</p></td>
+</tr>
+<tr class="row-odd"><td><p>MM heat</p></td>
+<td><p>10000 steps</p></td>
+<td><p>-m</p></td>
+</tr>
+<tr class="row-even"><td><p>MM NPT</p></td>
+<td><p>300000 steps</p></td>
+<td><p>-n</p></td>
+</tr>
+<tr class="row-odd"><td><p>QMMM</p></td>
+<td><p>0, 1, b3lyp</p></td>
+<td><p>-q, -u, -k</p></td>
+</tr>
+<tr class="row-even"><td><p>QMMM min</p></td>
+<td><p>250 steps</p></td>
+<td><p>-l</p></td>
+</tr>
+<tr class="row-odd"><td><p>QMMM heat</p></td>
+<td><p>1000 steps</p></td>
+<td><p>-o</p></td>
+</tr>
+<tr class="row-even"><td><p>QMMM NVT</p></td>
+<td><p>10000 steps</p></td>
+<td><p>-s</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Some simulation parameters cannot be currently set by the user, for example:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>simulation time step</p></li>
+<li><p>integrator type</p></li>
+<li><p>nonbonded cutoff</p></li>
+<li><p>thermostat type</p></li>
+<li><p>Langevin collision frequency</p></li>
+<li><p>barostat type</p></li>
+<li><p>pressure relaxation time</p></li>
+<li><p>frequency of trajectory writing</p></li>
+</ul>
+</div></blockquote>
+</div>
+<p>When you are ready to do a production run and want to use all of these defaults, you can use the dry run option to generate the input files without running them to make sure that everything looks right:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">water_solvated</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-d</span></code></p>
+<p>If AutoSolvate is running successfully, the following messages will be printed to your screen:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>AutoSolvate is starting in command line mode!
+Running the module to automatically run MD simulations of solvated structure.
+[&#39;-f&#39;, &#39;water_solvated&#39;, &#39;-q&#39;, &#39;0&#39;, &#39;-u&#39;, &#39;1&#39;, &#39;-d&#39;]
+Filename: water_solvated
+Charge: 0
+Spinmultiplicity: 1
+Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands
+MM Energy minimization
+MM Heating
+MM NPT equilibration
+QMMM Energy minimization
+QMMM Heating
+QMMM NVT Run
+</pre></div>
+</div>
+<p>The following files will be added to your directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mmheat</span><span class="o">.</span><span class="ow">in</span>  <span class="n">qmmmheat</span><span class="o">.</span><span class="ow">in</span>  <span class="n">runMM</span><span class="o">.</span><span class="n">sh</span>
+<span class="n">mmmin</span><span class="o">.</span><span class="ow">in</span>   <span class="n">qmmmmin</span><span class="o">.</span><span class="ow">in</span>   <span class="n">runQMMMM</span><span class="o">.</span><span class="n">sh</span>
+<span class="n">mmnpt</span><span class="o">.</span><span class="ow">in</span>   <span class="n">qmmmnvt</span><span class="o">.</span><span class="ow">in</span>   <span class="n">tc_job</span><span class="o">.</span><span class="n">tpl</span>
+</pre></div>
+</div>
+<p>Inside <code class="docutils literal notranslate"><span class="pre">runMM.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">runQMMMM.sh</span></code>, you will find the commands to run each step of MM and QMMM, respectively. These commands can be copied and pasted into the command line to be run one at a time or can all be pasted into a separate submit script to get the jobs queued on a compute node.</p>
+<div class="admonition warning" id="roption">
+<p class="admonition-title">Warning</p>
+<p>Especially in this step, it is important to know where your job is running!</p>
+<ul class="simple">
+<li><p>If you run the autosolvate commands from the command line on a system using srun, you have to include <code class="docutils literal notranslate"><span class="pre">-r</span></code>. Otherwise AutoSolvate will run <em>on the head node without entering a queue</em> and not using <code class="docutils literal notranslate"><span class="pre">srun</span></code>. The administrator will likely cancel your job if you are using HPC resources.</p></li>
+<li><p>If you run AutoSolvate on a system without srun, don’t include <code class="docutils literal notranslate"><span class="pre">-r</span></code> in the MD Simulation step, otherwise your job will fail with <code class="docutils literal notranslate"><span class="pre">srun:</span> <span class="pre">not</span> <span class="pre">found</span></code>.</p></li>
+<li><p>If you use the -r flag, AutoSolvate will run the MD simulations <em>on the compute node</em>.</p></li>
+<li><p>If you do not use the -r flag, but call the autosolvate command in your own submit script, AutoSolvate will run <em>on a compute node in the queue</em> with whatever settings you designate. If you are running QMMM, this is also where you will load Terachem for the QM part.</p></li>
+</ul>
+</div>
+</section>
+<section id="step-3-microsolvated-cluster-extraction">
+<h3>Step 3: Microsolvated cluster extraction<a class="headerlink" href="#step-3-microsolvated-cluster-extraction" title="Permalink to this heading"></a></h3>
+<p>The last step is extracting a cluster from the previous results that can be used for microsolvation. In the QMMM above, the solute is treated with QM and the explicit solvent molecules are treated with MM. In this step, a cluster will be extracted from the QMMM box so that the cluster can be treated with QM. The explicitly solvated cluster will be surrounded by implicit solvent, and we refer to the implicit + explicit combination as microsolvation.</p>
+<p>To extract the cluster from the final QMMM results, use the following command:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">water_solvated.prmtop</span> <span class="pre">-t</span> <span class="pre">water_solvated-qmmmnvt.netcdf</span></code></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you were not able to run the QMMM simulation above, you can download the QM/MM trajectory here:</p>
+<p><a class="reference download internal" download="" href="_downloads/558674e1f7c4672ca8bd71a20488d741/water_solvated-qmmmnvt.netcdf"><code class="xref download docutils literal notranslate"><span class="pre">water_solvated-qmmmnvt.netcdf</span></code></a></p>
+</div>
+<p>The .prmtop and .netcdf filenames are required, but Autosolvate will use the default values of 0 for the starting frame, 100 for the extraction interval, and a cutout size of 4 Å.</p>
+<p>If AutoSolvate is running successfully, the following messages will be printed to your screen:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>AutoSolvate is starting in command line mode!
+Running the module to extract solvated cluster (sphere) from MD trajectories of solvent box.
+[&#39;-f&#39;, &#39;water_solvated.prmtop&#39;, &#39;-t&#39;, &#39;water_solvated-qmmmnvt.netcdf&#39;]
+Filename: water_solvated.prmtop
+Trajectory name: water_solvated-qmmmnvt.netcdf
+Loading trajectory
+selecting center solute
+extracting from frames: [0]
+calculating distance to all solvent molecules
+select solvent molecules
+for first frame selected 26 solvent molecules
+saving xyz
+</pre></div>
+</div>
+<p>The output of this command will be the cartesian coordinates of the microsolvated clusters in <code class="docutils literal notranslate"><span class="pre">water_solvated-cutoutn-*.xyz</span></code>, with * showing the frame number. When you open one of cut out files, the microsolvated cluster should look like this:</p>
+<a class="reference internal image-reference" href="_images/tutorial4_3.jpg"><img alt="_images/tutorial4_3.jpg" src="_images/tutorial4_3.jpg" style="width: 400px;" /></a>
+<p>Running the above command only generates one xyz file because we only did 100 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every hundred frames. However, if we extract every 10 steps (with option <cite>-i 10</cite>), then we will get 10 coordinate files. We can increase the solvent shell size to 6 Å with <cite>-s 6</cite>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">water_solvated.prmtop</span> <span class="pre">-t</span> <span class="pre">water_solvated-qmmmnvt.netcdf</span> <span class="pre">-a</span> <span class="pre">0</span> <span class="pre">-i</span> <span class="pre">10</span> <span class="pre">-s</span> <span class="pre">6</span></code></p>
+<p>As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">extracting</span> <span class="kn">from</span> <span class="nn">frames</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">90</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If you want spherical solvent shells instead of the default aspherical solvent shells add <code class="docutils literal notranslate"><span class="pre">-p</span></code> to the end of the previous command. Then the solvent shell size is measured from the center of mass of the solute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you were not able to run the clustergen command above, you can download one of the microsolvated clusters with 6 Å solvent shell size here:</p>
+<p><a class="reference download internal" download="" href="_downloads/4f43a4e913aca7c256ee22c44edf7524/water_solvated-cutoutn-0.xyz"><code class="xref download docutils literal notranslate"><span class="pre">water_solvated-cutoutn-0.xyz</span></code></a></p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, <em>the new coordinates will overwrite the old ones</em> (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.</p>
+</div>
+</section>
+</section>
+<section id="example-2-naphthalene-radical-in-chloroform">
+<h2>Example 2: Naphthalene Radical in Chloroform<a class="headerlink" href="#example-2-naphthalene-radical-in-chloroform" title="Permalink to this heading"></a></h2>
+<p>Now that we have gone through the details of one example, the second example will be the compact version of a production run.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen</span> <span class="pre">-m</span> <span class="pre">naphthalene_radical.xyz</span> <span class="pre">-s</span> <span class="pre">chloroform</span> <span class="pre">-c</span> <span class="pre">1</span> <span class="pre">-u</span> <span class="pre">2</span> <span class="pre">-g</span> <span class="pre">&quot;resp&quot;</span> <span class="pre">-o</span> <span class="pre">nap_radical_chcl3</span></code></dt><dd><ul class="simple">
+<li><p>must designate charge and multiplicity for the radical system</p></li>
+<li><p>must use resp for open-shell system</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">nap_radical_chcl3</span> <span class="pre">-q</span> <span class="pre">1</span> <span class="pre">-u</span> <span class="pre">2</span> <span class="pre">-d</span></code></dt><dd><ul class="simple">
+<li><p>must designate charge and multiplicity for the radical system</p></li>
+<li><p>make sure to track the output filename from boxgen as the input filename</p></li>
+<li><p>copy the contents of runMM.sh and runQMMM.sh into a submit script that calls Terachem and submits the (very long) job into a queue with sufficient time</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">nap_radical_chcl3.prmtop</span> <span class="pre">-t</span> <span class="pre">nap_radical_chcl3-qmmmnvt.netcdf</span> <span class="pre">-s</span> <span class="pre">4</span></code></dt><dd><ul class="simple">
+<li><p>make sure to make note of which trajectory the clusters come from</p></li>
+</ul>
+</dd>
+</dl>
+<a class="reference internal image-reference" href="_images/tutorial4_4.jpg"><img alt="_images/tutorial4_4.jpg" src="_images/tutorial4_4.jpg" style="width: 400px;" /></a>
+</section>
+<section id="example-3-naphthalene-in-acetonitrile-custom-solvent">
+<h2>Example 3: Naphthalene in Acetonitrile (custom solvent)<a class="headerlink" href="#example-3-naphthalene-in-acetonitrile-custom-solvent" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen</span> <span class="pre">-m</span> <span class="pre">naphthalene_neutral.xyz</span> <span class="pre">-s</span> <span class="pre">acetonitrile</span> <span class="pre">-c</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-g</span> <span class="pre">&quot;bcc&quot;</span> <span class="pre">-o</span> <span class="pre">nap_neutral_MeCN</span></code></dt><dd><ul class="simple">
+<li><p>custom solvent called the same as Amber pre-equilibrated solvent boxes</p></li>
+<li><p>bcc charge method is sufficient for closed-shell system</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">nap_neutral_MeCN</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-l</span> <span class="pre">0</span> <span class="pre">-o</span> <span class="pre">0</span> <span class="pre">-s</span> <span class="pre">0</span> <span class="pre">-d</span></code></dt><dd><ul class="simple">
+<li><p>example with only MM steps in the MDrun</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">nap_neutral_MeCN.prmtop</span> <span class="pre">-t</span> <span class="pre">nap_neutral_MeCN-mmnpt.netcdf</span> <span class="pre">-a</span> <span class="pre">0</span> <span class="pre">-i</span> <span class="pre">300</span> <span class="pre">-s</span> <span class="pre">4</span></code></dt><dd><ul class="simple">
+<li><p>make sure the trajectory name is for the MM NPT step</p></li>
+<li><p>MM NPT has 30,000 steps, so you may want to increase the interval</p></li>
+</ul>
+</dd>
+</dl>
+<a class="reference internal image-reference" href="_images/tutorial4_5.jpg"><img alt="_images/tutorial4_5.jpg" src="_images/tutorial4_5.jpg" style="width: 400px;" /></a>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorialGUI.html" class="btn btn-neutral float-right" title="GUI Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

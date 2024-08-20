@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autosolvate.autosolvate.solventBoxBuilder &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="autosolvate.autosolvate.AmberParamsBuilder" href="autosolvate.autosolvate.AmberParamsBuilder.html" />
+    <link rel="prev" title="autosolvate.autosolvate.startboxgen" href="autosolvate.autosolvate.startboxgen.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.startboxgen.html">autosolvate.autosolvate.startboxgen</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">autosolvate.autosolvate.solventBoxBuilder</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#autosolvate.autosolvate.solventBoxBuilder"><code class="docutils literal notranslate"><span class="pre">solventBoxBuilder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#autosolvate.autosolvate.solventBoxBuilder.__init__"><code class="docutils literal notranslate"><span class="pre">solventBoxBuilder.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.AmberParamsBuilder.html">autosolvate.autosolvate.AmberParamsBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.startmulticomponent.html">autosolvate.multicomponent.startmulticomponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.startmulticomponent_fromfile.html">autosolvate.multicomponent.startmulticomponent_fromfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MulticomponentParamsBuilder.html">autosolvate.multicomponent.MulticomponentParamsBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html">autosolvate.multicomponent.MulticomponentSolventBoxBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MixtureBuilder.html">autosolvate.multicomponent.MixtureBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.startmd.html">autosolvate.generatetrajs.startmd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMminInput.html">autosolvate.generatetrajs.writeMMminInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMheatInput.html">autosolvate.generatetrajs.writeMMheatInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMNVEInput.html">autosolvate.generatetrajs.writeMMNVEInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMNPTInput.html">autosolvate.generatetrajs.writeMMNPTInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.runMM.html">autosolvate.generatetrajs.runMM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeQMMMTemplate.html">autosolvate.generatetrajs.writeQMMMTemplate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeQMMMMinInput.html">autosolvate.generatetrajs.writeQMMMMinInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeQMMMInput.html">autosolvate.generatetrajs.writeQMMMInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.runQMMM.html">autosolvate.generatetrajs.runQMMM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.clustergen.clustergen.html">autosolvate.clustergen.clustergen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.clustergen.startclustergen.html">autosolvate.clustergen.startclustergen</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Documentation</a></li>
+      <li class="breadcrumb-item active">autosolvate.autosolvate.solventBoxBuilder</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autosummary/autosolvate.autosolvate.solventBoxBuilder.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="autosolvate-autosolvate-solventboxbuilder">
+<h1>autosolvate.autosolvate.solventBoxBuilder<a class="headerlink" href="#autosolvate-autosolvate-solventboxbuilder" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="autosolvate.autosolvate.solventBoxBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autosolvate.autosolvate.</span></span><span class="sig-name descname"><span class="pre">solventBoxBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyzfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slu_netcharge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slu_spinmult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'resp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slu_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'water'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_frcmod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_off</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_box_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SLVBOX'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slv_generate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slv_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slv_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1680</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cube_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">54</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closeness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/sunnyxun/projects/merge/AutoSolvate/docs/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputFile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autosolvate/autosolvate.html#solventBoxBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autosolvate.autosolvate.solventBoxBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Solvated molecule in specified solvent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solvent</strong> (<em>str, Optional, default: ‘water’</em>) – Currently implemented solvents are: ‘water’, ‘methanol’, ‘chloroform’, ‘nma’, ‘acetonitrile’</p></li>
+<li><p><strong>slu_netcharge</strong> (<em>int, Optional, default 0</em>) – Charge of solute, the solvent box will be neutralized with Cl- and Na+ ions</p></li>
+<li><p><strong>cube_size</strong> (<em>float, Optional, default: 54</em>) – Size of MM solvent box</p></li>
+<li><p><strong>charge_method</strong> (<em>str, Optional, default: “resp”</em>) – Use ‘resp’ (quantum mechanical calculation needed) or ‘bcc’ to estimate partial charges</p></li>
+<li><p><strong>slu_spinmult</strong> (<em>int, Optional, default: 1</em>) – Spinmultiplicity of solute</p></li>
+<li><p><strong>outputFile</strong> (<em>str, Optional, default=’water_solvated’</em>) – Filename-prefix for outputfiles</p></li>
+<li><p><strong>srun_use</strong> (<em>bool, Optional, default=’False</em>) – Run all commands with a srun prefix</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>To run solvation, call build function.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="autosolvate.autosolvate.solventBoxBuilder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyzfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slu_netcharge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slu_spinmult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'resp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slu_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'water'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_frcmod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_off</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_box_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SLVBOX'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slv_generate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slv_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slv_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1680</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cube_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">54</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closeness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/sunnyxun/projects/merge/AutoSolvate/docs/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputFile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autosolvate/autosolvate.html#solventBoxBuilder.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autosolvate.autosolvate.solventBoxBuilder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#autosolvate.autosolvate.solventBoxBuilder.__init__" title="autosolvate.autosolvate.solventBoxBuilder.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(xyzfile[, slu_netcharge, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solvent</span></code>(solvent[, slv_xyz, ...])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="autosolvate.autosolvate.startboxgen.html" class="btn btn-neutral float-left" title="autosolvate.autosolvate.startboxgen" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autosolvate.autosolvate.AmberParamsBuilder.html" class="btn btn-neutral float-right" title="autosolvate.autosolvate.AmberParamsBuilder" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

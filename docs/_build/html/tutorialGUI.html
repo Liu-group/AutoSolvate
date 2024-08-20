@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GUI Tutorial &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Advanced Tutorial" href="advancedTutorial.html" />
+    <link rel="prev" title="Tutorial" href="tutorial.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">GUI Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-solvate-system">Step 1: Solvate system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-md-simulation">Step 2: MD Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-microsolvated-cluster-extraction">Step 3: Microsolvated cluster extraction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">GUI Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorialGUI.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gui-tutorial">
+<h1>GUI Tutorial<a class="headerlink" href="#gui-tutorial" title="Permalink to this heading"></a></h1>
+<p>The following code illustrates the usage of Autosolvate in the graphical user interface (GUI).</p>
+<p>We will focus on an example system: naphthalene in water.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
+<p>Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go!
+Make a working directory and create the <code class="docutils literal notranslate"><span class="pre">naphthalene_neutral.xyz</span></code> file, so that you can follow along on your own computer:</p>
+<p><a class="reference download internal" download="" href="_downloads/1406830a8307fc876c90b200c00afed9/naphthalene_neutral.xyz"><code class="xref download docutils literal notranslate"><span class="pre">naphthalene_neutral.xyz</span></code></a></p>
+</section>
+<section id="step-1-solvate-system">
+<span id="guistep1"></span><h2>Step 1: Solvate system<a class="headerlink" href="#step-1-solvate-system" title="Permalink to this heading"></a></h2>
+<p>The first step is putting the solute in the solvent box.
+First, make sure you have the autosolvate conda environment activated. Then in the terminal under your current working directory, type</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">autosolvate</span>
+</pre></div>
+</div>
+<p>This will start the main GUI for AutoSolvate, as shown below.</p>
+<a class="reference internal image-reference" href="_images/tutorial1_1.png"><img alt="_images/tutorial1_1.png" src="_images/tutorial1_1.png" style="width: 400px;" /></a>
+<p>The three main functions of AutoSolvate are listed in the dropdown menu. From the dropdown menu, select the first task <code class="docutils literal notranslate"><span class="pre">Solvated</span> <span class="pre">box</span> <span class="pre">and</span> <span class="pre">MD</span> <span class="pre">parameter</span> <span class="pre">generation</span></code>, as shown below.</p>
+<a class="reference internal image-reference" href="_images/tutorial1_2.png"><img alt="_images/tutorial1_2.png" src="_images/tutorial1_2.png" style="width: 400px;" /></a>
+<p>Then click <code class="docutils literal notranslate"><span class="pre">Go!</span></code>:</p>
+<a class="reference internal image-reference" href="_images/tutorial1_3.png"><img alt="_images/tutorial1_3.png" src="_images/tutorial1_3.png" style="width: 400px;" /></a>
+<p>A new window will pop up, which is the GUI for creating the solvated box and MD force field parameters:</p>
+<a class="reference internal image-reference" href="_images/tutorial1_4.png"><img alt="_images/tutorial1_4.png" src="_images/tutorial1_4.png" style="width: 800px;" /></a>
+<p>You will then go through each item listed on the GUI. Some options/entries are pre-populated with the default setting. If you want to change from the default setting, enter your input in the corresponding entry and click <code class="docutils literal notranslate"><span class="pre">Set</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When you change an entry, make sure to click the <code class="docutils literal notranslate"><span class="pre">Set</span></code> button to make the change take effect.</p>
+</div>
+<p>For some required entries, if you don’t enter anything and directly click <code class="docutils literal notranslate"><span class="pre">Set</span></code>, a dialog window will pop up and remind you to enter eligible inputs.</p>
+<p>For example, you can leave the solute xyz file path blank and directly click on <code class="docutils literal notranslate"><span class="pre">Set</span> <span class="pre">solute</span> <span class="pre">xyz</span></code>. Then a new window will popup and ask you to select a file from your computer, as shown below.</p>
+<a class="reference internal image-reference" href="_images/tutorial1_5.png"><img alt="_images/tutorial1_5.png" src="_images/tutorial1_5.png" style="width: 800px;" /></a>
+<p>Once a valid file is selected, the path of that file will be shown on the GUI below the entry to confirm your selection:</p>
+<a class="reference internal image-reference" href="_images/tutorial1_5_2.png"><img alt="_images/tutorial1_5_2.png" src="_images/tutorial1_5_2.png" style="width: 800px;" /></a>
+<p>You can also visualize the structure of the <code class="docutils literal notranslate"><span class="pre">xyz</span></code> file to confirm that it is the correct molecule you want. Simply select the visualization method and click <code class="docutils literal notranslate"><span class="pre">View</span></code>:</p>
+<a class="reference internal image-reference" href="_images/tutorial1_6_0.png"><img alt="_images/tutorial1_6_0.png" src="_images/tutorial1_6_0.png" style="width: 800px;" /></a>
+<p>By default, we use the <code class="docutils literal notranslate"><span class="pre">imolecule</span></code> package to view the molecule, and you will see a new window in your default web browser, as shown below.</p>
+<a class="reference internal image-reference" href="_images/tutorial1_6.png"><img alt="_images/tutorial1_6.png" src="_images/tutorial1_6.png" style="width: 800px;" /></a>
+<p>You can also select the other molecule visualizer <code class="docutils literal notranslate"><span class="pre">nglview</span></code>, which will automatically launch a Jupyter notebook in your browser. You can then run the notebook and view the molecule with atom indices label, as shown below:</p>
+<a class="reference internal image-reference" href="_images/tutorial1_6_2.png"><img alt="_images/tutorial1_6_2.png" src="_images/tutorial1_6_2.png" style="width: 800px;" /></a>
+<p>For this example, because it is a neutral naphthalene molecule, the default settings will work OK, so you can skip setting the rest of the options, and directly click the last button to generate structure and force field files:</p>
+<a class="reference internal image-reference" href="_images/tutorial1_7.png"><img alt="_images/tutorial1_7.png" src="_images/tutorial1_7.png" style="width: 800px;" /></a>
+<p>A dialog window will pop up and let you know that the corresponding command line input has been generated, which will be executed to generate the files. You can click “OK”.</p>
+<a class="reference internal image-reference" href="_images/tutorial1_8.png"><img alt="_images/tutorial1_8.png" src="_images/tutorial1_8.png" style="width: 800px;" /></a>
+<p>Another dialog window will pop up and ask you whether you want to continue to execute the command and generate the files. You can click <code class="docutils literal notranslate"><span class="pre">Cancel</span></code> and no file will be generated, if you want to make changes to the settings. Otherwise, click <code class="docutils literal notranslate"><span class="pre">Yes</span></code>.</p>
+<a class="reference internal image-reference" href="_images/tutorial1_9.png"><img alt="_images/tutorial1_9.png" src="_images/tutorial1_9.png" style="width: 800px;" /></a>
+<p>After a few seconds, you will see a dialog window pop up with the message to show the generation has finished.</p>
+<a class="reference internal image-reference" href="_images/tutorial1_10.png"><img alt="_images/tutorial1_10.png" src="_images/tutorial1_10.png" style="width: 400px;" /></a>
+<p>At the same time, in the original terminal where you launched AutoSolvate, and you will see information about each step of the structure and force field generation</p>
+<a class="reference internal image-reference" href="_images/tutorial1_11.png"><img alt="_images/tutorial1_11.png" src="_images/tutorial1_11.png" style="width: 800px;" /></a>
+</section>
+<section id="step-2-md-simulation">
+<span id="guistep2"></span><h2>Step 2: MD Simulation<a class="headerlink" href="#step-2-md-simulation" title="Permalink to this heading"></a></h2>
+<p>The second step is running molecular dynamics, which includes multiple steps with MM or QM/MM dynamics.
+We will show how to quickly enable automated MD input file generation and MD simulation execution from the graphical interface.</p>
+<p>Assuming you just finished <a class="reference internal" href="#guistep1"><span class="std std-ref">Step 1</span></a>, now we can safely close the window for boxgen (you can also leave it there). In case you didn’t run <a class="reference internal" href="#guistep1"><span class="std std-ref">Step 1</span></a>, you can directly download the following files to make sure you can follow this section:</p>
+<p><a class="reference download internal" download="" href="_downloads/dde266038bd32b2e8f45e80e782a5464/water_solvated.prmtop"><code class="xref download docutils literal notranslate"><span class="pre">water_solvated.prmtop</span></code></a>
+<a class="reference download internal" download="" href="_downloads/462155f4ae6bdfc7b09bb64ddcbd18c8/water_solvated.inpcrd"><code class="xref download docutils literal notranslate"><span class="pre">water_solvated.inpcrd</span></code></a></p>
+<p>Let’s focus back on the main GUI. This time select the second task: <code class="docutils literal notranslate"><span class="pre">MD</span> <span class="pre">automation</span></code></p>
+<a class="reference internal image-reference" href="_images/tutorial2_1.png"><img alt="_images/tutorial2_1.png" src="_images/tutorial2_1.png" style="width: 300px;" /></a>
+<p>Then click <code class="docutils literal notranslate"><span class="pre">Go!</span></code>: A new window will pop up, which is the <em>mdrun</em> GUI for MD automation.
+The <em>mdrun</em> GUI has many options categorized into 4 groups, about essential setting of the MD simulation, classical MM, QM/MM, and job control.
+Don’t be scared by the many options. The only required options are filename, charge, and multiplicity (needed for QMMM), as shown in the green circles below.</p>
+<a class="reference internal image-reference" href="_images/tutorial2_2.png"><img alt="_images/tutorial2_2.png" src="_images/tutorial2_2.png" style="width: 800px;" /></a>
+<p>You will then go through each item listed on the GUI. Some options/entries are pre-populated with default setting. If you want to change from the default settings, enter your input in the corresponding entry and click <code class="docutils literal notranslate"><span class="pre">Set</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When you change an entry, make sure to click the <code class="docutils literal notranslate"><span class="pre">Set</span></code> button to make the change take effect.</p>
+</div>
+<p>For some required entries, if you don’t enter anything and directly click <code class="docutils literal notranslate"><span class="pre">Set</span></code>, a dialog window will pop up and remind you to enter eligible inputs.</p>
+<p>For example, you can leave the entry about file prefix for <code class="docutils literal notranslate"><span class="pre">.inpcrd</span></code> and <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code> file blank, and directly click <code class="docutils literal notranslate"><span class="pre">Set</span> <span class="pre">file</span> <span class="pre">prefix</span></code>. Then a new window will popup and ask you to enter the valid system prefix, as shown below.</p>
+<a class="reference internal image-reference" href="_images/tutorial2_3.png"><img alt="_images/tutorial2_3.png" src="_images/tutorial2_3.png" style="width: 400px;" /></a>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The program will automatically check whether the file prefix you provided is valid, i.e., whether <code class="docutils literal notranslate"><span class="pre">prefix.inpcrd</span></code> and <code class="docutils literal notranslate"><span class="pre">prefix.prmtop</span></code> both exist. If not, the window will pop up again until you enter a valid file prefix there.</p>
+</div>
+<p>Once you enter a valid file prefix, the dialog will automatically close, and you can make other necessary changes to the options. For this neutral, singlet molecule, the default setting is OK. However, be careful that the QM/MM option is turned off by default because the required TeraChem package is not automatically installed with AutoSolvate, so the user may not necessarily have access to the QM/MM run with TeraChem. If everything looks good to you, you can directly go to click the last button to generate MD simulation inputs and execute MD.</p>
+<a class="reference internal image-reference" href="_images/tutorial2_4.png"><img alt="_images/tutorial2_4.png" src="_images/tutorial2_4.png" style="width: 800px;" /></a>
+<p>If you do want to run QM/MM, simply change the radio button to <code class="docutils literal notranslate"><span class="pre">Yes</span></code> (shown in the green circle below), and set corresponding options in the QM/MM control section.</p>
+<a class="reference internal image-reference" href="_images/tutorial2_5.png"><img alt="_images/tutorial2_5.png" src="_images/tutorial2_5.png" style="width: 800px;" /></a>
+<p>The most important option for QM/MM is the QM method, which is by default DFT with B3LYP functional. You can change it to other available options by choosing from the dropdown menu:</p>
+<a class="reference internal image-reference" href="_images/tutorial2_6.png"><img alt="_images/tutorial2_6.png" src="_images/tutorial2_6.png" style="width: 800px;" /></a>
+<p>Another very important feature is the <code class="docutils literal notranslate"><span class="pre">dryrun</span></code> mode, that means the GUI will only generate the MD input files, and save the commands to run Amber/sander MD simulations input bash script files <code class="docutils literal notranslate"><span class="pre">runMM.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">runQMMM.sh</span></code>. The GUI will not directly execute Amber or Amber/TeraChem to run the MD simulations, because usually we expect the users to use the GUI on their desktop, which is not suitable for running long-time MD simulations. By using the <code class="docutils literal notranslate"><span class="pre">dryrun</span></code> mode, the user can get the needed files and scripts, and then copy them to high-performance computers to finish the simulation.</p>
+<p>Therefore, the <code class="docutils literal notranslate"><span class="pre">dryrun</span></code> mode is by default turned on, as shown below:</p>
+<a class="reference internal image-reference" href="_images/tutorial2_6_2.png"><img alt="_images/tutorial2_6_2.png" src="_images/tutorial2_6_2.png" style="width: 800px;" /></a>
+<p>If everything looks good to you, you can click the last button to generate MD simulation inputs and execute MD.
+A dialog window will pop up and let you know that the corresponding command line input has been generated, which will be executed to generate the MD simulation files. You can click “OK”.</p>
+<a class="reference internal image-reference" href="_images/tutorial2_7.png"><img alt="_images/tutorial2_7.png" src="_images/tutorial2_7.png" style="width: 800px;" /></a>
+<p>Another dialog window will pop up and ask you whether you want to continue to execute the command and generate the files. You can click <code class="docutils literal notranslate"><span class="pre">Cancel</span></code> and no file will be generated, if you want to make changes to the settings. Otherwise, click <code class="docutils literal notranslate"><span class="pre">Yes</span></code>.</p>
+<a class="reference internal image-reference" href="_images/tutorial2_8.png"><img alt="_images/tutorial2_8.png" src="_images/tutorial2_8.png" style="width: 800px;" /></a>
+<p>If you selected <code class="docutils literal notranslate"><span class="pre">dryrun</span></code> mode, after a few seconds, you will see a dialog window pop up with the message to show the MD simulation generation has finished. If you selected to turn off <code class="docutils literal notranslate"><span class="pre">dryrun</span></code> mode, then AutoSolvate will call Amber/sander in the background and run the MD simulations, which may take minutes or hours to finish. But at the end you will also see a dialog window saying that the simulation has finished.</p>
+<a class="reference internal image-reference" href="_images/tutorial2_9.png"><img alt="_images/tutorial2_9.png" src="_images/tutorial2_9.png" style="width: 800px;" /></a>
+<p>At the same time, in the original terminal where you launched AutoSolvate, you will see information about each step of the MD simulation</p>
+<a class="reference internal image-reference" href="_images/tutorial2_10.png"><img alt="_images/tutorial2_10.png" src="_images/tutorial2_10.png" style="width: 800px;" /></a>
+</section>
+<section id="step-3-microsolvated-cluster-extraction">
+<span id="guistep3"></span><h2>Step 3: Microsolvated cluster extraction<a class="headerlink" href="#step-3-microsolvated-cluster-extraction" title="Permalink to this heading"></a></h2>
+<p>The last step is extracting a cluster from the previous results that can be used for microsolvation.</p>
+<p>Let’s focus back on the main GUI. This time select the third task: <code class="docutils literal notranslate"><span class="pre">Microsolvated</span> <span class="pre">cluster</span> <span class="pre">extraction</span></code></p>
+<a class="reference internal image-reference" href="_images/tutorial3_1.png"><img alt="_images/tutorial3_1.png" src="_images/tutorial3_1.png" style="width: 400px;" /></a>
+<p>Then click <code class="docutils literal notranslate"><span class="pre">Go!</span></code>: A new window will pop up, which is the <em>clustergen</em> GUI for MD automation.</p>
+<a class="reference internal image-reference" href="_images/tutorial3_2.png"><img alt="_images/tutorial3_2.png" src="_images/tutorial3_2.png" style="width: 800px;" /></a>
+<p>The <em>clustergen</em> GUI has very simple interface, only requesting 4 entries. First select the <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code> file and trajectory <code class="docutils literal notranslate"><span class="pre">.netcdf</span></code> file by directly enter the files names in the entries and clicking <code class="docutils literal notranslate"><span class="pre">Set</span></code>, or leave the entries blank and directly clicking the <code class="docutils literal notranslate"><span class="pre">Set</span></code> buttons. You will be prompted with a dialog to select the files from your computer.</p>
+<a class="reference internal image-reference" href="_images/tutorial3_3.png"><img alt="_images/tutorial3_3.png" src="_images/tutorial3_3.png" style="width: 800px;" /></a>
+<p>Here let’s select the <code class="docutils literal notranslate"><span class="pre">water_solvated.prmtop</span></code> file generated in Step 1, and a trajectory file <code class="docutils literal notranslate"><span class="pre">nap_neutral_water-heat.netcdf</span></code> generated in <a class="reference internal" href="#guistep2"><span class="std std-ref">Step 2</span></a>.
+In case if you did not run the MD simulation in <a class="reference internal" href="#guistep2"><span class="std std-ref">Step 2</span></a>, you can directly download the files here:</p>
+<p><a class="reference download internal" download="" href="_downloads/50ac08b3b070597e895b4e90acbe056b/nap_neutral_water-heat.netcdf"><code class="xref download docutils literal notranslate"><span class="pre">nap_neutral_water-heat.netcdf</span></code></a></p>
+<p><a class="reference download internal" download="" href="_downloads/dde266038bd32b2e8f45e80e782a5464/water_solvated.prmtop"><code class="xref download docutils literal notranslate"><span class="pre">water_solvated.prmtop</span></code></a></p>
+<p>After selection, the file names will automatically update in the entries. Set the rest of the options to control how the solvent shell is cut out.</p>
+<a class="reference internal image-reference" href="_images/tutorial3_4.png"><img alt="_images/tutorial3_4.png" src="_images/tutorial3_4.png" style="width: 800px;" /></a>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When you change an entry, make sure to click the <code class="docutils literal notranslate"><span class="pre">Set</span></code> button to make the change take effect.</p>
+</div>
+<p>Then click the last button to start cluster extraction. You will first see the following dialog window:</p>
+<a class="reference internal image-reference" href="_images/tutorial3_5.png"><img alt="_images/tutorial3_5.png" src="_images/tutorial3_5.png" style="width: 300px;" /></a>
+<p>After clicking <code class="docutils literal notranslate"><span class="pre">OK</span></code>, another dialog window will pop up and ask you whether you want to continue to execute the command and generate the files. You can click <code class="docutils literal notranslate"><span class="pre">Cancel</span></code> and no file will be generated, if you want to make changes to the settings. Otherwise, click <code class="docutils literal notranslate"><span class="pre">Yes</span></code>.</p>
+<a class="reference internal image-reference" href="_images/tutorial3_6.png"><img alt="_images/tutorial3_6.png" src="_images/tutorial3_6.png" style="width: 300px;" /></a>
+<p>After a few seconds, you will see a dialog window pop up with the message to show the microsolvated cluster extraction has finished.</p>
+<a class="reference internal image-reference" href="_images/tutorial3_7.png"><img alt="_images/tutorial3_7.png" src="_images/tutorial3_7.png" style="width: 300px;" /></a>
+<p>At the same time, in the original terminal where you launched AutoSolvate, you will see information about the extraction process.</p>
+<a class="reference internal image-reference" href="_images/tutorial3_8.png"><img alt="_images/tutorial3_8.png" src="_images/tutorial3_8.png" style="width: 800px;" /></a>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The naming of the microsolvated clusters is based on the name of the .prmtop file, not the trajectory file, so the names will not change between runs. This means that if you run the clustergen command twice, the new coordinates will overwrite the old ones (if the frame number is the same). Therefore, if you want to extract clusters from multiple MD steps (like QMMM heat and QMMM NVT), you need to either move or rename the files before you run the command again.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="advancedTutorial.html" class="btn btn-neutral float-right" title="Advanced Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

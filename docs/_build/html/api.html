@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Documentation &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="autosolvate.autosolvate.startboxgen" href="autosummary/autosolvate.autosolvate.startboxgen.html" />
+    <link rel="prev" title="Tutorial for Force Field Generation of Organometallic Compounds" href="tutorial_for_metalcomplexes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.autosolvate.startboxgen.html">autosolvate.autosolvate.startboxgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.autosolvate.solventBoxBuilder.html">autosolvate.autosolvate.solventBoxBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.autosolvate.AmberParamsBuilder.html">autosolvate.autosolvate.AmberParamsBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.multicomponent.startmulticomponent.html">autosolvate.multicomponent.startmulticomponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.multicomponent.startmulticomponent_fromfile.html">autosolvate.multicomponent.startmulticomponent_fromfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.multicomponent.MulticomponentParamsBuilder.html">autosolvate.multicomponent.MulticomponentParamsBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html">autosolvate.multicomponent.MulticomponentSolventBoxBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.multicomponent.MixtureBuilder.html">autosolvate.multicomponent.MixtureBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.startmd.html">autosolvate.generatetrajs.startmd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMminInput.html">autosolvate.generatetrajs.writeMMminInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMheatInput.html">autosolvate.generatetrajs.writeMMheatInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMNVEInput.html">autosolvate.generatetrajs.writeMMNVEInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMNPTInput.html">autosolvate.generatetrajs.writeMMNPTInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.runMM.html">autosolvate.generatetrajs.runMM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeQMMMTemplate.html">autosolvate.generatetrajs.writeQMMMTemplate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeQMMMMinInput.html">autosolvate.generatetrajs.writeQMMMMinInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeQMMMInput.html">autosolvate.generatetrajs.writeQMMMInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.generatetrajs.runQMMM.html">autosolvate.generatetrajs.runQMMM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.clustergen.clustergen.html">autosolvate.clustergen.clustergen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosummary/autosolvate.clustergen.startclustergen.html">autosolvate.clustergen.startclustergen</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-documentation">
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this heading"></a></h1>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.autosolvate.startboxgen.html#autosolvate.autosolvate.startboxgen" title="autosolvate.autosolvate.startboxgen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.autosolvate.startboxgen</span></code></a>(argumentList)</p></td>
+<td><p>Wrap function that parses command line options for autosolvate boxgen, adds solvent box to a given solute, and generates related force field parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.autosolvate.solventBoxBuilder.html#autosolvate.autosolvate.solventBoxBuilder" title="autosolvate.autosolvate.solventBoxBuilder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.autosolvate.solventBoxBuilder</span></code></a>(xyzfile)</p></td>
+<td><p>Solvated molecule in specified solvent.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.autosolvate.AmberParamsBuilder.html#autosolvate.autosolvate.AmberParamsBuilder" title="autosolvate.autosolvate.AmberParamsBuilder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.autosolvate.AmberParamsBuilder</span></code></a>(xyzfile)</p></td>
+<td><p>This class handles the Amber parameter creation for one single molecule.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.multicomponent.startmulticomponent.html#autosolvate.multicomponent.startmulticomponent" title="autosolvate.multicomponent.startmulticomponent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.multicomponent.startmulticomponent</span></code></a>(args)</p></td>
+<td><p>Wrap function that parses command line options for autosolvate multicomponent module, generate solvent box and related force field parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.multicomponent.startmulticomponent_fromfile.html#autosolvate.multicomponent.startmulticomponent_fromfile" title="autosolvate.multicomponent.startmulticomponent_fromfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.multicomponent.startmulticomponent_fromfile</span></code></a>(file)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.multicomponent.MulticomponentParamsBuilder.html#autosolvate.multicomponent.MulticomponentParamsBuilder" title="autosolvate.multicomponent.MulticomponentParamsBuilder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.multicomponent.MulticomponentParamsBuilder</span></code></a>(xyzfile)</p></td>
+<td><p>Create amber parameter files for a single xyz or pdb file with multiple separate fragments.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html#autosolvate.multicomponent.MulticomponentSolventBoxBuilder" title="autosolvate.multicomponent.MulticomponentSolventBoxBuilder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.multicomponent.MulticomponentSolventBoxBuilder</span></code></a>(xyzfile)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.multicomponent.MixtureBuilder.html#autosolvate.multicomponent.MixtureBuilder" title="autosolvate.multicomponent.MixtureBuilder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.multicomponent.MixtureBuilder</span></code></a>([...])</p></td>
+<td><p>Create amber parameter files for a single solute with mixed solvents</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.startmd.html#autosolvate.generatetrajs.startmd" title="autosolvate.generatetrajs.startmd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.startmd</span></code></a>(argumentList)</p></td>
+<td><p>Wrap function that parses command line options for autosolvate clustergen, generates inputfiles for Amber and TeraChem, runs MM and QMMM stages.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMminInput.html#autosolvate.generatetrajs.writeMMminInput" title="autosolvate.generatetrajs.writeMMminInput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.writeMMminInput</span></code></a>([...])</p></td>
+<td><p>Write Amber MM minimization input file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMheatInput.html#autosolvate.generatetrajs.writeMMheatInput" title="autosolvate.generatetrajs.writeMMheatInput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.writeMMheatInput</span></code></a>([...])</p></td>
+<td><p>Write Amber MM heating input file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMNVEInput.html#autosolvate.generatetrajs.writeMMNVEInput" title="autosolvate.generatetrajs.writeMMNVEInput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.writeMMNVEInput</span></code></a>([...])</p></td>
+<td><p>Write Amber MM NVE input file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeMMNPTInput.html#autosolvate.generatetrajs.writeMMNPTInput" title="autosolvate.generatetrajs.writeMMNPTInput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.writeMMNPTInput</span></code></a>([...])</p></td>
+<td><p>Write Amber MM NPT input file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.runMM.html#autosolvate.generatetrajs.runMM" title="autosolvate.generatetrajs.runMM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.runMM</span></code></a>([filename, ...])</p></td>
+<td><p>Equilibrate with MM</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeQMMMTemplate.html#autosolvate.generatetrajs.writeQMMMTemplate" title="autosolvate.generatetrajs.writeQMMMTemplate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.writeQMMMTemplate</span></code></a>([...])</p></td>
+<td><p>Write Terachem file-based interface to Amber</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeQMMMMinInput.html#autosolvate.generatetrajs.writeQMMMMinInput" title="autosolvate.generatetrajs.writeQMMMMinInput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.writeQMMMMinInput</span></code></a>([...])</p></td>
+<td><p>Write QMMM min input file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.writeQMMMInput.html#autosolvate.generatetrajs.writeQMMMInput" title="autosolvate.generatetrajs.writeQMMMInput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.writeQMMMInput</span></code></a>([...])</p></td>
+<td><p>Write QMMM heating or NPT trajectory input file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.generatetrajs.runQMMM.html#autosolvate.generatetrajs.runQMMM" title="autosolvate.generatetrajs.runQMMM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.generatetrajs.runQMMM</span></code></a>([...])</p></td>
+<td><p>Run QMMM minimization, heating and NVT trajectory run</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="autosummary/autosolvate.clustergen.clustergen.html#autosolvate.clustergen.clustergen" title="autosolvate.clustergen.clustergen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.clustergen.clustergen</span></code></a>([...])</p></td>
+<td><p>Extract microsolvated cluster around center solute</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="autosummary/autosolvate.clustergen.startclustergen.html#autosolvate.clustergen.startclustergen" title="autosolvate.clustergen.startclustergen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autosolvate.clustergen.startclustergen</span></code></a>(...)</p></td>
+<td><p>Wrap function that parses command line options for autosolvate clustergen, extracts microsolvated clusters from trajectory,</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial_for_metalcomplexes.html" class="btn btn-neutral float-left" title="Tutorial for Force Field Generation of Organometallic Compounds" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autosummary/autosolvate.autosolvate.startboxgen.html" class="btn btn-neutral float-right" title="autosolvate.autosolvate.startboxgen" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

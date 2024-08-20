@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autosolvate.clustergen.clustergen &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="autosolvate.clustergen.startclustergen" href="autosolvate.clustergen.startclustergen.html" />
+    <link rel="prev" title="autosolvate.generatetrajs.runQMMM" href="autosolvate.generatetrajs.runQMMM.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.startboxgen.html">autosolvate.autosolvate.startboxgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.solventBoxBuilder.html">autosolvate.autosolvate.solventBoxBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.AmberParamsBuilder.html">autosolvate.autosolvate.AmberParamsBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.startmulticomponent.html">autosolvate.multicomponent.startmulticomponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.startmulticomponent_fromfile.html">autosolvate.multicomponent.startmulticomponent_fromfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MulticomponentParamsBuilder.html">autosolvate.multicomponent.MulticomponentParamsBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html">autosolvate.multicomponent.MulticomponentSolventBoxBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MixtureBuilder.html">autosolvate.multicomponent.MixtureBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.startmd.html">autosolvate.generatetrajs.startmd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMminInput.html">autosolvate.generatetrajs.writeMMminInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMheatInput.html">autosolvate.generatetrajs.writeMMheatInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMNVEInput.html">autosolvate.generatetrajs.writeMMNVEInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMNPTInput.html">autosolvate.generatetrajs.writeMMNPTInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.runMM.html">autosolvate.generatetrajs.runMM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeQMMMTemplate.html">autosolvate.generatetrajs.writeQMMMTemplate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeQMMMMinInput.html">autosolvate.generatetrajs.writeQMMMMinInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeQMMMInput.html">autosolvate.generatetrajs.writeQMMMInput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.runQMMM.html">autosolvate.generatetrajs.runQMMM</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">autosolvate.clustergen.clustergen</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#autosolvate.clustergen.clustergen"><code class="docutils literal notranslate"><span class="pre">clustergen()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.clustergen.startclustergen.html">autosolvate.clustergen.startclustergen</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Documentation</a></li>
+      <li class="breadcrumb-item active">autosolvate.clustergen.clustergen</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autosummary/autosolvate.clustergen.clustergen.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="autosolvate-clustergen-clustergen">
+<h1>autosolvate.clustergen.clustergen<a class="headerlink" href="#autosolvate-clustergen-clustergen" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="autosolvate.clustergen.clustergen">
+<span class="sig-prename descclassname"><span class="pre">autosolvate.clustergen.</span></span><span class="sig-name descname"><span class="pre">clustergen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'water_solvated.prmtop'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'water_solvated-qmmmnvt.netcdf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startframe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">srun_use</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spherical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autosolvate/clustergen.html#clustergen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autosolvate.clustergen.clustergen" title="Permalink to this definition"></a></dt>
+<dd><p>Extract microsolvated cluster around center solute</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str, default: ‘water_solvated.prmtop’</em>) – Filename name of .prmtop files</p></li>
+<li><p><strong>trajname</strong> (<em>str, default: ‘water_solvated-qmmmnvt.netcdf’</em>) – Name of trajectory</p></li>
+<li><p><strong>startframe</strong> (<em>int, Optional, default: 0</em>) – First frame to extract the microsolvated clusters from trajectory</p></li>
+<li><p><strong>interval</strong> (<em>int, Optional, default: 100</em>) – Interval at which to extract microsolvated clusters from trajectory</p></li>
+<li><p><strong>size</strong> (<em>float, Optional, default: 4</em>) – size of solvent shell around center solute in Angstrom</p></li>
+<li><p><strong>spherical</strong> (<em>bool, Optional, default: False:</em>) – switches from default aspherical solvent shell to spherical solvent shell, solvent shell size is not measured from center of mass</p></li>
+<li><p><strong>srun_use</strong> (<em>bool, Optional, default: False</em>) – Run all commands with a srun prefix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result stored as ‘filename’-cluster.xyz file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="autosolvate.generatetrajs.runQMMM.html" class="btn btn-neutral float-left" title="autosolvate.generatetrajs.runQMMM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autosolvate.clustergen.startclustergen.html" class="btn btn-neutral float-right" title="autosolvate.clustergen.startclustergen" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

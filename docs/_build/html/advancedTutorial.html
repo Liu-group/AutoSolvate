@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Tutorial &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial for Mixed Solvent Box Generation" href="tutorialMulticomponent.html" />
+    <link rel="prev" title="GUI Tutorial" href="tutorialGUI.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-example-1-custom-solvent">Advanced Example 1: Custom Solvent</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-find-custom-solvent-force-field-files">Step 1: Find custom solvent force field files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-run-autosolvate-with-the-custom-solvent">Step 2: Run AutoSolvate with the custom solvent</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-example-2-automated-recommendation-of-solvent-solute-closeness">Advanced Example 2: Automated recommendation of solvent-solute closeness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-example-3-freeze-the-solute-molecule-structure">Advanced Example 3: Freeze the solute molecule structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Advanced Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/advancedTutorial.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="advanced-tutorial">
+<h1>Advanced Tutorial<a class="headerlink" href="#advanced-tutorial" title="Permalink to this heading"></a></h1>
+<p>Here we introduce some advanced usages of AutoSolvate. To learn the basic usages, please refer to the basic <a class="reference internal" href="tutorial.html"><span class="doc">Tutorial</span></a> page.</p>
+<section id="advanced-example-1-custom-solvent">
+<h2>Advanced Example 1: Custom Solvent<a class="headerlink" href="#advanced-example-1-custom-solvent" title="Permalink to this heading"></a></h2>
+<p>Apart from the 5 common solvents contained in AutoSolvate, the user can use custom solvents found in databases or literature to build the solvated structure, as long as the <cite>.frcmod</cite> and <cite>.off</cite> files are available.</p>
+<p>Here we show a simple use case. We are still going to work on the neutral naphthalene molecule used in the basic <a class="reference internal" href="tutorial.html"><span class="doc">Tutorial</span></a>. However, this time we will put it in a custom solvent, dimethylsulfoxide (DMSO), which is not contained in AutoSolvate.</p>
+<section id="step-1-find-custom-solvent-force-field-files">
+<h3>Step 1: Find custom solvent force field files<a class="headerlink" href="#step-1-find-custom-solvent-force-field-files" title="Permalink to this heading"></a></h3>
+<p>Theoretically, we can generate GAFF force field for any solvent, and use that for our simulation.</p>
+<p>However, it is ideal to use the solvent force fields that have been verified in publications and can reliably reproduce experimental results.</p>
+<p>For example, if you want to simulate some solute in DMSO, you may want to look for existing Amber force field of DMSO. One online resource is the AMBER parameter database hosted by the Bryce Group at the University of Manchester: <a class="reference external" href="http://amber.manchester.ac.uk/">http://amber.manchester.ac.uk/</a>.</p>
+<p>On the website, you may find some solvent boxes available, including DMSO. You will find two downloadable files for the DMSO solvent box:</p>
+<ol class="arabic simple">
+<li><p><strong>OFF</strong>: The DMSO solvent box library file</p></li>
+<li><p><strong>FRCMOD</strong>: The DMSO force field modification file</p></li>
+</ol>
+<p>You can download them and save as: <cite>dmso.frcmod</cite> and <cite>dmso.off</cite>.</p>
+<p>Next, it is very important to find out the name of the solvent box file that will be recognized by AmberTools, and pass this name to AutoSolvate.</p>
+<p>If you open the <cite>dmso.off</cite> file, you will see the first few lines as below:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>!!index array str
+<span class="linenos">2</span> &quot;d&quot;
+<span class="linenos">3</span>!entry.d.unit.atoms table  str name  str type  int typex  int resx  int flags  int seq  int elmnt  dbl chg
+<span class="linenos">4</span> &quot;S&quot; &quot;S&quot; 0 1 131073 1 16 0.307524
+<span class="linenos">5</span> &quot;CT1&quot; &quot;CT&quot; 0 1 131073 2 6 -0.262450
+</pre></div>
+</div>
+<p>Notice that for a solvent box <cite>OFF</cite> file, the 2nd line is the <strong>name</strong> of the solvent box that can be recognized by AmberTool/tleap.
+In this case, the name is <cite>d</cite>. That means, if one loads this <cite>OFF</cite> file and uses tleap to add the solvent box, the corresponding command should be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">solventbox</span> <span class="p">[</span><span class="n">solute_unit_name</span><span class="p">]</span> <span class="n">d</span> <span class="p">[</span><span class="n">box_size</span><span class="p">]</span> <span class="p">[</span><span class="n">closeness</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>So <cite>d</cite> is the solvent name that we should pass to AutoSolvate.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t like the original solvent box name given in the OFF file, feel free to change it to something else. For example, you can change the 2nd line
+of dmso.off to “DMSO”. Later you want to pass the new name, “DMSO” to AutoSolvate</p>
+</div>
+</section>
+<section id="step-2-run-autosolvate-with-the-custom-solvent">
+<h3>Step 2: Run AutoSolvate with the custom solvent<a class="headerlink" href="#step-2-run-autosolvate-with-the-custom-solvent" title="Permalink to this heading"></a></h3>
+<p>To generate the solvent box structure and MD prmtop files with custom solvent, the basic procedure is the same as the simple example about adding water (see <a class="reference internal" href="tutorial.html"><span class="doc">Tutorial</span></a>).</p>
+<p>The only difference is to provide 3 extra options:
+#. solvent name (not the real name, but the name given in <cite>OFF</cite> file) with option <cite>-s</cite>
+#. solvent <cite>OFF</cite> file path with option <cite>-l</cite>
+#. solvent <cite>FRCMOD</cite> file path with option <cite>-p</cite></p>
+<p>Assuming that you have <cite>naphthalene_neutral.xyz</cite>, <cite>dmso.off</cite>, <cite>dmso.frcmod</cite> files all in the current
+working directory, and the environment with AutoSolvate installed has been activated.
+To add the DMSO solvent box to the neutral naphthalene molecule, you can simply run the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">autosolvate</span> <span class="n">boxgen</span> <span class="o">-</span><span class="n">m</span> <span class="n">naphthalene_neutral</span><span class="o">.</span><span class="n">xyz</span> <span class="o">-</span><span class="n">s</span> <span class="n">d</span>  <span class="o">-</span><span class="n">l</span> <span class="n">dmso</span><span class="o">.</span><span class="n">off</span> <span class="o">-</span><span class="n">p</span> <span class="n">dmso</span><span class="o">.</span><span class="n">frcmod</span>
+</pre></div>
+</div>
+<p>This command should generate the solvated files: <cite>d_solvated.inpcrd</cite>, <cite>d_solvated.prmtop</cite>, and <cite>d_solvated.pdb</cite>.</p>
+</section>
+</section>
+<section id="advanced-example-2-automated-recommendation-of-solvent-solute-closeness">
+<h2>Advanced Example 2: Automated recommendation of solvent-solute closeness<a class="headerlink" href="#advanced-example-2-automated-recommendation-of-solvent-solute-closeness" title="Permalink to this heading"></a></h2>
+<p>The automated recommendation of solvent-solute closeness allows to generate initial structures where the closeness is closer to the equilibrated closeness. To demonstrate the automated recommendation of solvent-solute closeness run the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">autosolvate</span> <span class="n">boxgen</span> <span class="o">-</span><span class="n">m</span> <span class="n">naphthalene_neutral</span><span class="o">.</span><span class="n">xyz</span> <span class="o">-</span><span class="n">s</span> <span class="n">water</span> <span class="o">-</span><span class="n">c</span> <span class="mi">0</span> <span class="o">-</span><span class="n">u</span> <span class="mi">1</span> <span class="o">-</span><span class="n">t</span> <span class="n">automated</span>
+</pre></div>
+</div>
+<p>with the option <cite>-t automated</cite> the closeness will be automatically determined from the solvent identity.</p>
+</section>
+<section id="advanced-example-3-freeze-the-solute-molecule-structure">
+<h2>Advanced Example 3: Freeze the solute molecule structure<a class="headerlink" href="#advanced-example-3-freeze-the-solute-molecule-structure" title="Permalink to this heading"></a></h2>
+<p>In certain situations, the user may want to add the solvation shell without changing the solute structure. This can be easily done turning on the “freeze solute” option in the command line or in the GUI interface. This will enable the <cite>ibelly</cite> option in Amber, freezing the solute molecule throughout all MD steps.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The option “freeze solute” will overwrite all the QM/MM options. QM/MM steps will be set to 0. QM/MM simulation will not run. The reason is that if solute is requested to be frozen, then there is no reason to calculate the QM gradients to update the solute structure. Running QM/MM will be a waste of time, because the expensive QM gradients will never be used.</p>
+</div>
+<p>To freeze the solute from command line, simply add the <cite>-z</cite> or <cite>–freezesolute</cite> option to your command. For example, for the naphthalene in water example shown in <a class="reference internal" href="tutorial.html#tutstep2"><span class="std std-ref">Tutorial Step 2</span></a>, the command to run MD with frozen solute is:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">water_solvated</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-t</span> <span class="pre">300</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-m</span> <span class="pre">10000</span> <span class="pre">-n</span> <span class="pre">10000</span> <span class="pre">-o</span> <span class="pre">100</span> <span class="pre">-s</span> <span class="pre">100</span> <span class="pre">-l</span> <span class="pre">250</span> <span class="pre">-z</span></code></p>
+<p>Here, although the user specified the number of steps for QM/MM minimization (<cite>-o</cite>), QMMM heat (<cite>-s</cite>) and QMMM equilibration (<cite>-l</cite>), these options will be ignored and set to 0 because the <cite>-z</cite> option is turned on. The above command is equivalent to</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">water_solvated</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-t</span> <span class="pre">300</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-m</span> <span class="pre">10000</span> <span class="pre">-n</span> <span class="pre">10000</span> <span class="pre">-o</span> <span class="pre">0</span> <span class="pre">-s</span> <span class="pre">0</span> <span class="pre">-l</span> <span class="pre">0</span> <span class="pre">-z</span></code></p>
+<p>and</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">water_solvated</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-t</span> <span class="pre">300</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-m</span> <span class="pre">10000</span> <span class="pre">-n</span> <span class="pre">10000</span> <span class="pre">-z</span></code></p>
+<p>To freeze the solute from the GUI interface, select “Yes” for the radial button of the “Freeze solute structure?” option in the <em>mdrun</em> GUI, as shown in the picture below.</p>
+<a class="reference internal image-reference" href="_images/advancedTutorial3_1.png"><img alt="_images/advancedTutorial3_1.png" src="_images/advancedTutorial3_1.png" style="width: 800px;" /></a>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorialGUI.html" class="btn btn-neutral float-left" title="GUI Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorialMulticomponent.html" class="btn btn-neutral float-right" title="Tutorial for Mixed Solvent Box Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial for Mixed Solvent Box Generation &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial for Force Field Generation of Organometallic Compounds" href="tutorial_for_metalcomplexes.html" />
+    <link rel="prev" title="Advanced Tutorial" href="advancedTutorial.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial for Mixed Solvent Box Generation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-generate-the-mixed-solvent-box-with-json-input">Step-1 : Generate the mixed solvent box with JSON input.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-3-run-md-simulation-and-extract-microsolvated-clusters">Step-2 &amp; 3 : Run MD simulation and extract microsolvated clusters.</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial for Mixed Solvent Box Generation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorialMulticomponent.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial-for-mixed-solvent-box-generation">
+<h1>Tutorial for Mixed Solvent Box Generation<a class="headerlink" href="#tutorial-for-mixed-solvent-box-generation" title="Permalink to this heading"></a></h1>
+<p>The following tutorial illustrates the basic usage of <strong>Autosolvate Multicomponent</strong> module in the command line interface (CLI).</p>
+<p>There will be one example systems: naphthalene in mixed water and acetonitrile solvent. The tutorial will be broken down into three steps:</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
+<p>Once you have AutoSolvate and all dependencies installed you will need the pdb files for solute and solvents. However, the TIP3P water model are pre-defined in AMBER so you don’t need to prepare its pdb or xyz file. Make sure run the example in its own directory to have clear separation of files.</p>
+<p>naphthalene_neutral.xyz:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">18</span>
+<span class="n">naphthalene</span> <span class="n">neutral</span>
+ <span class="n">C</span>     <span class="mf">2.4397703245</span>   <span class="o">-</span><span class="mf">0.7099883961</span>    <span class="mf">0.0000206200</span>
+ <span class="n">C</span>     <span class="mf">2.4397218526</span>    <span class="mf">0.7099981201</span>    <span class="mf">0.0000271508</span>
+ <span class="n">C</span>     <span class="mf">1.2475921776</span>    <span class="mf">1.4061556571</span>    <span class="mf">0.0000203110</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">0.0000128759</span>    <span class="mf">0.7189947033</span>    <span class="mf">0.0000073141</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">1.2476290200</span>    <span class="mf">1.4061688746</span>    <span class="mf">0.0000008829</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">2.4397553974</span>    <span class="mf">0.7100487925</span>   <span class="o">-</span><span class="mf">0.0000117263</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">2.4397460082</span>   <span class="o">-</span><span class="mf">0.7099448889</span>   <span class="o">-</span><span class="mf">0.0000182422</span>
+ <span class="n">C</span>    <span class="o">-</span><span class="mf">1.2476288777</span>   <span class="o">-</span><span class="mf">1.4062156405</span>   <span class="o">-</span><span class="mf">0.0000121401</span>
+ <span class="n">C</span>     <span class="mf">0.0000138676</span>   <span class="o">-</span><span class="mf">0.7190995078</span>    <span class="mf">0.0000006641</span>
+ <span class="n">C</span>     <span class="mf">1.2476602178</span>   <span class="o">-</span><span class="mf">1.4062240260</span>    <span class="mf">0.0000074983</span>
+ <span class="n">H</span>     <span class="mf">1.2448250471</span>   <span class="o">-</span><span class="mf">2.4927306634</span>    <span class="mf">0.0000020169</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">1.2447711187</span>   <span class="o">-</span><span class="mf">2.4927196649</span>   <span class="o">-</span><span class="mf">0.0000168971</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">3.3840069825</span>   <span class="o">-</span><span class="mf">1.2452230520</span>   <span class="o">-</span><span class="mf">0.0000277743</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">3.3839437525</span>    <span class="mf">1.2454155894</span>   <span class="o">-</span><span class="mf">0.0000167697</span>
+ <span class="n">H</span>    <span class="o">-</span><span class="mf">1.2448430780</span>    <span class="mf">2.4926825384</span>    <span class="mf">0.0000062499</span>
+ <span class="n">H</span>     <span class="mf">1.2447883528</span>    <span class="mf">2.4926610011</span>    <span class="mf">0.0000242506</span>
+ <span class="n">H</span>     <span class="mf">3.3839630326</span>    <span class="mf">1.2452901872</span>    <span class="mf">0.0000373621</span>
+ <span class="n">H</span>     <span class="mf">3.3840333383</span>   <span class="o">-</span><span class="mf">1.2452476243</span>    <span class="mf">0.0000259290</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/tutorial4_1.jpg"><img alt="_images/tutorial4_1.jpg" src="_images/tutorial4_1.jpg" style="width: 400px;" /></a>
+<p>acetonitrile.prep:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">0</span> <span class="mi">0</span> <span class="mi">2</span>
+
+<span class="n">modelitzacio</span> <span class="n">d</span><span class="s1">&#39;acetonitril com solvent CH3CN</span>
+<span class="n">ace</span><span class="o">.</span><span class="n">res</span>
+<span class="n">ACE</span> <span class="n">INT</span> <span class="mi">0</span>
+<span class="n">CHANGE</span>  <span class="n">NOMIT</span> <span class="n">DU</span> <span class="n">BEG</span>
+<span class="mf">0.000000</span>
+<span class="mi">1</span> <span class="n">DUMM</span> <span class="n">DU</span> <span class="n">M</span>       <span class="o">-</span><span class="mf">5.298</span>       <span class="mf">3.870</span>      <span class="o">-</span><span class="mf">0.861</span>     <span class="mf">0.000000</span>
+<span class="mi">2</span> <span class="n">DUMM</span> <span class="n">DU</span> <span class="n">M</span>       <span class="o">-</span><span class="mf">5.925</span>       <span class="mf">3.000</span>      <span class="o">-</span><span class="mf">0.328</span>     <span class="mf">0.000000</span>
+<span class="mi">3</span> <span class="n">DUMM</span> <span class="n">DU</span> <span class="n">M</span>       <span class="o">-</span><span class="mf">5.298</span>      <span class="o">-</span><span class="mf">3.870</span>      <span class="o">-</span><span class="mf">0.861</span>     <span class="mf">0.000000</span>
+<span class="mi">4</span> <span class="n">N1</span>   <span class="n">YN</span> <span class="n">M</span>        <span class="mf">0.314</span>       <span class="mf">1.215</span>      <span class="o">-</span><span class="mf">0.429</span>    <span class="o">-</span><span class="mf">0.489715</span>
+<span class="mi">5</span> <span class="n">C2</span>   <span class="n">YC</span> <span class="n">M</span>        <span class="mf">1.223</span>       <span class="mf">0.576</span>      <span class="o">-</span><span class="mf">0.198</span>     <span class="mf">0.382240</span>
+<span class="mi">6</span> <span class="n">C3</span>   <span class="n">CT</span> <span class="n">M</span>        <span class="mf">2.399</span>      <span class="o">-</span><span class="mf">0.250</span>       <span class="mf">0.102</span>    <span class="o">-</span><span class="mf">0.236648</span>
+<span class="mi">7</span> <span class="n">H4</span>   <span class="n">HC</span> <span class="n">E</span>        <span class="mf">2.688</span>      <span class="o">-</span><span class="mf">0.801</span>      <span class="o">-</span><span class="mf">0.783</span>     <span class="mf">0.114711</span>
+<span class="mi">8</span> <span class="n">H5</span>   <span class="n">HC</span> <span class="n">E</span>        <span class="mf">3.217</span>       <span class="mf">0.385</span>       <span class="mf">0.414</span>     <span class="mf">0.114711</span>
+<span class="mi">9</span> <span class="n">H6</span>   <span class="n">HC</span> <span class="n">E</span>        <span class="mf">2.159</span>      <span class="o">-</span><span class="mf">0.945</span>       <span class="mf">0.896</span>     <span class="mf">0.114711</span>
+
+<span class="n">DONE</span>
+<span class="n">STOP</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/tutorial5_1.png"><img alt="_images/tutorial5_1.png" src="_images/tutorial5_1.png" style="width: 300px;" /></a>
+<p>Now that you have the structures, make a directory for the tutorial and move the files into it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">frcmod</span>  <span class="n">acetonitrile</span><span class="o">.</span><span class="n">prep</span>  <span class="n">naphthalene_neutral</span><span class="o">.</span><span class="n">xyz</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can download all files you need to proceed with the tutorial here.</p>
+<p><a class="reference download internal" download="" href="_downloads/add81ce0924451b317d27c2f020553cc/naphthalene_neutral.xyz"><code class="xref download docutils literal notranslate"><span class="pre">naphthalene_neutral.xyz</span></code></a>
+<a class="reference download internal" download="" href="_downloads/5323d9ca374a8ae61687c947a5346138/acetonitrile.prep"><code class="xref download docutils literal notranslate"><span class="pre">acetonitrile.prep</span></code></a>
+<a class="reference download internal" download="" href="_downloads/f9e6f6105b18249cafeb78b4afc45dcb/acetonitrile.frcmod"><code class="xref download docutils literal notranslate"><span class="pre">acetonitrile.frcmod</span></code></a></p>
+</div>
+</section>
+<section id="step-1-generate-the-mixed-solvent-box-with-json-input">
+<h2>Step-1 : Generate the mixed solvent box with JSON input.<a class="headerlink" href="#step-1-generate-the-mixed-solvent-box-with-json-input" title="Permalink to this heading"></a></h2>
+<p>The first step is putting the solute in the solvent box, which uses the <code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen_multicomponent</span></code> command. The usage for multiple solvent requires a <strong>json</strong> file as the input, but the command line options will still be available for single solute with single solvent.</p>
+<p>step1_input.json:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s2">&quot;cubesize&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+   <span class="s2">&quot;solute&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;naphthalene_neutral.xyz&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;naphthalene&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;NAP&quot;</span>
+   <span class="p">},</span>
+   <span class="s2">&quot;solvents&quot;</span><span class="p">:[</span>
+      <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;water&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">397</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;acetonitrile&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">175</span><span class="p">,</span>
+            <span class="s2">&quot;prep&quot;</span><span class="p">:</span> <span class="s2">&quot;acetonitrile.prep&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;frcmod&quot;</span><span class="p">:</span> <span class="s2">&quot;acetonitrile.frcmod&quot;</span>
+      <span class="p">}</span>
+
+   <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The first keyword <code class="docutils literal notranslate"><span class="pre">cubesize</span></code> specifies the size of the solvent box in Angstrom.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">solute</span></code> section specifies the <strong>xyz</strong> or <strong>pdb</strong> file of the solute. The <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">residue_name</span></code> are the name of the solute and its residue name, which will be autogenerated from the structure file name if not provided.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">solvents</span></code> section is a list of json objects. Here we specify 175 acetonitrile and 397 water molecule to create a mixed solution with equal mass fractions.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The calculations here assume that the density of the mixture is equal to the average of the two components, which is generally NOT true. When the actual density of the mixture is unknown, the mixed solvent box need to be fully equilibrated under the NPT ensemble before the production run.</p>
+</div>
+<p>When defining the first solvent “water”, only the name and the number of molecules are required as the TIP3P water model is already defined in AMBER.</p>
+<p>When defining the second solvent “acetonitrile”, we provided the <code class="docutils literal notranslate"><span class="pre">acetonitrile.frcmod</span></code> to specify the missing force field parameters. In addition, a AMBER preparation file <code class="docutils literal notranslate"><span class="pre">acetonitrile.prep</span></code> is provided to specify the structure, topology, atom name, dummy atoms, and atomic charge of acetonitrile.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The required arguments of defining a solvent has the following three cases.</p>
+<ol class="arabic simple">
+<li><p>For pre-defined AMBER solvents “water”, “methanol”, “chloroform”, and “nma” (N-Methylaniline). Only the correct name and the number of molecules are required.</p></li>
+<li><p>For custom solvents with pre-defined force field parameters, a <strong>frcmod</strong> file is required. In addition, a structure file with correct atom types and atomic charges must be provided. This includes <strong>prep</strong>, <strong>off</strong>, <strong>lib</strong> and <strong>mol2</strong> files.</p></li>
+<li><p>For solvents without force field parameters, one can provide the <strong>xyz</strong> or <strong>pdb</strong> file of the solvent. Then the forcefield parameters will be autogenerated with the General Amber Force Field (GAFF).</p></li>
+</ol>
+<p>Multicomponent solvent box generation does not support pre-built solvent boxes.</p>
+</div>
+<p>Execute the following command to generate the solvent box of naphthalene in mixed water and acetonitrile solution::
+<code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen_multicomponent</span> <span class="pre">-f</span> <span class="pre">step1_input.json</span></code></p>
+<p>Autosolvate will calculate the forcefield parameters for the solute (naphthalene_neutral), and adapt the provided acetonitrile parameters together with the TIP3P water model to build the solvent box. The output <code class="docutils literal notranslate"><span class="pre">.pdb</span></code>, <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code>, and <code class="docutils literal notranslate"><span class="pre">.inpcrd</span></code> files for the generated system will be automatically named with the prefix <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile</span></code>. You can change the prefix by specifying the <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword in the json file.</p>
+<p>Most output information will be printed in the <code class="docutils literal notranslate"><span class="pre">autosolvate.log</span></code> file in the working directory. If the command run successfully, you should now have the following files in your directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">frcmod</span>        <span class="n">leap_convert</span><span class="o">.</span><span class="n">cmd</span>                         <span class="n">naphthalene</span><span class="o">.</span><span class="n">prmtop</span>
+<span class="n">acetonitrile</span><span class="o">-</span><span class="n">fromprep</span><span class="o">.</span><span class="n">pdb</span>  <span class="n">leap</span><span class="o">.</span><span class="n">log</span>                                 <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">inpcrd</span>
+<span class="n">acetonitrile</span><span class="o">.</span><span class="n">pdb</span>           <span class="n">leap_naphthalene</span><span class="o">.</span><span class="n">cmd</span>                     <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile_packmol</span><span class="o">.</span><span class="n">inp</span>
+<span class="n">acetonitrile</span><span class="o">.</span><span class="n">prep</span>          <span class="n">leap_naphthalene</span><span class="o">.</span><span class="n">log</span>                     <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile_packmol</span><span class="o">.</span><span class="n">out</span>
+<span class="n">ANTECHAMBER_AC</span><span class="o">.</span><span class="n">AC</span>          <span class="n">leap_naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">cmd</span>  <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">ANTECHAMBER_AC</span><span class="o">.</span><span class="n">AC0</span>         <span class="n">leap_naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">log</span>  <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">prmtop</span>
+<span class="n">ANTECHAMBER_AM1BCC</span><span class="o">.</span><span class="n">AC</span>      <span class="n">naphthalene</span><span class="o">.</span><span class="n">frcmod</span>                       <span class="n">sqm</span><span class="o">.</span><span class="ow">in</span>
+<span class="n">ANTECHAMBER_AM1BCC_PRE</span><span class="o">.</span><span class="n">AC</span>  <span class="n">naphthalene</span><span class="o">.</span><span class="n">inpcrd</span>                       <span class="n">sqm</span><span class="o">.</span><span class="n">out</span>
+<span class="n">ANTECHAMBER_BOND_TYPE</span><span class="o">.</span><span class="n">AC</span>   <span class="n">naphthalene</span><span class="o">.</span><span class="n">lib</span>                          <span class="n">sqm</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">ANTECHAMBER_BOND_TYPE</span><span class="o">.</span><span class="n">AC0</span>  <span class="n">naphthalene</span><span class="o">.</span><span class="n">mol2</span>                         <span class="n">step1_input</span><span class="o">.</span><span class="n">json</span>
+<span class="n">ATOMTYPE</span><span class="o">.</span><span class="n">INF</span>               <span class="n">naphthalene_neutral</span><span class="o">.</span><span class="n">xyz</span>                  <span class="n">water</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">autosolvate</span><span class="o">.</span><span class="n">log</span>            <span class="n">naphthalene</span><span class="o">.</span><span class="n">pdb</span>
+</pre></div>
+</div>
+<p>The three files that we care about for moving forward to the next step are the ones with the output prefix <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile</span></code> (<code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.inpcrd</span></code>, <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.prmtop</span></code>, <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.pdb</span></code>). The <code class="docutils literal notranslate"><span class="pre">.inpcrd</span></code> file contains the input coordinates, and the <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code> file contains the Amber parameter topology. The PDB file <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.pdb</span></code> has the coordinates for the solvent box for visualization. You should be able to see the mixed-solvent (water/acetonitrile) box containing the solute (naphthalene):</p>
+<a class="reference internal image-reference" href="_images/tutorial5_3.png"><img alt="_images/tutorial5_3.png" src="_images/tutorial5_3.png" style="width: 600px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This example uses default settings for boxgen_multicomponent, which uses AM1-BCC for charge fitting with autogenerated solvent box name and default closeness 2.0 Angstrom. These parameters can be explicitly specified in the json. In addition, AutoSolvate assumes the solute and solvent is neutral and singlet. One can specify the <code class="docutils literal notranslate"><span class="pre">charge</span></code> and <code class="docutils literal notranslate"><span class="pre">spinmult</span></code> arguments in the corresponding json object if needed.</p>
+<p>For example, we can specify the charge fitting method as ‘bcc’, give the output the name “mybox”, set the closeness to a smaller value 1.8, and explicitly define the charge and multiplicity for both the solute and the solvent acetonitrile. The charge of the solvent water cannot be specified unless a <code class="docutils literal notranslate"><span class="pre">.xyz/.pdb</span></code> file, or a <code class="docutils literal notranslate"><span class="pre">.prep/.off</span></code> and <code class="docutils literal notranslate"><span class="pre">.frcmod</span></code> file is provided, which will let AutoSolvate recognize it as a custom solvent instead of the pre-defined TIP3P water. The updated json file will look like this:</p>
+<p>step1_input.json:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s2">&quot;cubesize&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+   <span class="s2">&quot;chargemethod&quot;</span><span class="p">:</span> <span class="s2">&quot;bcc&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="s2">&quot;mybox&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;closeness&quot;</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
+   <span class="s2">&quot;solute&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;naphthalene_neutral.xyz&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;naphthalene&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;NAP&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;charge&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="s2">&quot;spinmult&quot;</span><span class="p">:</span> <span class="mi">1</span>
+   <span class="p">},</span>
+   <span class="s2">&quot;solvents&quot;</span><span class="p">:[</span>
+      <span class="p">{</span>
+         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;water&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">397</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;acetonitrile&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">175</span><span class="p">,</span>
+         <span class="s2">&quot;prep&quot;</span><span class="p">:</span> <span class="s2">&quot;acetonitrile.prep&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;frcmod&quot;</span><span class="p">:</span> <span class="s2">&quot;acetonitrile.frcmod&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;charge&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+         <span class="s2">&quot;spinmult&quot;</span><span class="p">:</span> <span class="mi">1</span>
+      <span class="p">}</span>
+   <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The semi-empirical charge fitting method AM1-BCC performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of RESP charge fitting available in Gaussian &amp; GAMESS-US. Currently, <code class="docutils literal notranslate"><span class="pre">bcc</span></code> is the default setting.</p>
+</div>
+</section>
+<section id="step-2-3-run-md-simulation-and-extract-microsolvated-clusters">
+<h2>Step-2 &amp; 3 : Run MD simulation and extract microsolvated clusters.<a class="headerlink" href="#step-2-3-run-md-simulation-and-extract-microsolvated-clusters" title="Permalink to this heading"></a></h2>
+<p>With the amber input coordinate and topology file (<code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.inpcrd</span></code>, <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.prmtop</span></code>). One can perform the following steps in the exactly the same way as described in the <cite>autosolvate boxgen</cite> tutorial. The following command will generate a classical MD trajectory for the mixed solvent box:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">naphthalene-water-acetonitrile</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-t</span> <span class="pre">300</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-i</span> <span class="pre">100</span> <span class="pre">-m</span> <span class="pre">10000</span> <span class="pre">-b</span> <span class="pre">0</span> <span class="pre">-n</span> <span class="pre">10000</span> <span class="pre">-l</span> <span class="pre">0</span> <span class="pre">-o</span> <span class="pre">0</span> <span class="pre">-s</span> <span class="pre">0</span></code></p>
+<p>And the command for extracting microsolvated clusters is:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">naphthalene-water-acetonitrile.prmtop</span> <span class="pre">-t</span> <span class="pre">naphthalene-water-acetonitrile-mmnpt.netcdf</span> <span class="pre">-a</span> <span class="pre">0</span> <span class="pre">-i</span> <span class="pre">10</span> <span class="pre">-s</span> <span class="pre">4.0</span></code></p>
+<p>This will result in the following microsolvated cluster:</p>
+<a class="reference internal image-reference" href="_images/tutorial5_4.png"><img alt="_images/tutorial5_4.png" src="_images/tutorial5_4.png" style="width: 600px;" /></a>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="advancedTutorial.html" class="btn btn-neutral float-left" title="Advanced Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial_for_metalcomplexes.html" class="btn btn-neutral float-right" title="Tutorial for Force Field Generation of Organometallic Compounds" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

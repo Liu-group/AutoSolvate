@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autosolvate.multicomponent &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">autosolvate.multicomponent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autosolvate.multicomponent</h1><div class="highlight"><pre>
+<span></span><span class="c1">#--------------------------------------------------------------------------------------------------#</span>
+<span class="c1"># multicomponent.py. </span>
+<span class="c1"># Description: </span>
+<span class="c1">#   This module can handle structure files containing multiple molecules.</span>
+<span class="c1">#   1. Generates the lib and frcmod file for each separate molecule when it is not h2o or amino acids.</span>
+<span class="c1">#   2. Generates the lib, prmtop and inpcrd files of this whole structure.</span>
+<span class="c1"># Update 2022-02-04:</span>
+<span class="c1">#   1. Can generate lib, mol2 and prmtop file for an xyz with mutiple fragments with charges</span>
+<span class="c1">#   2. Can create solvent box for xyz file with multiple fragments.</span>
+<span class="c1">#   3. Able to rearrange shuffled pdb files into ordered form that antechamber can process.</span>
+<span class="c1"># author: Fangning Ren (2022-02-04) </span>
+<span class="c1"># path: autosolvate/multicomponent.py</span>
+<span class="c1">#--------------------------------------------------------------------------------------------------#</span>
+<span class="c1"># Update 2024-07-12:</span>
+<span class="c1">#   1. Add a MixtureBuilder class to generate mixed solventbox for both single solute and molecular pairs</span>
+<span class="c1">#   2. Now accept pre-generated prep, lib, and off files if the frcmod file is provided. </span>
+<span class="c1">#   3. Mixed solvent with amber defined solvent such as TIP3P water, methanol are enabled. </span>
+<span class="c1">#--------------------------------------------------------------------------------------------------#</span>
+<span class="kn">import</span> <span class="nn">getopt</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Iterable</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="kn">from</span> <span class="nn">.molecule</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.dockers</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">autosolvate.autosolvate</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="MulticomponentParamsBuilder"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MulticomponentParamsBuilder.html#autosolvate.multicomponent.MulticomponentParamsBuilder">[docs]</a><span class="k">class</span> <span class="nc">MulticomponentParamsBuilder</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create amber parameter files for a single xyz or pdb file with multiple separate fragments.</span>
+
+<span class="sd">    Warning: If you want to create the forcefield for transition metal complexes please use the ```boxgen_metal``` module instead of ```boxgen_multicomponent```.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xyzfile : str</span>
+<span class="sd">        structure file name, can be any structural files that openbabel recognizes.</span>
+<span class="sd">    name : array_like, Optional. default: the base name of the provided structure file.</span>
+<span class="sd">        </span>
+<span class="sd">    residue_name : array_like, Optional. default: Residue name provided in pdb file or assigned as UAA, UAB, UAC, etc.</span>
+<span class="sd">        Residue names for each fragments. A list of strings of three capital letters. Its length should equal to the number of fragments in xyzfile. If this parameter is not given, the residues will be assigned by &quot;U&quot; plus &quot;AB&quot;,&quot;AC&quot;,...&quot;AZ&quot;, &quot;BA&quot;...</span>
+<span class="sd">    charge : dict | array_like, Optional. default: 0</span>
+<span class="sd">        Charge for each fragment. A list of integer with its length equal to the number of fragments, or a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral. </span>
+<span class="sd">    spinmult : dict | array_like, Optional. default: 0</span>
+<span class="sd">        Multiplicity for each fragment. A list of integer with its length equal to the number of fragments, or a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet. </span>
+<span class="sd">    outputFile : str, Optional, default=&#39;water_solvated&#39;</span>
+<span class="sd">        Filename-prefix for outputfiles</span>
+<span class="sd">    pre_optimize_fragments : bool, Optional, default: False</span>
+<span class="sd">        do geometry optimization with MMFF94 forcefield in OpebBabel before running antechamber</span>
+<span class="sd">    srun_use : bool, Optional, default=&#39;False</span>
+<span class="sd">        Run all commands with a srun prefix</span>
+<span class="sd">    gaussianexe : str, Optional, default: g16</span>
+<span class="sd">        name of the Gaussian executeble</span>
+<span class="sd">    gaussiandir : str, Optional, default: $GAUSSIANDIR</span>
+<span class="sd">        path of Gaussian</span>
+<span class="sd">    amberhome : str, Optional, default: $AMBERHOME</span>
+<span class="sd">        path of amber</span>
+<span class="sd">    deletefiles : bool, Optional, default: False</span>
+<span class="sd">        Delete all temporary files except the .prmtop and .inpcrd file of the pdb file provided.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="MulticomponentParamsBuilder.__init__"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MulticomponentParamsBuilder.html#autosolvate.multicomponent.MulticomponentParamsBuilder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">xyzfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s2">&quot;SLU&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                 <span class="n">charge_method</span><span class="o">=</span><span class="s2">&quot;resp&quot;</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="n">WORKING_DIR</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> 
+
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">MoleculeComplex</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="n">residue_name</span><span class="p">,</span> <span class="n">charges</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicities</span><span class="o">=</span><span class="n">spinmult</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span> <span class="o">=</span> <span class="n">charge_method</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">AntechamberDocker</span><span class="p">(</span><span class="n">charge_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span><span class="p">,</span> <span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">ParmchkDocker</span><span class="p">(</span><span class="n">workfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">complex_pipeline</span> <span class="o">=</span> <span class="p">[</span><span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)]</span></div>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="o">.</span><span class="n">newmolecules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span> <span class="o">==</span> <span class="s2">&quot;resp&quot;</span><span class="p">:</span>
+                <span class="n">build_resp_terachem</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span><span class="p">:</span>
+                    <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">complex_pipeline</span><span class="p">:</span>
+            <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span></div>
+
+       
+<div class="viewcode-block" id="MulticomponentSolventBoxBuilder"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html#autosolvate.multicomponent.MulticomponentSolventBoxBuilder">[docs]</a><span class="k">class</span> <span class="nc">MulticomponentSolventBoxBuilder</span><span class="p">():</span>
+<div class="viewcode-block" id="MulticomponentSolventBoxBuilder.__init__"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html#autosolvate.multicomponent.MulticomponentSolventBoxBuilder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">slu_charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">slu_spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">charge_method</span><span class="o">=</span><span class="s2">&quot;resp&quot;</span><span class="p">,</span> <span class="n">slu_count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="n">solvent</span> <span class="o">=</span> <span class="s2">&quot;water&quot;</span><span class="p">,</span> <span class="n">solvent_frcmod</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_off</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_box_name</span> <span class="o">=</span> <span class="s2">&quot;SLVBOX&quot;</span><span class="p">,</span>
+                 <span class="n">slv_generate</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">slv_xyz</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">slv_count</span> <span class="o">=</span> <span class="mi">210</span><span class="o">*</span><span class="mi">8</span><span class="p">,</span>
+                 <span class="n">cube_size</span> <span class="o">=</span> <span class="mi">54</span><span class="p">,</span> <span class="n">closeness</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="n">WORKING_DIR</span><span class="p">,</span> <span class="n">outputFile</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">outputFile</span><span class="p">:</span>
+            <span class="n">outputFile</span> <span class="o">=</span> <span class="n">solvent</span> <span class="o">+</span> <span class="s2">&quot;_solvated&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span>
+        <span class="k">if</span> <span class="s2">&quot;slu_netcharge&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;slu_netcharge&quot;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">slu_charge</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">slu_charge</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;slu_netcharge&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solute</span> <span class="o">=</span> <span class="n">MoleculeComplex</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">slu_charge</span><span class="p">,</span> <span class="n">slu_spinmult</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span> <span class="o">=</span> <span class="n">charge_method</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solvent</span><span class="p">(</span><span class="n">solvent</span><span class="p">,</span> <span class="n">slv_xyz</span><span class="p">,</span> <span class="n">solvent_frcmod</span><span class="p">,</span> <span class="n">solvent_off</span><span class="p">,</span> <span class="n">slv_generate</span><span class="p">,</span> <span class="n">slv_count</span><span class="p">,</span> <span class="n">solvent_box_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">SolvatedSystem</span><span class="p">(</span><span class="n">solvent</span> <span class="o">+</span> <span class="s2">&quot;_solvated&quot;</span><span class="p">,</span> <span class="n">solute</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solute</span><span class="p">,</span> <span class="n">solvent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solvent</span><span class="p">,</span>
+                                     <span class="n">cubesize</span><span class="o">=</span><span class="n">cube_size</span><span class="p">,</span> <span class="n">closeness</span><span class="o">=</span><span class="n">closeness</span><span class="p">,</span> <span class="n">solute_number</span><span class="o">=</span><span class="n">slu_count</span><span class="p">,</span> <span class="n">solvent_number</span><span class="o">=</span><span class="n">slv_count</span><span class="p">,</span>
+                                     <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">AntechamberDocker</span><span class="p">(</span><span class="n">charge_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span><span class="p">,</span> <span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">ParmchkDocker</span><span class="p">(</span><span class="n">workfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">complex_pipeline</span> <span class="o">=</span> <span class="p">[</span><span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvent_pipeline</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">AntechamberDocker</span><span class="p">(</span><span class="s2">&quot;bcc&quot;</span><span class="p">,</span> <span class="s2">&quot;mol2&quot;</span><span class="p">,</span> <span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">ParmchkDocker</span><span class="p">(</span><span class="s2">&quot;frcmod&quot;</span><span class="p">,</span> <span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prebuilt_solvation</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">PackmolDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="p">]</span></div>
+    
+    <span class="k">def</span> <span class="nf">get_solvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solvent</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">slv_xyz</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_frcmod</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_off</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">slv_generate</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">slv_count</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">210</span><span class="o">*</span><span class="mi">8</span><span class="p">,</span> <span class="n">solvent_box_name</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SLVBOX&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">solvent</span> <span class="ow">in</span> <span class="n">AMBER_SOLVENTBOX_DICT</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">slv_generate</span><span class="p">:</span> <span class="c1"># predefined amber solvent</span>
+            <span class="n">self_solvent</span> <span class="o">=</span> <span class="n">AMBER_SOLVENTBOX_DICT</span><span class="p">[</span><span class="n">solvent</span><span class="p">]</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span>
+        <span class="k">elif</span> <span class="n">solvent</span> <span class="ow">in</span> <span class="n">custom_solv_dict</span><span class="p">:</span>
+            <span class="c1"># solvent data prepared by autosolvate</span>
+            <span class="n">solvPrefix</span> <span class="o">=</span> <span class="n">custom_solv_dict</span><span class="p">[</span><span class="n">solvent</span><span class="p">]</span>
+            <span class="n">solvent_frcmod_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;autosolvate&#39;</span><span class="p">,</span> 
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="n">solvPrefix</span><span class="p">,</span><span class="n">solvPrefix</span><span class="o">+</span><span class="s2">&quot;.frcmod&quot;</span><span class="p">))</span>
+            <span class="n">solvent_prep_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;autosolvate&#39;</span><span class="p">,</span> 
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="n">solvPrefix</span><span class="p">,</span><span class="n">solvPrefix</span><span class="o">+</span><span class="s2">&quot;.prep&quot;</span><span class="p">))</span>
+            <span class="n">solvent_pdb_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;autosolvate&#39;</span><span class="p">,</span> 
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="n">solvPrefix</span><span class="p">,</span><span class="n">solvPrefix</span><span class="o">+</span><span class="s2">&quot;.pdb&quot;</span><span class="p">))</span>
+            <span class="n">self_solvent</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">solvent_pdb_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">residue_name</span> <span class="o">=</span> <span class="n">custom_solv_residue_name</span><span class="p">[</span><span class="n">solvent</span><span class="p">],</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">frcmod</span> <span class="o">=</span> <span class="n">solvent_frcmod_path</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">prep</span>   <span class="o">=</span> <span class="n">solvent_prep_path</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">slv_count</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">slv_xyz</span><span class="p">)</span> <span class="ow">and</span> <span class="n">slv_generate</span><span class="p">:</span>
+            <span class="c1"># generate solvent box</span>
+            <span class="n">self_solvent</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">slv_xyz</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">slv_count</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Solvent not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">self_solvent</span>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solute</span><span class="o">.</span><span class="n">newmolecules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span> <span class="o">==</span> <span class="s2">&quot;resp&quot;</span><span class="p">:</span>
+                <span class="n">build_resp_terachem</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span><span class="p">:</span>
+                    <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">complex_pipeline</span><span class="p">:</span>
+            <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solute</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solvent</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvent_pipeline</span><span class="p">:</span>
+                <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solvent</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solvent</span><span class="p">,</span> <span class="n">SolventBox</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prebuilt_solvation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solvent</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MixtureBuilder"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MixtureBuilder.html#autosolvate.multicomponent.MixtureBuilder">[docs]</a><span class="k">class</span> <span class="nc">MixtureBuilder</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create amber parameter files for a single solute with mixed solvents</span>
+
+<span class="sd">    Use &#39;add_solute&#39; to add solute and &#39;add_solvent&#39; to add solvent.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str, Optional, default: current working directory</span>
+<span class="sd">        working directory</span>
+<span class="sd">    cube_size : int, Optional, default: 54</span>
+<span class="sd">        size of solvent cube in angstroms</span>
+<span class="sd">    closeness : float, Optional, default: 2.0</span>
+<span class="sd">        Solute-solvent closeness setting, corresponding to the tolerance parameter in packmol in Å, </span>
+<span class="sd">    charge_method : str, Optional, default: &quot;bcc&quot;</span>
+<span class="sd">        name of charge fitting method (bcc, resp)</span>
+<span class="sd">    prefix : str, Optional, default: None</span>
+<span class="sd">        prefix of the output file names. Default will be &lt;solute_name&gt;_&lt;solvent_name_1&gt;_...-&lt;solvent_name_n&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="MixtureBuilder.__init__"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MixtureBuilder.html#autosolvate.multicomponent.MixtureBuilder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="n">WORKING_DIR</span><span class="p">,</span> <span class="n">cube_size</span> <span class="o">=</span> <span class="mi">54</span><span class="p">,</span> <span class="n">closeness</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">charge_method</span> <span class="o">=</span> <span class="s2">&quot;bcc&quot;</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxsize</span> <span class="o">=</span> <span class="p">[</span><span class="n">cube_size</span><span class="p">,</span> <span class="n">cube_size</span><span class="p">,</span> <span class="n">cube_size</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closeness</span> <span class="o">=</span> <span class="n">closeness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span> <span class="o">=</span> <span class="n">charge_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">AntechamberDocker</span><span class="p">(</span><span class="n">charge_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span><span class="p">,</span> <span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">ParmchkDocker</span><span class="p">(</span><span class="n">workfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">PackmolDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">),</span>
+            <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_handler</span>             <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;autosolvate.log&quot;</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_formater</span>            <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%H:%M:%S&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_formater</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">systemprefix</span> <span class="o">=</span> <span class="n">prefix</span></div>
+
+    <span class="k">def</span> <span class="nf">add_complex_solute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">fragment_charge</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">fragment_spinmult</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        add a molecular complex as the solute </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xyzfile : str</span>
+<span class="sd">            structure file name, can be any type within [&quot;xyz&quot;, &quot;pdb&quot;, &quot;mol2&quot;]. &quot;prep&quot;, &quot;lib&quot;, &quot;off&quot; are not supported for molecular complex.</span>
+<span class="sd">        fragment_charge : dict | array_like, Optional, default: 0</span>
+<span class="sd">            Charge for each fragment. A dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral.</span>
+<span class="sd">        fragment_spinmult : dict | array_like, Optional, default: 1</span>
+<span class="sd">            Multiplicity for each fragment. A dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet.</span>
+<span class="sd">        number : int, Optional, default: 1</span>
+<span class="sd">            number of the solute in the system. Be cautious about this as the solute may have more than 1 fragments.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Other arguments that need to be included in the solute. Remained for future development.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">molecule</span> <span class="o">=</span> <span class="n">MoleculeComplex</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">charges</span><span class="o">=</span><span class="n">fragment_charge</span><span class="p">,</span> <span class="n">multiplicities</span><span class="o">=</span><span class="n">fragment_spinmult</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fragment</span> <span class="ow">in</span> <span class="n">molecule</span><span class="o">.</span><span class="n">newmolecules</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span><span class="p">:</span>
+                <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fragment</span><span class="p">)</span>
+        <span class="n">TleapDocker</span><span class="p">(</span><span class="n">workfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+        <span class="n">molecule</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">add_solute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s2">&quot;SLU&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        add a solute molecule</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xyzfile : str</span>
+<span class="sd">            structure file name, can be any type within [&quot;xyz&quot;, &quot;pdb&quot;, &quot;mol2&quot;]</span>
+<span class="sd">        name : str, Optional, default: the base name of the provided structure file</span>
+<span class="sd">            name of the solute</span>
+<span class="sd">        residue_name : str, Optional, default: &quot;SLU&quot;</span>
+<span class="sd">            residue name of the solute. Note if an mol2 or prep file is provided, the residue name will be read from the file.</span>
+<span class="sd">        charge : int, Optional, default: 0</span>
+<span class="sd">            charge of the solute</span>
+<span class="sd">        spinmult : int, Optional, default: 1</span>
+<span class="sd">            spin multiplicity of the solute</span>
+<span class="sd">        number : int, Optional, default: 1</span>
+<span class="sd">            number of the solute in the system.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            additional files needed for the solute, including &quot;mol2&quot;, &quot;frcmod&quot;, &quot;lib&quot;, &quot;prep&quot;, and &quot;off&quot;. Will support &quot;itp&quot;, &quot;top&quot; in the future.</span>
+<span class="sd">            If the user want to skip the antechamber and leap steps, the user need to provide the &quot;mol2&quot; and &quot;frcmod&quot; files by adding the following arguments:</span>
+<span class="sd">            </span>
+<span class="sd">        mol2 : str  </span>
+<span class="sd">            the path of the mol2 file of the solute</span>
+<span class="sd">        frcmod : str</span>
+<span class="sd">            the path of the frcmod file of the solute</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;mol2&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">]))</span> <span class="ow">and</span> \
+           <span class="p">(</span><span class="s2">&quot;frcmod&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;frcmod&quot;</span><span class="p">])):</span>
+            <span class="n">molecule</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="n">spinmult</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="n">residue_name</span><span class="p">)</span>
+            <span class="n">molecule</span><span class="o">.</span><span class="n">mol2</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">]</span>
+            <span class="n">molecule</span><span class="o">.</span><span class="n">frcmod</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;frcmod&quot;</span><span class="p">]</span>
+            <span class="n">molecule</span><span class="o">.</span><span class="n">get_residue_name</span><span class="p">()</span>
+            <span class="n">molecule</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">molecule</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="n">spinmult</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="n">residue_name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span><span class="p">:</span>
+                <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+        <span class="n">molecule</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_solvent_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;generate&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">AMBER_SOLVENT_DICT</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">((</span><span class="s2">&quot;prep&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;prep&quot;</span><span class="p">]))</span> <span class="ow">or</span> \
+                <span class="p">(</span><span class="s2">&quot;mol2&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">])))</span> <span class="ow">and</span> \
+                <span class="p">(</span><span class="s2">&quot;frcmod&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;frcmod&quot;</span><span class="p">])):</span>
+                <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;custom&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;amber&quot;</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">custom_solv_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">((</span><span class="s2">&quot;prep&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;prep&quot;</span><span class="p">]))</span> <span class="ow">or</span> \
+                <span class="p">(</span><span class="s2">&quot;mol2&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">])))</span> <span class="ow">and</span> \
+                <span class="p">(</span><span class="s2">&quot;frcmod&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;frcmod&quot;</span><span class="p">])):</span>
+                <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;custom&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;autosolvate_custom&quot;</span>
+        <span class="k">elif</span> <span class="p">((</span><span class="s2">&quot;prep&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;prep&quot;</span><span class="p">]))</span> <span class="ow">or</span> \
+              <span class="p">(</span><span class="s2">&quot;mol2&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">])))</span> <span class="ow">and</span> \
+              <span class="p">(</span><span class="s2">&quot;frcmod&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;frcmod&quot;</span><span class="p">])):</span>
+            <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;custom&quot;</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">):</span>
+            <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;generate&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Solvent not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">solvent_type</span>
+
+    <span class="k">def</span> <span class="nf">add_solvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s2">&quot;SLV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">210</span><span class="o">*</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        add a type of solvent</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xyzfile : str</span>
+<span class="sd">            structure file name, can be any type within [&quot;xyz&quot;, &quot;pdb&quot;, &quot;mol2&quot;, &quot;prep&quot;]. Can be ignored if the solvent is predefined in AMBER.</span>
+<span class="sd">        name : str</span>
+<span class="sd">            name of the solvent. Predefined solvents include [&quot;water&quot;, &quot;methanol&quot;, &quot;chloroform&quot;, &quot;nma&quot;].</span>
+<span class="sd">        residue_name : str, Optional, default: &quot;SLV&quot;</span>
+<span class="sd">            residue name of the solvent. Will be ignored if the solvent is predefined in AMBER. This argument will be ignored if a mol2 or prep file is provided together with a frcmod. </span>
+<span class="sd">        charge : int, Optional, default: 0</span>
+<span class="sd">            charge of the solvent</span>
+<span class="sd">        spinmult : int, Optional, default: 1</span>
+<span class="sd">            spin multiplicity of the solvent</span>
+<span class="sd">        number : int, Optional, default: 210*8</span>
+<span class="sd">            number of the solvent in the system.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            additional files needed for the solvent, including &quot;mol2&quot;, &quot;frcmod&quot;, &quot;lib&quot;, &quot;prep&quot;, will support &quot;itp&quot;, &quot;top&quot; in the future.</span>
+<span class="sd">            If the user want to skip the antechamber and leap steps, the user need to provide the [&quot;mol2&quot; or &quot;prep&quot;] and &quot;frcmod&quot; files by adding the following arguments:</span>
+<span class="sd">            mol2 : str  </span>
+<span class="sd">                the path of the mol2 file of the solvent</span>
+<span class="sd">            frcmod : str</span>
+<span class="sd">                the path of the frcmod file of the solvent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">solvent_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solvent_type</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">solvent_type</span> <span class="o">==</span> <span class="s2">&quot;amber&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding predefined solvent </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">self_solvent</span> <span class="o">=</span> <span class="n">AMBER_SOLVENT_DICT</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">generate_pdb</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">solvent_type</span> <span class="o">==</span> <span class="s2">&quot;autosolvate_custom&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding autosolvate custom solvent </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">solvPrefix</span> <span class="o">=</span> <span class="n">custom_solv_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">solvent_frcmod_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;autosolvate&#39;</span><span class="p">,</span> 
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="n">solvPrefix</span><span class="p">,</span><span class="n">solvPrefix</span><span class="o">+</span><span class="s2">&quot;.frcmod&quot;</span><span class="p">))</span>
+            <span class="n">solvent_prep_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;autosolvate&#39;</span><span class="p">,</span> 
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="n">solvPrefix</span><span class="p">,</span><span class="n">solvPrefix</span><span class="o">+</span><span class="s2">&quot;.prep&quot;</span><span class="p">))</span>
+            <span class="n">solvent_pdb_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;autosolvate&#39;</span><span class="p">,</span> 
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="n">solvPrefix</span><span class="p">,</span><span class="n">solvPrefix</span><span class="o">+</span><span class="s2">&quot;.pdb&quot;</span><span class="p">))</span>
+            <span class="n">self_solvent</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">solvent_pdb_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">residue_name</span> <span class="o">=</span> <span class="n">custom_solv_residue_name</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">frcmod</span> <span class="o">=</span> <span class="n">solvent_frcmod_path</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">prep</span>   <span class="o">=</span> <span class="n">solvent_prep_path</span>
+        <span class="k">elif</span> <span class="n">solvent_type</span> <span class="o">==</span> <span class="s2">&quot;custom&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding user provided custom solvent </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">self_solvent</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="n">spinmult</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="n">residue_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;mol2&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">]):</span>
+                <span class="n">self_solvent</span><span class="o">.</span><span class="n">mol2</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;frcmod&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;frcmod&quot;</span><span class="p">]):</span>
+                <span class="n">self_solvent</span><span class="o">.</span><span class="n">frcmod</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;frcmod&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;lib&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;lib&quot;</span><span class="p">]):</span>
+                <span class="n">self_solvent</span><span class="o">.</span><span class="n">lib</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;lib&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;prep&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;prep&quot;</span><span class="p">]):</span>
+                <span class="n">self_solvent</span><span class="o">.</span><span class="n">prep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;prep&quot;</span><span class="p">]</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">get_residue_name</span><span class="p">()</span>
+            <span class="n">self_solvent</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">solvent_type</span> <span class="o">==</span> <span class="s2">&quot;generate&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding solvent </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> whose forcefield parameters will be generated with GAFF&quot;</span><span class="p">)</span>
+            <span class="n">self_solvent</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">xyzfile</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="n">spinmult</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="n">residue_name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span><span class="p">:</span>
+                <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">self_solvent</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Solvent not found&quot;</span><span class="p">)</span>
+        <span class="n">self_solvent</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="k">for</span> <span class="n">solvent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">solvent</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">self_solvent</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solvent </span><span class="si">{</span><span class="n">solvent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> already exists&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">self_solvent</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">systemprefix</span><span class="p">:</span>
+            <span class="n">system_name</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">system_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">systemprefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span> <span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="n">Molecule</span><span class="p">]</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="n">Molecule</span><span class="p">]</span>
+        <span class="n">solute_numbers</span>  <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">number</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span> <span class="p">]</span>
+        <span class="n">solvent_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">number</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">]</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">SolvatedSystem</span><span class="p">(</span><span class="n">system_name</span><span class="p">,</span> <span class="n">solute</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="p">,</span> <span class="n">solvent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">,</span>
+                                <span class="n">cubesize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boxsize</span><span class="p">,</span> <span class="n">closeness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">closeness</span><span class="p">,</span> 
+                                <span class="n">solute_number</span> <span class="o">=</span> <span class="n">solute_numbers</span><span class="p">,</span> <span class="n">solvent_number</span> <span class="o">=</span> <span class="n">solvent_numbers</span><span class="p">,</span>
+                                <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span><span class="p">:</span>
+            <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">system</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">startmulticomponent_fromdata</span><span class="p">(</span><span class="n">data</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;folder&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">WORKING_DIR</span>
+    <span class="n">signature</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">MixtureBuilder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">)</span>
+    <span class="n">function_params</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span>
+    <span class="n">filtered_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">function_params</span><span class="p">}</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">MixtureBuilder</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;solute&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;solute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_missing_xyzfile_keyword</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solute&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">check_multicomponent</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solute&quot;</span><span class="p">][</span><span class="s2">&quot;xyzfile&quot;</span><span class="p">]):</span>
+            <span class="n">builder</span><span class="o">.</span><span class="n">add_complex_solute</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solute&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">builder</span><span class="o">.</span><span class="n">add_solute</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solute&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">&quot;solvent&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_missing_xyzfile_keyword</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvent&quot;</span><span class="p">])</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">add_solvent</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvent&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">&quot;solutes&quot;</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solutes&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solutes&quot;</span><span class="p">])):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;solutes&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_missing_xyzfile_keyword</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solutes&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">check_multicomponent</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solutes&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;xyzfile&quot;</span><span class="p">]):</span>
+                <span class="n">builder</span><span class="o">.</span><span class="n">add_complex_solute</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solutes&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">builder</span><span class="o">.</span><span class="n">add_solute</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solutes&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">&quot;solvents&quot;</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvents&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvents&quot;</span><span class="p">])):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvents&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_missing_xyzfile_keyword</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvents&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">builder</span><span class="o">.</span><span class="n">add_solvent</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvents&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<div class="viewcode-block" id="startmulticomponent_fromfile"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.startmulticomponent_fromfile.html#autosolvate.multicomponent.startmulticomponent_fromfile">[docs]</a><span class="k">def</span> <span class="nf">startmulticomponent_fromfile</span><span class="p">(</span><span class="n">file</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">startmulticomponent_fromdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">create_parser_multicomponent</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Add solvent box to a given solute and generate related force field parameters.&#39;</span><span class="p">,</span>
+        <span class="n">epilog</span><span class="o">=</span><span class="s2">&quot;suggest usage: autosolvate multicomponent -f input.json </span><span class="se">\n</span><span class="s2">if an input file is provided, all command line options will be ignored. </span><span class="se">\n</span><span class="s2">If using command line as the traditional way, it will only generate a single solute with single solvent. </span><span class="se">\n</span><span class="s2">This is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use.&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;--file&#39;</span><span class="p">,</span>            <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>  <span class="n">help</span><span class="o">=</span><span class="s1">&#39;json file containing the input parameters. Will ignore all other options if provided. Required when using multiple solvents&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--main&#39;</span><span class="p">,</span>            <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>  <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;solute xyz file&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--output&#39;</span><span class="p">,</span>          <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>  <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;prefix of the output file names&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;--charge&#39;</span><span class="p">,</span>          <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>  <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;formal charge of solute&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="s1">&#39;--spinmultiplicity&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>  <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;spin multiplicity of solute&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--solvent&#39;</span><span class="p">,</span>         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>  <span class="n">default</span><span class="o">=</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;solvent xyz files, Will use single solvent if provided.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-g&#39;</span><span class="p">,</span> <span class="s1">&#39;--chargemethod&#39;</span><span class="p">,</span>    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>  <span class="n">default</span><span class="o">=</span><span class="s1">&#39;bcc&#39;</span><span class="p">,</span>   <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of charge fitting method (bcc, resp)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-b&#39;</span><span class="p">,</span> <span class="s1">&#39;--cubesize&#39;</span><span class="p">,</span>        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="mf">54.0</span><span class="p">,</span>    <span class="n">help</span><span class="o">=</span><span class="s1">&#39;size of solvent cube in angstroms&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;--closeness&#39;</span><span class="p">,</span>       <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>     <span class="n">help</span><span class="o">=</span><span class="s1">&#39;solute-solvent closeness setting. Automation is not possible for mixed solvent&#39;</span><span class="p">)</span>    
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;--srunuse&#39;</span><span class="p">,</span>         <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;option to run inside a slurm job&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-e&#39;</span><span class="p">,</span> <span class="s1">&#39;--gaussianexe&#39;</span><span class="p">,</span>     <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>                   <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of the Gaussian quantum chemistry package executable&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="s1">&#39;--gaussiandir&#39;</span><span class="p">,</span>     <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>                   <span class="n">help</span><span class="o">=</span><span class="s1">&#39;path to the Gaussian package&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-a&#39;</span><span class="p">,</span> <span class="s1">&#39;--amberhome&#39;</span><span class="p">,</span>       <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>                   <span class="n">help</span><span class="o">=</span><span class="s1">&#39;path to the AMBER molecular dynamics package root directory&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span>
+
+<div class="viewcode-block" id="startmulticomponent"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.startmulticomponent.html#autosolvate.multicomponent.startmulticomponent">[docs]</a><span class="k">def</span> <span class="nf">startmulticomponent</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrap function that parses command line options for autosolvate multicomponent module,</span>
+<span class="sd">    generate solvent box and related force field parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Command Line Options</span>
+<span class="sd">    ----------</span>
+<span class="sd">        -f, --file </span>
+<span class="sd">            json file containing the input parameters, Required when using multiple solvents. Will ignore all other options if provided.</span>
+<span class="sd">        -m, --main  </span>
+<span class="sd">            solute xyz file, An Legacy feature, designed for the compatibility with the older version. It is not recommended for further use.</span>
+<span class="sd">        -o, --output  </span>
+<span class="sd">            prefix of the output file names</span>
+<span class="sd">        -c, --charge  </span>
+<span class="sd">            formal charge of solute</span>
+<span class="sd">        -u, --spinmultiplicity  </span>
+<span class="sd">            spin multiplicity of solute</span>
+<span class="sd">        -s, --solvent  </span>
+<span class="sd">            solvent xyz files, Will use single solvent if provided. Not available for using multiple solvents</span>
+<span class="sd">        -g, --chargemethod  </span>
+<span class="sd">            name of charge fitting method (bcc, resp)</span>
+<span class="sd">        -b, --cubesize  </span>
+<span class="sd">            size of solvent cube in angstroms</span>
+<span class="sd">        -t, --closeness  </span>
+<span class="sd">            Solute-solvent closeness setting. Default 2.0 Å for mixed solvent. For acetonitrile tolerance parameter in packmol in Å, for water, methanol, nma, chloroform the scaling factor in tleap, setting to &#39;automated&#39; will automatically set this parameter based on solvent.</span>
+<span class="sd">        -r, --srunuse  </span>
+<span class="sd">            option to run inside a slurm job</span>
+<span class="sd">        -e, --gaussianexe  </span>
+<span class="sd">            name of the Gaussian quantum chemistry package executable used to generate electrostatic potential needed for RESP charge fitting</span>
+<span class="sd">        -d, --gaussiandir  </span>
+<span class="sd">            path to the Gaussian package</span>
+<span class="sd">        -a, --amberhome  </span>
+<span class="sd">            path to the AMBER molecular dynamics package root directory. Definition of the environment variable $AMBERHOME</span>
+<span class="sd">        -h, --help  </span>
+<span class="sd">            short usage description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#print(argumentList)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">create_parser_multicomponent</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">cmd_dict</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;file&quot;</span> <span class="ow">in</span> <span class="n">cmd_dict</span> <span class="ow">and</span> <span class="n">cmd_dict</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cmd_dict</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cmd_dict</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">cmd_dict</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cmd_dict</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">],</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cmd_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">convert_cmd_to_dict</span><span class="p">(</span><span class="n">cmd_dict</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">correct_keyword</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">check_inputs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">global</span> <span class="n">WORKING_DIR</span>
+    <span class="n">WORKING_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">startmulticomponent_fromdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+    
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">startmulticomponent</span><span class="p">()</span>
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="Welcome to AutoSolvate’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#from-source">From source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conda-install">Conda install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#check">Check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#trouble-shooting">Trouble shooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<p>AutoSolvate can be installed with <a class="reference internal" href="#sourceinstall"><span class="std std-ref">from source code</span></a> or <a class="reference internal" href="#condainstall"><span class="std std-ref">conda</span></a></p>
+<p>For either approach, you want to make sure to have <a class="reference external" href="https://git-scm.com/">git</a> and <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> installed on your computer.</p>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Windows users</strong>: <strong>AmberTools</strong> cannot be installed from conda, and therefore cannot be automatically installed with the following approaches. <strong>AmberTools</strong> is the only dependency for Windows Users and needs separate installation.</p>
+<p><strong>Mac/Linux users</strong>: No dependency as long as you follow the instructions below.</p>
+</div>
+<ul class="simple">
+<li><p>If you install AutoSolvate <a class="reference internal" href="#sourceinstall"><span class="std std-ref">from source code</span></a>, you can install all dependencies automatically, which we will explain <a class="reference internal" href="#sourceinstall"><span class="std std-ref">later in this document</span></a>.</p></li>
+<li><p>If you choose to install AutoSolvate <a class="reference internal" href="#condainstall"><span class="std std-ref">from conda</span></a>, you don’t need to worry about the dependencies of AutoSolvate because they are automatically installed.</p></li>
+</ul>
+<p>However, if you are curious about the dependencies of AutoSolvate, please take a look at <code class="docutils literal notranslate"><span class="pre">devtools/conda-envs/test_env.yaml</span></code> in the AutoSolvate source code directory. This <a class="reference external" href="https://yaml.org/">YAML</a> file summarizes all dependencies of AutoSolvate. These packages will allow you to use most functionalities of AutoSolvate.</p>
+<p>However, to use all functionalities of AutoSolvate, one needs to install a few other packages not included in AutoSolvate installation:</p>
+<ol class="arabic simple">
+<li><p>If you want to solvate open-shell molecules (spin-multiplicity &gt; 1), RESP charge fitting is needed, which uses <a class="reference external" href="https://gaussian.com/">Gaussian</a>. <a class="reference external" href="https://gaussian.com/">Gaussian</a> is a commercial quantum chemistry package, so you need to purchase and install separately.</p></li>
+<li><p>If you’d like to use AutoSolvate to directly drive QM/MM calculations, you need to install TeraChem. <a class="reference external" href="http://www.petachem.com/">TeraChem</a> is a commercial quantum chemistry package, so you need to purchase and install separately.</p></li>
+<li><p>AutoSolvate uses the AmberTools to run classical MD simulations without GPU acceleration. If you’d like to use the GPU accelerated version of Amber, please refer to <a class="reference external" href="https://ambermd.org/AmberTools.php">Amber website</a>.</p></li>
+</ol>
+</section>
+<section id="from-source">
+<span id="sourceinstall"></span><h2>From source<a class="headerlink" href="#from-source" title="Permalink to this heading"></a></h2>
+<p>We recommend installing AutoSolvate from source code because of its good compatability cross operating systems, except for some Windows, which needs some extra care (more info <a class="reference internal" href="#windowsinstallwarning"><span class="std std-ref">below</span></a>).</p>
+<p>Clone the source code from github.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Liu</span><span class="o">-</span><span class="n">group</span><span class="o">/</span><span class="n">AutoSolvate</span>
+</pre></div>
+</div>
+<p>First set up a conda environment for AutoSolvate with the needed dependencies. Go inside the AutoSolvate source code directory.</p>
+<p><strong>Mac/Linux users</strong> should run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">devtools</span><span class="o">/</span><span class="n">conda</span><span class="o">-</span><span class="n">envs</span><span class="o">/</span><span class="n">test_env</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p><strong>Windows users</strong> should run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">devtools</span><span class="o">/</span><span class="n">conda</span><span class="o">-</span><span class="n">envs</span><span class="o">/</span><span class="n">test_env_WIN</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>This will automatically create a conda environment called <code class="docutils literal notranslate"><span class="pre">autosolvate</span></code>. Now activate this environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conda</span> <span class="n">activate</span> <span class="n">autosolvate</span>
+</pre></div>
+</div>
+<p>Stay in the AutoSolvate directory and install it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<div class="admonition warning" id="windowsinstallwarning">
+<p class="admonition-title">Warning</p>
+<p><strong>Window users</strong>: Since conda installation of AmberTools is not directly
+available on Windnows, you will need to install AmberTools sperately
+from source following the instructions on
+<a class="reference external" href="https://ambermd.org/GetAmber.php#ambertools">Amber Documentation</a>.</p>
+<p>Alternatively, we may install Windows 10/11 “subsystem for Linux” (WSL/WSL2)
+as instructed on this <a class="reference external" href="https://ambermd.org/InstWindows.php">Amber webpage</a>.
+Once you have WSL/WSL2, you should be able to directly install AutoSolvate
+(including AmberTools dependencies) with the procedure described above for Linux systems.</p>
+</div>
+</section>
+<section id="conda-install">
+<span id="condainstall"></span><h2>Conda install<a class="headerlink" href="#conda-install" title="Permalink to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are known issues about conda installation of AutoSolvate on <strong>Mac with M1 chips</strong> and <strong>Windows</strong>, and one needs to take extra steps after doing the conda installation. Therefore, you are recommended to install <a class="reference internal" href="#sourceinstall"><span class="std std-ref">from source</span></a></p>
+</div>
+<p>Alternative to installing from source is conda install. This works for <strong>Linux</strong> or <strong>old Mac without M1 chips</strong>. Install autosolvate as following from the commandline:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">liugroupemory</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">autosolvate</span>
+</pre></div>
+</div>
+<p>To check out more about the AutoSolvate conda package, please visit <a class="reference external" href="https://anaconda.org/LiuGroupEmory/autosolvate">this page on Anaconda.org</a>.</p>
+<p>Following are workarounds for <strong>Mac with M1 chips</strong> and <strong>Windows</strong>.</p>
+<p><strong>Mac with M1 chips</strong>:</p>
+<p>To make the conda installation of AutoSolvate work on Mac with the M1 chip, one needs to take care of two things:</p>
+<ol class="arabic simple">
+<li><p>Download <strong>mini-forge</strong>. Then do <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">liugroupemory</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">autosolvate</span></code>. See more info <a class="reference external" href="https://stackoverflow.com/questions/65534042/anaconda-and-upgrading-to-new-m1-mac">https://stackoverflow.com/questions/65534042/anaconda-and-upgrading-to-new-m1-mac</a> or <a class="reference external" href="https://towardsdatascience.com/using-conda-on-an-m1-mac-b2df5608a141">https://towardsdatascience.com/using-conda-on-an-m1-mac-b2df5608a141</a>.</p></li>
+<li><p>You need to do conda installation of <strong>AmberTools</strong> again by typing <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">ambertools</span></code>.</p></li>
+</ol>
+<p><strong>Windows</strong>:</p>
+<p>You can still do conda installation of AutoSolvate on Windows, but AmberTools does not get automatically installed after you run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">liugroupemory</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">autosolvate</span>
+</pre></div>
+</div>
+<p>So you need to install AmberTools separately. You can follow the instructions <a class="reference internal" href="#windowsinstallwarning"><span class="std std-ref">here</span></a>.</p>
+</section>
+<section id="check">
+<h2>Check<a class="headerlink" href="#check" title="Permalink to this heading"></a></h2>
+<p>Check your python installation. These commands in python shouldn’t give any errors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autosolvate</span>
+<span class="kn">from</span> <span class="nn">openbabel</span> <span class="kn">import</span> <span class="n">pybel</span>
+<span class="kn">from</span> <span class="nn">openbabel</span> <span class="kn">import</span> <span class="n">openbabel</span> <span class="k">as</span> <span class="n">ob</span>
+</pre></div>
+</div>
+<p>Check your ambertools and packmol installation as well:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">which</span> <span class="n">packmol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">which</span> <span class="n">tleap</span>
+</pre></div>
+</div>
+</section>
+<section id="trouble-shooting">
+<h2>Trouble shooting<a class="headerlink" href="#trouble-shooting" title="Permalink to this heading"></a></h2>
+<p>Here we summarize some common errors reported by users and potential solutions. Please don’t hesitate to directly contact us if you find any unexpected behavior of AutoSolvate in installation or production runs.</p>
+<ol class="arabic">
+<li><p>imolecule visualization problem</p>
+<p>We have tested the imolecule visualization functionality of AutoSolvate installed from source code and from conda, on Linux, Mac OS, and Windows 10, and expect it to work on all these platforms. However, some users have reported errors of imolecule during runtime.
+One potential reason for the reported imolecule problem is that <cite>imolecule</cite> is not a conda package. For installation from source, <cite>imolcule</cite> is included in the environment YAML file <cite>AutoSolvate/devtools/conda-envs/test_envs.yaml</cite>, and will be automatically downloaded without problem. However, to build it into a conda package, <cite>imolecule</cite> cannot be directly included in the conda recipe. To solve the problem, we included <cite>imolecule</cite> in setup.py as a required package, which made it automatically installed in our test cases. However, this may not work well on some operating systems.</p>
+<p>Possible solution:
+In the same conda environment where AutoSolvate is installed, please manually install imolecule by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">imolecule</span>
+</pre></div>
+</div>
+</li>
+<li><p>Error in MD simulation step related to <code class="docutils literal notranslate"><span class="pre">srun</span></code></p>
+<p>If you encounter an error <code class="docutils literal notranslate"><span class="pre">srun:</span> <span class="pre">not</span> <span class="pre">found</span></code>, it’s likely your computer does not use srun. You should remove <code class="docutils literal notranslate"><span class="pre">-r</span></code> from the <code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span></code> command or in GUI set <code class="docutils literal notranslate"><span class="pre">Use</span> <span class="pre">srun</span> <span class="pre">to</span> <span class="pre">execute</span> <span class="pre">commands</span> <span class="pre">?</span></code> to No.</p>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to AutoSolvate’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
