@@ -16,9 +16,6 @@ dependencies:
     # Openbabel
   - openbabel=3.1.1
     
-    # molsimplify:
-  - molsimplify=1.7.3
-
     # Molecule visualization
   - nglview
 
@@ -40,9 +37,10 @@ dependencies:
     - rdkit
     - ase
     - mendeleev
+    - networkx
     - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
     - git+https://github.com/Liu-group/pyvdwsurface_moreelements.git
     - git+https://github.com/Liu-group/pymsmt_autosolvate.git
-
+    - git+https://github.com/hjkgrp/molsimplify.git@v1.7.3
   #  - codecov
 
