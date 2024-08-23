@@ -165,6 +165,18 @@ class solventBoxBuilder(object):
         return self_solvent
 
     def build(self):
+        """
+        Build the solvated system
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         if self.charge_method == "resp":
             build_resp_terachem(self.solute, folder = self.folder)
         else:

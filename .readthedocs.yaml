@@ -2,3 +2,6 @@ version: 2
 
 conda:
   environment: devtools/conda-envs/test_env.yaml
+  
+sphinx:
+  configuration: docs/conf.py

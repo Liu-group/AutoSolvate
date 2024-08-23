@@ -1,5 +1,5 @@
 Tutorial for Mixed Solvent Box Generation
-=============================
+=========================================
 The following tutorial illustrates the basic usage of **Autosolvate Multicomponent** module in the command line interface (CLI).
 
 There will be one example systems: naphthalene in mixed water and acetonitrile solvent. The tutorial will be broken down into three steps:
@@ -76,7 +76,7 @@ Now that you have the structures, make a directory for the tutorial and move the
    :download:`acetonitrile.frcmod <_data/multicomponent_tutorial/acetonitrile.frcmod>`  
 
 Step-1 : Generate the mixed solvent box with JSON input.
--------------------------------------------
+--------------------------------------------------------
 
 The first step is putting the solute in the solvent box, which uses the ``autosolvate boxgen_multicomponent`` command. The usage for multiple solvent requires a **json** file as the input, but the command line options will still be available for single solute with single solvent. 
 
@@ -130,8 +130,10 @@ When defining the second solvent "acetonitrile", we provided the ``acetonitrile.
    Multicomponent solvent box generation does not support pre-built solvent boxes.
 
 
-Execute the following command to generate the solvent box of naphthalene in mixed water and acetonitrile solution::
-``autosolvate boxgen_multicomponent -f step1_input.json``
+Execute the following command to generate the solvent box of naphthalene in mixed water and acetonitrile solution
+::
+
+   autosolvate boxgen_multicomponent -f step1_input.json
 
 Autosolvate will calculate the forcefield parameters for the solute (naphthalene_neutral), and adapt the provided acetonitrile parameters together with the TIP3P water model to build the solvent box. The output ``.pdb``, ``.prmtop``, and ``.inpcrd`` files for the generated system will be automatically named with the prefix ``naphthalene-water-acetonitrile``. You can change the prefix by specifying the ``output`` keyword in the json file.
 
@@ -197,15 +199,17 @@ The three files that we care about for moving forward to the next step are the o
    The semi-empirical charge fitting method AM1-BCC performs well for closed-shell systems. However, it is not sufficient for open-shell systems, which will require the use of RESP charge fitting available in Gaussian & GAMESS-US. Currently, ``bcc`` is the default setting.
 
 Step-2 & 3 : Run MD simulation and extract microsolvated clusters.
--------------------------------------------
+------------------------------------------------------------------
 
 With the amber input coordinate and topology file (``naphthalene-water-acetonitrile.inpcrd``, ``naphthalene-water-acetonitrile.prmtop``). One can perform the following steps in the exactly the same way as described in the `autosolvate boxgen` tutorial. The following command will generate a classical MD trajectory for the mixed solvent box:
+::
 
-``autosolvate mdrun -f naphthalene-water-acetonitrile -q 0 -u 1 -t 300 -p 1 -i 100 -m 10000 -b 0 -n 10000 -l 0 -o 0 -s 0``
+   autosolvate mdrun -f naphthalene-water-acetonitrile -q 0 -u 1 -t 300 -p 1 -i 100 -m 10000 -b 0 -n 10000 -l 0 -o 0 -s 0
 
 And the command for extracting microsolvated clusters is:
+::
 
-``autosolvate clustergen -f naphthalene-water-acetonitrile.prmtop -t naphthalene-water-acetonitrile-mmnpt.netcdf -a 0 -i 10 -s 4.0``
+   autosolvate clustergen -f naphthalene-water-acetonitrile.prmtop -t naphthalene-water-acetonitrile-mmnpt.netcdf -a 0 -i 10 -s 4.0
 
 This will result in the following microsolvated cluster:
 
