@@ -28,6 +28,8 @@ class RespABC(ABC):
         self.rundir = os.path.abspath(self.rundir)
         self.resp_scr_dir = os.path.join(os.path.abspath(self.rundir), 'resp_scr')
         self.initialization_check(**kwargs)
+        self.xyzfile = kwargs["xyzfile"] if "xyzfile" in kwargs.keys() else "undef"
+        self.nprocs = kwargs["nprocs"] if "nprocs" in kwargs.keys() else "undef"
 
     def initialization_check(self, **kwargs):
         for key, value in kwargs.items():
