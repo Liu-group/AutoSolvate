@@ -1,4 +1,4 @@
-name: autosolvate_add_orca
+name: autosolvate
 channels:
   - conda-forge
 dependencies:
