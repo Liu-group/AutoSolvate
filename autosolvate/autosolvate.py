@@ -46,7 +46,7 @@ class solventBoxBuilder():
 
 
     def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, 
-            charge_method="resp", slu_spinmult=1, outputFile="", 
+            charge_method="resp", slu_spinmult=1, outputFile="", nprocs='8',
             srun_use=False, qm_program='gaussian', qm_exe=None, qm_dir=None,
             amberhome=None, closeness=0.8,
             solvent_off="", solvent_frcmod="",rundir=""):
@@ -54,6 +54,7 @@ class solventBoxBuilder():
         self.solute = pybel.readfile('xyz', xyzfile).__next__()
         self.slu_netcharge = slu_netcharge
         self.slu_spinmult = slu_spinmult
+        self.nprocs = nprocs
         # currently hard coded. Can be changed later to be determined automatically based on the density of the solute
         self.solvent = solvent
         if closeness=='automated':
@@ -245,8 +246,8 @@ class solventBoxBuilder():
         self.removeConectFromPDB()
 
         if self.charge_method == "resp":
-           myresp = resp_factory(pdbfile="solute.xyz.pdb", charge=self.slu_netcharge,
-                                 spinmult=self.slu_spinmult, qm_program=self.qm_program,
+           myresp = resp_factory(pdbfile="solute.xyz.pdb", charge=self.slu_netcharge,xyzfile = self.xyz,
+                                 spinmult=self.slu_spinmult, qm_program=self.qm_program, nprocs = self.nprocs,
                                  qm_exe=self.qm_exe, qm_dir=self.qm_dir,srun_use=self.srun_use,rundir=self.rundir)
            myresp.run()
 
@@ -653,8 +654,8 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "hm:n:s:o:c:b:g:u:rq:e:d:a:t:l:p:vD:"
-    long_options = ["help", "main","solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "validation", "runningdirectory"]
+    options = "hm:n:s:o:c:b:g:u:rq:e:d:a:t:l:p:vD:y:"
+    long_options = ["help", "main","solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "validation", "runningdirectory","nprocs"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
     solutexyz=""
@@ -675,6 +676,7 @@ def startboxgen(argumentList):
     solvent_off=""
     solvent_frcmod=""
     rundir = ""
+    nprocs = 8
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
@@ -696,7 +698,9 @@ def startboxgen(argumentList):
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
             print('  -n, --solutename           initialize suggested parameter for given solute')
             print('  -v, --validation           option to run validation step for input parameters')
+            print('  -y, --nprocs               procs to run orca resp charge calculation, if -q orca')
             print('  -h, --help                 short usage description')
+            print
             exit()
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
@@ -722,6 +726,9 @@ def startboxgen(argumentList):
         elif currentArgument in ("-s", "--solvent"):
             print ("Solvent:", currentValue)
             solvent=str(currentValue)
+        elif currentArgument in ("-y","--nprocs"):
+            nprocs = str(currentValue)
+            print('Use',nprocs,'proces to run orca respfitting if -g orca')
         elif currentArgument in ("-o", "--output"):
             print ("Output:", currentValue)
             outputFile=str(currentValue)
@@ -794,7 +801,7 @@ def startboxgen(argumentList):
         exit()
      
     builder = solventBoxBuilder(solutexyz, solvent=solvent, slu_netcharge=slu_netcharge,
-                                cube_size=cube_size, charge_method=charge_method, 
+                                cube_size=cube_size, charge_method=charge_method, nprocs=nprocs,
                                 slu_spinmult=slu_spinmult, outputFile=outputFile, srun_use=srun_use, 
                                 qm_program=qmprogram, qm_exe=qmexe, qm_dir=qmdir,
                                 amberhome=amberhome, closeness=closeness, 

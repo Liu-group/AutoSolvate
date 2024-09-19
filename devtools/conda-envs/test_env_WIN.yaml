@@ -33,5 +33,6 @@ dependencies:
     - imolecule
     - pillow
     - pubchempy
+    - git+https://github.com/Liu-group/pyvdwsurface_moreelements.git
   #  - codecov
 
