@@ -91,6 +91,46 @@ class MulticomponentParamsBuilder():
 
        
 class MulticomponentSolventBoxBuilder():
+    """
+    Build a solvent box for a single molecule complex as the solute and single solvent
+
+    Parameters
+    ----------
+    xyzfile : str
+        structure file of the molecular complex, can be any type within ["xyz", "pdb", "mol2"]. "prep", "lib", "off" are not supported for molecular complex.
+    slu_charge : int or dict, Optional, default: 0
+        Charge of the solute. if complex has charged fragments, provide a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral.
+    slu_spinmult : int or dict, Optional, default: 1
+        Spin multiplicity of the solute. if complex has non-singlet fragments, provide a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet.
+    charge_method : str, Optional, default: "resp"
+        name of charge fitting method (bcc, resp)
+    slu_count : int, Optional, default: 1
+        number of the solute in the system. Not recommanded to set this parameter. Be cautious about this as the solute may have more than 1 fragments.
+    solvent : str, Optional, default: "water"
+        name of the solvent. Predefined solvents include ["water", "methanol", "chloroform", "nma"].
+    solvent_frcmod : str, Optional, default: ""
+        path to the frcmod file of the solvent. Required when user have the solvent forcefield parameters prepared.
+    solvent_off : str, Optional, default: ""
+        path to the off file of the solvent. Required when user have the solvent forcefield parameters prepared.
+    solvent_box_name : str, Optional, default: "SLVBOX"
+        name of the solvent box
+    slv_generate : bool, Optional, default: False
+        whether to generate the solvent forcefield parameters with GAFF. If True, the solvent forcefield will be generated with GAFF, where 'slv_xyz' parameter will be needed. If False, the solvent will be treated as a predefined solvent in AMBER or user should provide the frcmod & prep files.
+    slv_xyz : str, Optional, default: ""
+        path to the xyz file of the solvent. Required when user want to generate the solvent forcefield parameters with GAFF.
+    slv_count : int, Optional, default: 210*8
+        number of the solvent in the system.
+    cube_size : int, Optional, default: 54
+        size of solvent cube in angstroms
+    closeness : float, Optional, default: 0.8
+        Solute-solvent closeness setting, corresponding to the tolerance parameter in packmol in Å,
+    folder : str, Optional, default: current working directory
+        the directory where the files are generated
+    outputFile : str, Optional, default: ""
+        prefix of the output .pdb, .inpcrd and .prmtop files
+    kwargs : dict
+        Other arguments that need to be included in the solute. Remained for future development.    
+    """
     def __init__(self, 
                  xyzfile:str, slu_charge=0, slu_spinmult=1, charge_method="resp", slu_count = 1,
                  solvent = "water", solvent_frcmod = "", solvent_off = "", solvent_box_name = "SLVBOX",
@@ -158,6 +198,18 @@ class MulticomponentSolventBoxBuilder():
         return self_solvent
 
     def build(self):
+        """
+        Build the solvated system with molecule complex as the solute and single solvent 
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        
+        """
         for m in self.solute.newmolecules:
             if self.charge_method == "resp":
                 build_resp_terachem(m, folder = self.folder)
@@ -222,7 +274,7 @@ class MixtureBuilder():
 
     def add_complex_solute(self, xyzfile:str, fragment_charge = 0, fragment_spinmult = 1, number = 1, **kwargs):
         """
-        add a molecular complex as the solute 
+        add a molecular complex as the solute. e.g. a electron transfer donor-acceptor pair
 
         Parameters
         ----------
@@ -233,7 +285,7 @@ class MixtureBuilder():
         fragment_spinmult : dict | array_like, Optional, default: 1
             Multiplicity for each fragment. A dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet.
         number : int, Optional, default: 1
-            number of the solute in the system. Be cautious about this as the solute may have more than 1 fragments.
+            number of the solute in the system. Not recommanded to set this parameter. Be cautious about this as the solute may have more than 1 fragments.
         **kwargs : dict
             Other arguments that need to be included in the solute. Remained for future development.
         """
@@ -267,10 +319,10 @@ class MixtureBuilder():
             additional files needed for the solute, including "mol2", "frcmod", "lib", "prep", and "off". Will support "itp", "top" in the future.
             If the user want to skip the antechamber and leap steps, the user need to provide the "mol2" and "frcmod" files by adding the following arguments:
             
-        mol2 : str  
-            the path of the mol2 file of the solute
-        frcmod : str
-            the path of the frcmod file of the solute
+            mol2 : str  
+                the path of the mol2 file of the solute
+            frcmod : str
+                the path of the frcmod file of the solute
         """
 
         if ("mol2" in kwargs and os.path.isfile(kwargs["mol2"])) and \
@@ -314,7 +366,6 @@ class MixtureBuilder():
         return solvent_type
 
     def add_solvent(self, xyzfile:str = "", name="", residue_name="SLV", charge=0, spinmult=1, number = 210*8, **kwargs):
-
         """
         add a type of solvent
 
@@ -335,6 +386,7 @@ class MixtureBuilder():
         **kwargs : dict
             additional files needed for the solvent, including "mol2", "frcmod", "lib", "prep", will support "itp", "top" in the future.
             If the user want to skip the antechamber and leap steps, the user need to provide the ["mol2" or "prep"] and "frcmod" files by adding the following arguments:
+            
             mol2 : str  
                 the path of the mol2 file of the solvent
             frcmod : str
@@ -386,6 +438,18 @@ class MixtureBuilder():
         self.solvents.append(self_solvent)
 
     def build(self):
+        """
+        Start to build the mixed solvent box. No parameters are needed.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         if not self.systemprefix:
             system_name = "-".join([m.name for m in self.solutes] + [m.name for m in self.solvents])
         else:
@@ -402,6 +466,16 @@ class MixtureBuilder():
             docker.run(system)
 
 def startmulticomponent_fromdata(data:dict):
+    """
+    Start the multicomponent solvation process from a python dictionary.
+
+    Parameters
+    ----------
+    data : dict
+        dictionary containing the input parameters. Usually generated from a json file.
+    """
+
+
     data["folder"] = WORKING_DIR
     signature = inspect.signature(MixtureBuilder.__init__)
     function_params = signature.parameters
@@ -431,6 +505,14 @@ def startmulticomponent_fromdata(data:dict):
     builder.build()
 
 def startmulticomponent_fromfile(file:str):
+    """
+    Start the multicomponent solvation process from a json file.
+
+    Parameters
+    ----------
+    file : str
+        json file containing the input parameters. 
+    """
     with open(file, "r") as f:
         data = json.load(f)
     startmulticomponent_fromdata(data)
@@ -438,7 +520,7 @@ def startmulticomponent_fromfile(file:str):
 def create_parser_multicomponent():
     parser = argparse.ArgumentParser(
         description='Add solvent box to a given solute and generate related force field parameters.',
-        epilog="suggest usage: autosolvate multicomponent -f input.json \nif an input file is provided, all command line options will be ignored. \nIf using command line as the traditional way, it will only generate a single solute with single solvent. \nThis is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use."
+        epilog="suggest usage: autosolvate multicomponent -f <JSON path> \nif an input file is provided, all command line options will be ignored. \nIf using command line as the traditional way, it will only generate a single solute with single solvent. \nThis is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use."
     )
 
     parser.add_argument('-f', '--file',            type=str,  help='json file containing the input parameters. Will ignore all other options if provided. Required when using multiple solvents')
@@ -460,9 +542,10 @@ def startmulticomponent(args):
     r"""
     Wrap function that parses command line options for autosolvate multicomponent module,
     generate solvent box and related force field parameters.
+    suggested usage: autosolvate multicomponent -f <JSON path>
     
     Command Line Options
-    ----------
+    --------------------
         -f, --file 
             json file containing the input parameters, Required when using multiple solvents. Will ignore all other options if provided.
         -m, --main  

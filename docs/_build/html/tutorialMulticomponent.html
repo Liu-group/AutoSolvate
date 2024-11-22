@@ -197,8 +197,10 @@
 </ol>
 <p>Multicomponent solvent box generation does not support pre-built solvent boxes.</p>
 </div>
-<p>Execute the following command to generate the solvent box of naphthalene in mixed water and acetonitrile solution::
-<code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen_multicomponent</span> <span class="pre">-f</span> <span class="pre">step1_input.json</span></code></p>
+<p>Execute the following command to generate the solvent box of naphthalene in mixed water and acetonitrile solution</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autosolvate</span> <span class="n">boxgen_multicomponent</span> <span class="o">-</span><span class="n">f</span> <span class="n">step1_input</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
 <p>Autosolvate will calculate the forcefield parameters for the solute (naphthalene_neutral), and adapt the provided acetonitrile parameters together with the TIP3P water model to build the solvent box. The output <code class="docutils literal notranslate"><span class="pre">.pdb</span></code>, <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code>, and <code class="docutils literal notranslate"><span class="pre">.inpcrd</span></code> files for the generated system will be automatically named with the prefix <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile</span></code>. You can change the prefix by specifying the <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword in the json file.</p>
 <p>Most output information will be printed in the <code class="docutils literal notranslate"><span class="pre">autosolvate.log</span></code> file in the working directory. If the command run successfully, you should now have the following files in your directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">frcmod</span>        <span class="n">leap_convert</span><span class="o">.</span><span class="n">cmd</span>                         <span class="n">naphthalene</span><span class="o">.</span><span class="n">prmtop</span>
@@ -257,9 +259,13 @@
 <section id="step-2-3-run-md-simulation-and-extract-microsolvated-clusters">
 <h2>Step-2 &amp; 3 : Run MD simulation and extract microsolvated clusters.<a class="headerlink" href="#step-2-3-run-md-simulation-and-extract-microsolvated-clusters" title="Permalink to this heading"></a></h2>
 <p>With the amber input coordinate and topology file (<code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.inpcrd</span></code>, <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.prmtop</span></code>). One can perform the following steps in the exactly the same way as described in the <cite>autosolvate boxgen</cite> tutorial. The following command will generate a classical MD trajectory for the mixed solvent box:</p>
-<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">naphthalene-water-acetonitrile</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-t</span> <span class="pre">300</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-i</span> <span class="pre">100</span> <span class="pre">-m</span> <span class="pre">10000</span> <span class="pre">-b</span> <span class="pre">0</span> <span class="pre">-n</span> <span class="pre">10000</span> <span class="pre">-l</span> <span class="pre">0</span> <span class="pre">-o</span> <span class="pre">0</span> <span class="pre">-s</span> <span class="pre">0</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autosolvate</span> <span class="n">mdrun</span> <span class="o">-</span><span class="n">f</span> <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span> <span class="o">-</span><span class="n">q</span> <span class="mi">0</span> <span class="o">-</span><span class="n">u</span> <span class="mi">1</span> <span class="o">-</span><span class="n">t</span> <span class="mi">300</span> <span class="o">-</span><span class="n">p</span> <span class="mi">1</span> <span class="o">-</span><span class="n">i</span> <span class="mi">100</span> <span class="o">-</span><span class="n">m</span> <span class="mi">10000</span> <span class="o">-</span><span class="n">b</span> <span class="mi">0</span> <span class="o">-</span><span class="n">n</span> <span class="mi">10000</span> <span class="o">-</span><span class="n">l</span> <span class="mi">0</span> <span class="o">-</span><span class="n">o</span> <span class="mi">0</span> <span class="o">-</span><span class="n">s</span> <span class="mi">0</span>
+</pre></div>
+</div>
 <p>And the command for extracting microsolvated clusters is:</p>
-<p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">naphthalene-water-acetonitrile.prmtop</span> <span class="pre">-t</span> <span class="pre">naphthalene-water-acetonitrile-mmnpt.netcdf</span> <span class="pre">-a</span> <span class="pre">0</span> <span class="pre">-i</span> <span class="pre">10</span> <span class="pre">-s</span> <span class="pre">4.0</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autosolvate</span> <span class="n">clustergen</span> <span class="o">-</span><span class="n">f</span> <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span><span class="o">.</span><span class="n">prmtop</span> <span class="o">-</span><span class="n">t</span> <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span><span class="o">-</span><span class="n">mmnpt</span><span class="o">.</span><span class="n">netcdf</span> <span class="o">-</span><span class="n">a</span> <span class="mi">0</span> <span class="o">-</span><span class="n">i</span> <span class="mi">10</span> <span class="o">-</span><span class="n">s</span> <span class="mf">4.0</span>
+</pre></div>
+</div>
 <p>This will result in the following microsolvated cluster:</p>
 <a class="reference internal image-reference" href="_images/tutorial5_4.png"><img alt="_images/tutorial5_4.png" src="_images/tutorial5_4.png" style="width: 600px;" /></a>
 </section>
@@ -276,7 +282,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+    <p>&#169; Copyright 2024, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -151,7 +151,7 @@
             <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bcc_pipeline</span><span class="p">:</span>
                 <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="solventBoxBuilder"><a class="viewcode-back" href="../../autosummary/autosolvate.autosolvate.solventBoxBuilder.html#autosolvate.autosolvate.solventBoxBuilder">[docs]</a><span class="k">class</span> <span class="nc">solventBoxBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="solventBoxBuilder"><a class="viewcode-back" href="../../autosummary/autosolvate.solventBoxBuilder.html#autosolvate.autosolvate.solventBoxBuilder">[docs]</a><span class="k">class</span> <span class="nc">solventBoxBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Solvated molecule in specified solvent.</span>
 <span class="sd">    </span>
@@ -176,7 +176,7 @@
 <span class="sd">    None</span>
 <span class="sd">        To run solvation, call build function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="solventBoxBuilder.__init__"><a class="viewcode-back" href="../../autosummary/autosolvate.autosolvate.solventBoxBuilder.html#autosolvate.autosolvate.solventBoxBuilder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+<div class="viewcode-block" id="solventBoxBuilder.__init__"><a class="viewcode-back" href="../../autosummary/autosolvate.solventBoxBuilder.html#autosolvate.autosolvate.solventBoxBuilder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
                  <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">slu_netcharge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">slu_spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">charge_method</span><span class="o">=</span><span class="s2">&quot;resp&quot;</span><span class="p">,</span> <span class="n">slu_count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">solvent</span> <span class="o">=</span> <span class="s2">&quot;water&quot;</span><span class="p">,</span> <span class="n">solvent_frcmod</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_off</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_box_name</span> <span class="o">=</span> <span class="s2">&quot;SLVBOX&quot;</span><span class="p">,</span>
                  <span class="n">slv_generate</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">slv_xyz</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">slv_count</span> <span class="o">=</span> <span class="mi">210</span><span class="o">*</span><span class="mi">8</span><span class="p">,</span>
@@ -244,7 +244,19 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Solvent not found&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">self_solvent</span>
 
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="solventBoxBuilder.build"><a class="viewcode-back" href="../../autosummary/autosolvate.solventBoxBuilder.build.html#autosolvate.autosolvate.solventBoxBuilder.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the solvated system</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span> <span class="o">==</span> <span class="s2">&quot;resp&quot;</span><span class="p">:</span>
             <span class="n">build_resp_terachem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solute</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -258,9 +270,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">prebuilt_solvation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solvent</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span></div></div>
 
-<div class="viewcode-block" id="startboxgen"><a class="viewcode-back" href="../../autosummary/autosolvate.autosolvate.startboxgen.html#autosolvate.autosolvate.startboxgen">[docs]</a><span class="k">def</span> <span class="nf">startboxgen</span><span class="p">(</span><span class="n">argumentList</span><span class="p">):</span>
+<div class="viewcode-block" id="startboxgen"><a class="viewcode-back" href="../../autosummary/autosolvate.startboxgen.html#autosolvate.autosolvate.startboxgen">[docs]</a><span class="k">def</span> <span class="nf">startboxgen</span><span class="p">(</span><span class="n">argumentList</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrap function that parses command line options for autosolvate boxgen,</span>
 <span class="sd">    adds solvent box to a given solute,</span>
@@ -411,7 +423,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+    <p>&#169; Copyright 2024, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -55,6 +55,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.startboxgen.html">autosolvate.autosolvate.startboxgen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.solventBoxBuilder.html">autosolvate.autosolvate.solventBoxBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.solventBoxBuilder.build.html">autosolvate.autosolvate.solventBoxBuilder.build</a></li>
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.autosolvate.AmberParamsBuilder.html">autosolvate.autosolvate.AmberParamsBuilder</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">autosolvate.multicomponent.startmulticomponent</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#autosolvate.multicomponent.startmulticomponent"><code class="docutils literal notranslate"><span class="pre">startmulticomponent()</span></code></a></li>
@@ -64,6 +65,10 @@
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MulticomponentParamsBuilder.html">autosolvate.multicomponent.MulticomponentParamsBuilder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html">autosolvate.multicomponent.MulticomponentSolventBoxBuilder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MixtureBuilder.html">autosolvate.multicomponent.MixtureBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MixtureBuilder.add_solute.html">autosolvate.multicomponent.MixtureBuilder.add_solute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MixtureBuilder.add_solvent.html">autosolvate.multicomponent.MixtureBuilder.add_solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.multicomponent.MixtureBuilder.build.html">autosolvate.multicomponent.MixtureBuilder.build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autosolvate.startboxgen.html">autosolvate.startboxgen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.startmd.html">autosolvate.generatetrajs.startmd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMminInput.html">autosolvate.generatetrajs.writeMMminInput</a></li>
 <li class="toctree-l2"><a class="reference internal" href="autosolvate.generatetrajs.writeMMheatInput.html">autosolvate.generatetrajs.writeMMheatInput</a></li>
@@ -112,7 +117,8 @@
 <dt class="sig sig-object py" id="autosolvate.multicomponent.startmulticomponent">
 <span class="sig-prename descclassname"><span class="pre">autosolvate.multicomponent.</span></span><span class="sig-name descname"><span class="pre">startmulticomponent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autosolvate/multicomponent.html#startmulticomponent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autosolvate.multicomponent.startmulticomponent" title="Permalink to this definition"></a></dt>
 <dd><p>Wrap function that parses command line options for autosolvate multicomponent module,
-generate solvent box and related force field parameters.</p>
+generate solvent box and related force field parameters.
+suggested usage: autosolvate multicomponent -f &lt;JSON path&gt;</p>
 <section id="command-line-options">
 <h2>Command Line Options<a class="headerlink" href="#command-line-options" title="Permalink to this heading"></a></h2>
 <blockquote>
@@ -182,7 +188,7 @@ generate solvent box and related force field parameters.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+    <p>&#169; Copyright 2024, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

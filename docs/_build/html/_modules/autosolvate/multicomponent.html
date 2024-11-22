@@ -171,6 +171,46 @@
 
        
 <div class="viewcode-block" id="MulticomponentSolventBoxBuilder"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html#autosolvate.multicomponent.MulticomponentSolventBoxBuilder">[docs]</a><span class="k">class</span> <span class="nc">MulticomponentSolventBoxBuilder</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a solvent box for a single molecule complex as the solute and single solvent</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xyzfile : str</span>
+<span class="sd">        structure file of the molecular complex, can be any type within [&quot;xyz&quot;, &quot;pdb&quot;, &quot;mol2&quot;]. &quot;prep&quot;, &quot;lib&quot;, &quot;off&quot; are not supported for molecular complex.</span>
+<span class="sd">    slu_charge : int or dict, Optional, default: 0</span>
+<span class="sd">        Charge of the solute. if complex has charged fragments, provide a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as neutral.</span>
+<span class="sd">    slu_spinmult : int or dict, Optional, default: 1</span>
+<span class="sd">        Spin multiplicity of the solute. if complex has non-singlet fragments, provide a dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet.</span>
+<span class="sd">    charge_method : str, Optional, default: &quot;resp&quot;</span>
+<span class="sd">        name of charge fitting method (bcc, resp)</span>
+<span class="sd">    slu_count : int, Optional, default: 1</span>
+<span class="sd">        number of the solute in the system. Not recommanded to set this parameter. Be cautious about this as the solute may have more than 1 fragments.</span>
+<span class="sd">    solvent : str, Optional, default: &quot;water&quot;</span>
+<span class="sd">        name of the solvent. Predefined solvents include [&quot;water&quot;, &quot;methanol&quot;, &quot;chloroform&quot;, &quot;nma&quot;].</span>
+<span class="sd">    solvent_frcmod : str, Optional, default: &quot;&quot;</span>
+<span class="sd">        path to the frcmod file of the solvent. Required when user have the solvent forcefield parameters prepared.</span>
+<span class="sd">    solvent_off : str, Optional, default: &quot;&quot;</span>
+<span class="sd">        path to the off file of the solvent. Required when user have the solvent forcefield parameters prepared.</span>
+<span class="sd">    solvent_box_name : str, Optional, default: &quot;SLVBOX&quot;</span>
+<span class="sd">        name of the solvent box</span>
+<span class="sd">    slv_generate : bool, Optional, default: False</span>
+<span class="sd">        whether to generate the solvent forcefield parameters with GAFF. If True, the solvent forcefield will be generated with GAFF, where &#39;slv_xyz&#39; parameter will be needed. If False, the solvent will be treated as a predefined solvent in AMBER or user should provide the frcmod &amp; prep files.</span>
+<span class="sd">    slv_xyz : str, Optional, default: &quot;&quot;</span>
+<span class="sd">        path to the xyz file of the solvent. Required when user want to generate the solvent forcefield parameters with GAFF.</span>
+<span class="sd">    slv_count : int, Optional, default: 210*8</span>
+<span class="sd">        number of the solvent in the system.</span>
+<span class="sd">    cube_size : int, Optional, default: 54</span>
+<span class="sd">        size of solvent cube in angstroms</span>
+<span class="sd">    closeness : float, Optional, default: 0.8</span>
+<span class="sd">        Solute-solvent closeness setting, corresponding to the tolerance parameter in packmol in Å,</span>
+<span class="sd">    folder : str, Optional, default: current working directory</span>
+<span class="sd">        the directory where the files are generated</span>
+<span class="sd">    outputFile : str, Optional, default: &quot;&quot;</span>
+<span class="sd">        prefix of the output .pdb, .inpcrd and .prmtop files</span>
+<span class="sd">    kwargs : dict</span>
+<span class="sd">        Other arguments that need to be included in the solute. Remained for future development.    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="MulticomponentSolventBoxBuilder.__init__"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MulticomponentSolventBoxBuilder.html#autosolvate.multicomponent.MulticomponentSolventBoxBuilder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
                  <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">slu_charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">slu_spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">charge_method</span><span class="o">=</span><span class="s2">&quot;resp&quot;</span><span class="p">,</span> <span class="n">slu_count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">solvent</span> <span class="o">=</span> <span class="s2">&quot;water&quot;</span><span class="p">,</span> <span class="n">solvent_frcmod</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_off</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">solvent_box_name</span> <span class="o">=</span> <span class="s2">&quot;SLVBOX&quot;</span><span class="p">,</span>
@@ -238,6 +278,18 @@
         <span class="k">return</span> <span class="n">self_solvent</span>
 
     <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the solvated system with molecule complex as the solute and single solvent </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solute</span><span class="o">.</span><span class="n">newmolecules</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_method</span> <span class="o">==</span> <span class="s2">&quot;resp&quot;</span><span class="p">:</span>
                 <span class="n">build_resp_terachem</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
@@ -302,7 +354,7 @@
 
     <span class="k">def</span> <span class="nf">add_complex_solute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">fragment_charge</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">fragment_spinmult</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        add a molecular complex as the solute </span>
+<span class="sd">        add a molecular complex as the solute. e.g. a electron transfer donor-acceptor pair</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -313,7 +365,7 @@
 <span class="sd">        fragment_spinmult : dict | array_like, Optional, default: 1</span>
 <span class="sd">            Multiplicity for each fragment. A dictionary with the three-letter name of the residue as the key and the corresponding charge as the value. If not given, all fragment will be considered as singlet.</span>
 <span class="sd">        number : int, Optional, default: 1</span>
-<span class="sd">            number of the solute in the system. Be cautious about this as the solute may have more than 1 fragments.</span>
+<span class="sd">            number of the solute in the system. Not recommanded to set this parameter. Be cautious about this as the solute may have more than 1 fragments.</span>
 <span class="sd">        **kwargs : dict</span>
 <span class="sd">            Other arguments that need to be included in the solute. Remained for future development.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -325,7 +377,7 @@
         <span class="n">molecule</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
         
-    <span class="k">def</span> <span class="nf">add_solute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s2">&quot;SLU&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="MixtureBuilder.add_solute"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MixtureBuilder.add_solute.html#autosolvate.multicomponent.MixtureBuilder.add_solute">[docs]</a>    <span class="k">def</span> <span class="nf">add_solute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s2">&quot;SLU&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        add a solute molecule</span>
 
@@ -347,10 +399,10 @@
 <span class="sd">            additional files needed for the solute, including &quot;mol2&quot;, &quot;frcmod&quot;, &quot;lib&quot;, &quot;prep&quot;, and &quot;off&quot;. Will support &quot;itp&quot;, &quot;top&quot; in the future.</span>
 <span class="sd">            If the user want to skip the antechamber and leap steps, the user need to provide the &quot;mol2&quot; and &quot;frcmod&quot; files by adding the following arguments:</span>
 <span class="sd">            </span>
-<span class="sd">        mol2 : str  </span>
-<span class="sd">            the path of the mol2 file of the solute</span>
-<span class="sd">        frcmod : str</span>
-<span class="sd">            the path of the frcmod file of the solute</span>
+<span class="sd">            mol2 : str  </span>
+<span class="sd">                the path of the mol2 file of the solute</span>
+<span class="sd">            frcmod : str</span>
+<span class="sd">                the path of the frcmod file of the solute</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;mol2&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mol2&quot;</span><span class="p">]))</span> <span class="ow">and</span> \
@@ -365,7 +417,7 @@
             <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_molecule_pipeline</span><span class="p">:</span>
                 <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
         <span class="n">molecule</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">get_solvent_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">solvent_type</span> <span class="o">=</span> <span class="s2">&quot;generate&quot;</span>
@@ -393,8 +445,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Solvent not found&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">solvent_type</span>
 
-    <span class="k">def</span> <span class="nf">add_solvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s2">&quot;SLV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">210</span><span class="o">*</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
+<div class="viewcode-block" id="MixtureBuilder.add_solvent"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MixtureBuilder.add_solvent.html#autosolvate.multicomponent.MixtureBuilder.add_solvent">[docs]</a>    <span class="k">def</span> <span class="nf">add_solvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyzfile</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s2">&quot;SLV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">210</span><span class="o">*</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        add a type of solvent</span>
 
@@ -415,6 +466,7 @@
 <span class="sd">        **kwargs : dict</span>
 <span class="sd">            additional files needed for the solvent, including &quot;mol2&quot;, &quot;frcmod&quot;, &quot;lib&quot;, &quot;prep&quot;, will support &quot;itp&quot;, &quot;top&quot; in the future.</span>
 <span class="sd">            If the user want to skip the antechamber and leap steps, the user need to provide the [&quot;mol2&quot; or &quot;prep&quot;] and &quot;frcmod&quot; files by adding the following arguments:</span>
+<span class="sd">            </span>
 <span class="sd">            mol2 : str  </span>
 <span class="sd">                the path of the mol2 file of the solvent</span>
 <span class="sd">            frcmod : str</span>
@@ -463,9 +515,21 @@
         <span class="k">for</span> <span class="n">solvent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">solvent</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">self_solvent</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solvent </span><span class="si">{</span><span class="n">solvent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> already exists&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">self_solvent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">self_solvent</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MixtureBuilder.build"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.MixtureBuilder.build.html#autosolvate.multicomponent.MixtureBuilder.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Start to build the mixed solvent box. No parameters are needed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">systemprefix</span><span class="p">:</span>
             <span class="n">system_name</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutes</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
@@ -479,9 +543,19 @@
                                 <span class="n">solute_number</span> <span class="o">=</span> <span class="n">solute_numbers</span><span class="p">,</span> <span class="n">solvent_number</span> <span class="o">=</span> <span class="n">solvent_numbers</span><span class="p">,</span>
                                 <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">docker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_solvation</span><span class="p">:</span>
-            <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">system</span><span class="p">)</span></div>
+            <span class="n">docker</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">system</span><span class="p">)</span></div></div>
 
 <span class="k">def</span> <span class="nf">startmulticomponent_fromdata</span><span class="p">(</span><span class="n">data</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Start the multicomponent solvation process from a python dictionary.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : dict</span>
+<span class="sd">        dictionary containing the input parameters. Usually generated from a json file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
     <span class="n">data</span><span class="p">[</span><span class="s2">&quot;folder&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">WORKING_DIR</span>
     <span class="n">signature</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">MixtureBuilder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">)</span>
     <span class="n">function_params</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span>
@@ -511,6 +585,14 @@
     <span class="n">builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 
 <div class="viewcode-block" id="startmulticomponent_fromfile"><a class="viewcode-back" href="../../autosummary/autosolvate.multicomponent.startmulticomponent_fromfile.html#autosolvate.multicomponent.startmulticomponent_fromfile">[docs]</a><span class="k">def</span> <span class="nf">startmulticomponent_fromfile</span><span class="p">(</span><span class="n">file</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Start the multicomponent solvation process from a json file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file : str</span>
+<span class="sd">        json file containing the input parameters. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="n">startmulticomponent_fromdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
@@ -518,7 +600,7 @@
 <span class="k">def</span> <span class="nf">create_parser_multicomponent</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Add solvent box to a given solute and generate related force field parameters.&#39;</span><span class="p">,</span>
-        <span class="n">epilog</span><span class="o">=</span><span class="s2">&quot;suggest usage: autosolvate multicomponent -f input.json </span><span class="se">\n</span><span class="s2">if an input file is provided, all command line options will be ignored. </span><span class="se">\n</span><span class="s2">If using command line as the traditional way, it will only generate a single solute with single solvent. </span><span class="se">\n</span><span class="s2">This is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use.&quot;</span>
+        <span class="n">epilog</span><span class="o">=</span><span class="s2">&quot;suggest usage: autosolvate multicomponent -f &lt;JSON path&gt; </span><span class="se">\n</span><span class="s2">if an input file is provided, all command line options will be ignored. </span><span class="se">\n</span><span class="s2">If using command line as the traditional way, it will only generate a single solute with single solvent. </span><span class="se">\n</span><span class="s2">This is a legacy feature, designed solely for the compatibility with the older version. It is not recommended for further use.&quot;</span>
     <span class="p">)</span>
 
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;--file&#39;</span><span class="p">,</span>            <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>  <span class="n">help</span><span class="o">=</span><span class="s1">&#39;json file containing the input parameters. Will ignore all other options if provided. Required when using multiple solvents&#39;</span><span class="p">)</span>
@@ -540,9 +622,10 @@
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrap function that parses command line options for autosolvate multicomponent module,</span>
 <span class="sd">    generate solvent box and related force field parameters.</span>
+<span class="sd">    suggested usage: autosolvate multicomponent -f &lt;JSON path&gt;</span>
 <span class="sd">    </span>
 <span class="sd">    Command Line Options</span>
-<span class="sd">    ----------</span>
+<span class="sd">    --------------------</span>
 <span class="sd">        -f, --file </span>
 <span class="sd">            json file containing the input parameters, Required when using multiple solvents. Will ignore all other options if provided.</span>
 <span class="sd">        -m, --main  </span>
@@ -608,7 +691,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+    <p>&#169; Copyright 2024, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
