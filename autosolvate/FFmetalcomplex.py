@@ -11,6 +11,43 @@ from glob import glob
 support_method = ['B3LYP']
 support_basisset = ['6-31G','6-31G*','LANL2DZ','6-31GS']
 
+def check_the_charge(metalcharge, totalcharge):
+    if metalcharge == None and totalcharge.upper() in ['DEFAULT']:
+        raise TypeError('Error: can not find metal charge or total charge!')
+        sys.exit()
+        return True
+        
+    elif metalcharge != None and totalcharge.upper() in ['DEFAULT']:
+        print('Will use the metal_charge set by user')
+        try:
+            int(metalcharge)
+            print('The charge of metal is assigned as', metalcharge)
+        except ValueError:
+            print('Error: Invalid input for the metal charge')
+            sys.exit()
+        return True
+    
+    elif metalcharge != None and totalcharge.upper() not in ['DEFAULT']:
+        print('Will use the metal_charge set by user and ignore the totalcharge set by user')
+        try:
+            int(metalcharge)
+            print('The charge of metal is assigned as', metalcharge)
+        except ValueError:
+            print('Error: Invalid input for the metal charge')
+            sys.exit()
+        return False
+    
+    elif metalcharge == None and totalcharge.upper() not in ['DEFAULT']:
+        print('Will use the totalcharge set by user')
+        try:
+            int(totalcharge)
+            print('The charge of metal is assigned as', totalcharge)
+            print('Assign a fake charge for metal to generate metal mol2 file')
+            metalcharge = '2'
+        except ValueError:
+            print('Error: Invalid input for the total charge')
+            sys.exit()
+        return 'default'
 
 class genFF():
     def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,folder,maxcore,
@@ -77,30 +114,12 @@ class genFF():
                 print('Erorr',self.basisset,'is not supported if QM software is GAMESS-US')
         
         try:
-            int(self.metal_charge)
-            print('The charge of metal is assigned as', self.metal_charge)
-        except ValueError:
-            print('Error: Invalid input for the metal charge')
-            sys.exit()
-        
-        try:
             int(self.nprocs)
             print('The number of procs is assigned as',self.nprocs)
         except ValueError:
             print('Error: Invalid input for the number of procs')
             sys.exit()
-        
-        if self.totalcharge.uppper() in ['DEFAULT']:
-            print('The charge of total system is set as default, will be calculated after the charge assignments for each ligand and metal')
-        
-        else:
-            try:
-                int(self.totalcharge)
-                print('The totalcharge is assigned as',self.totalcharge)
-            except ValueError:
-                print('Error: Invalid input for the number of totalcharge')
-                sys.exit()
-        
+
         if self.opt not in  ["Y","N"]:
             raise TypeError('Error: Invalid input for opt option')
         
@@ -120,6 +139,10 @@ class genFF():
                             raise TypeError('The solvent name does not fit the name in off file')
                 else:
                     raise TypeError('Error: cant find off or frcmod solvent file')
+        
+        check_charge = check_the_charge(metalcharge = self.metalcharge, totalcharge = self.totalcharge)
+        if check_charge == False:
+           self.totalcharge  = 'default'
                 
         if self.solvent_frcmod != '':
              if self.solvent_off == '':
@@ -458,12 +481,19 @@ class genFF():
                         print('Erorr: cant find',mkinp)
                 
     def build(self):
+        check_charge = check_the_charge(metalcharge = self.metal_charge, totalcharge = self.totalcharge)
+        if check_charge == False:
+           self.totalcharge  = 'default'
+        if check_charge == 'default':
+           self.metal_charge == 'default'
         print (self.folder)
         os.makedirs(self.folder, exist_ok=True)
         os.system('cp ' + self.xyzfile + ' ' + self.folder)
         cwd = os.getcwd()
       #  print(cwd)
         os.chdir(self.folder)
+        
+        
 
         print('******************** start to generate inputs for MCPB.py -s 1 ********************')
         step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
@@ -585,47 +615,7 @@ class genFF():
             raise TypeError('Erorr: can not find ' + solvated_prmtop + ', please check tleap.log')
         os.chdir(cwd)
 
-"""
-        pdb_prefix = self.filename
-        solvent = self.solvent
-        output = ''
-        charge = self.totalcharge
-        cube_size = self.cubesize
-        amberhome = self.amberhome
-        closeness = self.closeness
-        solvent_off = self.solvent_off
-        solvent_frcmod = self.solvent_frcmod
-        cmd = [
-        "boxgen_metal",
-        "-m", str(pdb_prefix),
-        "-s", str(solvent),
-        "-o", str(output),
-        "-c", str(charge),
-        "-b", str(cube_size),
-        "-a", str(amberhome),
-        "-t", str(closeness),
-        "-l", str(solvent_off),
-        "-p", str(solvent_frcmod)
-               ]
-        try:
-           result = subprocess.run(cmd, capture_output=True, text=True)
-        except FileNotFoundError:
-            cmd = [
-                "python -m autosolvate.boxgen_metal",
-                "-m", str(pdb_prefix),
-                "-s", str(solvent),
-                "-o", str(output),
-                "-c", str(charge),
-                "-b", str(cube_size),
-                "-a", str(amberhome),
-                "-t", str(closeness),
-                "-l", str(solvent_off),
-                "-p", str(solvent_frcmod)
-                    ]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.stderr:
-            print( result.stderr)
-"""
+
 
 def startFFgen(argumentList):
     options = 'hm:k:u:v:f:e:c:y:d:i:l:p:j:a:w:s:b:t:D:x:g:'

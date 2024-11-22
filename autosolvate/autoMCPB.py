@@ -64,23 +64,35 @@ def check_ligand(sdf):
         type_dic = {}
         connected = []
         data = f.readlines()
-        atomnumbers = int(data[3].split()[0])
+       # atomnumbers = int(data[3].split()[0])
+        atomnumbers = int(data[3][:3])
         for i in range(atomnumbers):
             linker_dic[i] = 0
-        bondsnumber = int(data[3].split()[1])
+        #bondsnumber = int(data[3].split()[1])
+        
+        bondsnumber = int(data[3][3:6])
+        
+       # print(bondsnumber)
         connectioninfo = data[4+atomnumbers:bondsnumber+4+atomnumbers]
+        print()
+        
+       # print(connectioninfo)
         atomtypes = data[4:4+atomnumbers]
-    #    print(atomtypes)
+     #   print(atomtypes)
         for sort,line in enumerate(atomtypes):
-            type_dic[sort] = line.split()[3].upper()
+            if len(line.split()) > 3:
+             #   print(line)
+                type_dic[sort] = line.split()[3].upper()
             
         for line in connectioninfo:
-            atomx = int(line.split()[0]) - 1
-            atomy = int(line.split()[1]) - 1
+         #   print(line)
+            atomx = int(line[:3]) - 1
+            atomy = int(line[3:6]) - 1
             connected.append(set([atomx,atomy]))
-            bondorder = int(line.split()[2])
+            bondorder = int(line[8])
             linker_dic[atomx] =linker_dic[atomx] + bondorder
             linker_dic[atomy] =linker_dic[atomy] + bondorder
+        #    print(atomx,atomy,bondorder)
         
         for atom in type_dic:
             atometype = type_dic[atom]
@@ -117,14 +129,14 @@ def ligandbreakdown_BFGS(xyzfile,metalID):
         linker_dic = {}
         type_dic = {}
         connected = []
-        atomnumbers = int(data[3].split()[0])
-        bondsnumber = int(data[3].split()[1])
+        atomnumbers = int(data[3][:3])
+        bondsnumber = int(data[3][3:6])
         connectioninfo = data[4+atomnumbers:bondsnumber+4+atomnumbers]
         atomtypes = data[4:4+atomnumbers]
         G = networkx.Graph()
         for line in connectioninfo:
-            atomx = int(line.split()[0]) - 1
-            atomy = int(line.split()[1]) - 1
+            atomx = int(line[:3]) - 1
+            atomy = int(line[3:6]) - 1
             if metalID not in [atomx,atomy]:
                 G.add_edge(atomx, atomy)
         molecules = list(networkx.connected_components(G))
@@ -1000,7 +1012,7 @@ class AutoMCPB():
             with open('MCPB_1.log', 'w') as output_file:
                 subprocess.call(cmd,shell=True,stdout=output_file, stderr=subprocess.STDOUT)
             
-            totalcharge = self.get_totalcharge()
+        #    totalcharge = self.get_totalcharge()
     
     def run_MCPB_2(self):    
         if  self.round in ['2','2b','2e','2s','2z']:
@@ -1359,6 +1371,8 @@ def startautoMCPB(argumentList):
        #     print ("metal_complex filename", currentValue)
             filename = str(currentValue)
         elif currentArgument in ("-c",'--metal_charge'):
+            if metal_charge == 'default':
+                metal_charge == 2
             metal_charge = int(currentValue)
         elif currentArgument in ('-u','--spin'):
             spinmult=int(currentValue)
