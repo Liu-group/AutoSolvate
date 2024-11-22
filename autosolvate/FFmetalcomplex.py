@@ -52,7 +52,7 @@ def check_the_charge(metalcharge, totalcharge):
 class genFF():
     def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,folder,maxcore,
                  mode,spinmult,software,basisset,method,cubesize,closeness,cutoff,
-                 totalcharge,nprocs,QMexe,amberhome,solvent_off,solvent_frcmod,opt):
+                 totalcharge,nprocs,QMexe,amberhome,solvent_off,solvent_frcmod,opt,fakecharge):
         self.metal_charge = metal_charge
         self.filename = filename
         self.xyzfile = filename + '.xyz'
@@ -76,6 +76,7 @@ class genFF():
         self.folder = folder
         self.cutoff = cutoff
         self.maxcore = maxcore
+        self.fakecharge = fakecharge
 
     
     def inputCheck(self):
@@ -497,7 +498,7 @@ class genFF():
 
         print('******************** start to generate inputs for MCPB.py -s 1 ********************')
         step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
-                       mode=self.mode,chargefile=self.chargefile,round='1',software=self.software,cutoff=self.cutoff)
+                       mode=self.mode,chargefile=self.chargefile,round='1',software=self.software,cutoff=self.cutoff,fakecharge = self.fakecharge)
         step1.build()
         
         print('******************** Finish generating inputs for MCPB.py -s 1 ********************')
@@ -529,7 +530,7 @@ class genFF():
 
         if checkfreq == 'converged':
             step5=autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
-                        mode=self.mode,chargefile=self.chargefile,round='2',software=self.software,cutoff=self.cutoff)
+                        mode=self.mode,chargefile=self.chargefile,round='2',software=self.software,cutoff=self.cutoff,fakecharge = self.fakecharge)
             step5.build()
         #    print('nnnnnnnnnnnnnn')
         elif checkfreq == 'notconverged':
@@ -545,7 +546,7 @@ class genFF():
         checkmk = self.check_mk_result()
         if checkmk == 'converged':
             if self.software != 'orca':
-                step6 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,
+                step6 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,fakecharge = self.fakecharge,
                 mode=self.mode,chargefile=self.chargefile,round='3',software=self.software,amberhome=self.amberhome,cutoff=self.cutoff)
                 step6.build()
             else:
@@ -589,14 +590,14 @@ class genFF():
             raise TypeError('Erorr: charge calculation is not finished!')
             sys.exit()
         if os.path.exists('resp2.chg'):
-            step7 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,cutoff=self.cutoff,
+            step7 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,cutoff=self.cutoff,fakecharge = self.fakecharge,
                         mode=self.mode,chargefile=self.chargefile,round='4',software=self.software,amberhome=self.amberhome)
             step7.build()
         else:
             raise TypeError('Erorr: can not find resp2.chg')
             sys.exit()
         if os.path.exists(self.filename + '_dry.prmtop'):
-            step8 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,cutoff=self.cutoff,
+            step8 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,cutoff=self.cutoff,fakecharge = self.fakecharge,
                         mode=self.mode,chargefile=self.chargefile,round='5',software=self.software,amberhome=self.amberhome)
             step8.build()
         else:
@@ -618,10 +619,10 @@ class genFF():
 
 
 def startFFgen(argumentList):
-    options = 'hm:k:u:v:f:e:c:y:d:i:l:p:j:a:w:s:b:t:D:x:g:'
+    options = 'hm:k:u:v:f:e:c:y:d:i:l:p:j:a:w:s:b:t:D:x:g:z:'
     long_options = ["help", 'filename=', 'metal_charge=', 'spin=', 'mode=', 'folder=', 'rundir=','cutoff='
                 'chargefile=', 'charge=', 'nprocs=', 'method=', 'cubesize=', 'closeness=', 'qmdir=', 'maxcore='
-                'qmexe=', 'basisset=', 'solventoff=', 'solventfrcmod=', 'amberhome=', 'opt=', 'solvent=']
+                'qmexe=', 'basisset=', 'solventoff=', 'solventfrcmod=', 'amberhome=', 'opt=', 'solvent=','fakecharge=']
     arguments, values = getopt.getopt(argumentList, options, long_options)
     filename = None
     metal_charge = None
@@ -647,6 +648,7 @@ def startFFgen(argumentList):
     folder = './'
     cutoff = 2.8
     maxcore = "1000"
+    fakecharge = 'N'
 
     for currentArgument, currentValue in arguments:
         if currentArgument in ("-h", "--help"):
@@ -670,12 +672,14 @@ def startFFgen(argumentList):
                 -j  --basisset          Basis set used in QM calculation. Default: DEF2-TZVP (for Gaussian and Orca). For GAMESS-US, only 6-31G, 6-31G*, and LANL2DZ are supported.
                 -a  --amberhome         path of AmberTools bin default: $AMBERHOME/bin/
                 -w  --opt               use(Y) or not use(N) the QM optimized structure for charge calculation default: Y
+                -
                 -s  --solvent           name of solvent (water, methanol, chloroform, nma, acetonitrile)
                 -b  --cubesize          size of solvent cube in angstroms default: 54 
                 -t  --closeness         Solute-solvent closeness setting default value is used if the option is not specified
                 -D  --rundir            running directory where temporary files are stored, default: the current folder './'
                 -x  --cutoff            the cutoff to defined bonded pair in MCPB default: 2.8
                 -g  --maxcore           the memory(M) requrested for orca calculation
+                -z  --fakecharge        to speed up the generation of mol2 file by antechamber, use fake charge to assign the charge instead of bcc. default: N
 
 
                 '''
@@ -723,10 +727,12 @@ def startFFgen(argumentList):
             cutoff = str(currentValue)
         elif currentArgument in ('-g','--maxcore'):
             maxcore = str(currentValue)
+        elif currentArgument in ('-z','--fakecharge'):
+            fakecharge = str(currentValue)
           #  print('cutoff=',cutoff)
 
 
-    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,closeness=closeness,folder = folder,cutoff= cutoff,
+    builder = genFF(filename=filename,metal_charge=metal_charge, spinmult=spinmult,basisset=basisset,closeness=closeness,folder = folder,cutoff= cutoff,fakecharge=fakecharge,
                     mode=mode,chargefile=chargefile,software=software,solvent_frcmod=solvent_frcmod,amberhome=amberhome,cubesize=cubesize,maxcore= maxcore,
                     totalcharge=totalcharge,nprocs=nprocs,QMexe=QMexe,method=method,solvent_off=solvent_off,opt=opt,solvent=solvent,slv_count=slv_count)
 
