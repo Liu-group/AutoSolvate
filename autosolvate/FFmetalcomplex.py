@@ -672,7 +672,6 @@ def startFFgen(argumentList):
                 -j  --basisset          Basis set used in QM calculation. Default: DEF2-TZVP (for Gaussian and Orca). For GAMESS-US, only 6-31G, 6-31G*, and LANL2DZ are supported.
                 -a  --amberhome         path of AmberTools bin default: $AMBERHOME/bin/
                 -w  --opt               use(Y) or not use(N) the QM optimized structure for charge calculation default: Y
-                -
                 -s  --solvent           name of solvent (water, methanol, chloroform, nma, acetonitrile)
                 -b  --cubesize          size of solvent cube in angstroms default: 54 
                 -t  --closeness         Solute-solvent closeness setting default value is used if the option is not specified
