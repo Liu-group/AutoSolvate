@@ -11,7 +11,130 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 import parmed as pmd
 
-from ..Common import * 
+from ..Common import N_A, SOLVENT_DENSITY, SOLVENT_MW
+
+
+# compute solvent number
+def calculate_solvent_number(solvent_name, volume):  ###Volume should be m3
+    """
+    Calculate the number of solvent molecules in a given volume
+
+    Parameters
+    ----------
+    solvent_name : str
+        solvent name, can only be 'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'
+    volume : float
+        volume in m3
+    """
+    denisty = SOLVENT_DENSITY[solvent_name]
+    weight  = SOLVENT_MW[solvent_name]
+    mass    = volume * denisty  ## kg
+    mol     = mass * 1000 / weight
+    number  = mol * N_A
+    return number
+
+def calculate_solvent_numbers_from_weight_portions(
+        solvent_mws:Iterable[float], 
+        solvent_densities:Iterable[float], 
+        weight_portions:Iterable[float], 
+        total_volume:float) -> float:
+    """
+    Calculate the number of solvent molecules in a given volume with different solvent portions.
+
+    Note: the real density of the mixture is close but NOT equal to the weighted average of the densities of the solvents. The solvent box still needed to be equilibrated under the NPT ensemble.
+
+    Parameters
+    ----------
+    solvent_mws : Iterable[float]
+        molecular weights of solvents in g/mol
+    solvent_densities : Iterable[float]
+        densities of solvents in kg/m3
+    solvent_portions : Iterable[float]
+        weight portions of solvents in the mixture, from 0 to 1
+    volume : float
+        volume in m3
+    """
+    estimated_density = 1 / sum([portion / density for portion, density in zip(weight_portions, solvent_densities)])
+    mass = total_volume * estimated_density 
+    numbers = [mass * 1000 * portion / mw * N_A for mw, portion in zip(solvent_mws, weight_portions)]
+    return list(map(int, numbers))
+
+def calculate_solvent_numbers_from_volume_portions(
+        solvent_mws:Iterable[float],
+        solvent_densities:Iterable[float],
+        volume_portions:Iterable[float],
+        total_volume:float) -> float:
+    """
+    Calculate the number of solvent molecules in a given volume with different solvent portions.
+
+    Note: the real density of the mixture is close but NOT equal to the weighted average of the densities of the solvents. The solvent box still needed to be equilibrated under the NPT ensemble.
+
+    Parameters
+    ----------
+    solvent_mws : Iterable[float]
+        molecular weights of solvents in g/mol
+    solvent_densities : Iterable[float]
+        densities of solvents in kg/m3
+    solvent_portions : Iterable[float]
+        volume portions of solvents in the mixture, from 0 to 1
+    volume : float
+        volume in m3
+    """
+    numbers = [portion * total_volume * density * N_A * 1000 / mw for mw, density, portion in zip(solvent_mws, solvent_densities, volume_portions)]
+    return list(map(int, numbers))
+
+
+
+
+# MCPB utilities
+def check_transition_metal_complex(filename:str):
+    """
+    Check if the given file is a transition metal complex
+    e.g. contains both metal and organic ligands
+    criteria: if there is an metal atom that is close to an organic atom
+
+    Parameters
+    ----------
+    filename : str
+        file name
+
+    Returns
+    -------
+    flag : bool
+        True if the file is a transition metal complex, False otherwise
+    """
+    mol = pybel.readfile(os.path.splitext(filename)[-1][1:], filename).__next__()
+    mol_obmol = mol.OBMol
+    for i in range(mol_obmol.NumAtoms()):
+        atom = mol_obmol.GetAtom(i+1)
+        if atom.IsMetal():
+            return True
+    return False
+
+def compute_total_charge(chargefile:str):
+    with open(chargefile, 'r') as f:
+        data = f.readlines()
+
+    begin, end = 0, len(data) 
+    for sort, line in enumerate(data):
+        if '@charges' in line:
+            begin = sort + 1
+        elif '@connection_infos' in line:
+            end = sort
+    newtotalcharge = 0  
+
+    for line in data[begin:end]:
+        if 'LG' not in line:
+            parts = line.split()
+            if len(parts) == 2:
+                metalcharge = int(parts[1])
+                newtotalcharge += metalcharge
+        else:
+            parts = line.split()
+            if len(parts) == 2:
+                ligandchg = int(parts[1])
+                newtotalcharge += ligandchg
+    return newtotalcharge
 
 # multicomponent utilities
 def check_multicomponent(filename:str):

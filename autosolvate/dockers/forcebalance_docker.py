@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict, Optional, Union, TextIO
 #import mdtraj as md
 
 from ..molecule import *
-from ._general_docker import GeneralDocker
+from .general_docker import GeneralDocker
 from ..utils import runMM, read_qm_folder
 
 """

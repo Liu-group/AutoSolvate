@@ -50,9 +50,14 @@ def check_the_charge(metalcharge, totalcharge):
         return 'default'
 
 class genFF():
-    def __init__(self, filename,metal_charge, chargefile, solvent,slv_count,folder,maxcore,
-                 mode,spinmult,software,basisset,method,cubesize,closeness,cutoff,
-                 totalcharge,nprocs,QMexe,amberhome,solvent_off,solvent_frcmod,opt,fakecharge):
+    def __init__(self, 
+                 filename:str, metal_charge:int, spinmult:int, chargefile:str, totalcharge:int,     # solute property
+                 amberhome:str, cutoff:float, fakecharge:bool, mode:str,                            # AutoMCPB parameters
+                 basisset:str, method:str, software:str, QMexe:str, maxcore:int, nprocs:int, opt:bool,  # QM calculation 
+                 solvent:str, slv_count:int, solvent_off:str, solvent_frcmod:str,     # solvent property, ignored if using new boxgen
+                 cubesize:float, closeness:float,                                     # solvation box generation, ignored if using new boxgen
+                 folder:str, # the folder store the temporary output files
+                 ):
         self.metal_charge = metal_charge
         self.filename = filename
         self.xyzfile = filename + '.xyz'
@@ -481,7 +486,7 @@ class genFF():
                     else:
                         print('Erorr: cant find',mkinp)
                 
-    def build(self):
+    def build(self, use_boxgen_metal = True):
         check_charge = check_the_charge(metalcharge = self.metal_charge, totalcharge = self.totalcharge)
         if check_charge == False:
            self.totalcharge  = 'default'
@@ -603,17 +608,20 @@ class genFF():
         else:
             raise TypeError('Erorr: can not find ' + self.filename + '_dry.prmtop')
         
-        print('********************    start to generate the solvated box********************    ')
-        
-        step9 = boxgen_metal.solventBoxBuilderMetal(pdb_prefix=self.filename,totalcharge=self.totalcharge,solvent=self.solvent,
-                                              solvent_frcmod=self.solvent_frcmod, solvent_off=self.solvent_off,closeness=self.closeness,
-                                             outputFile='',amberhome=self.amberhome,cube_size=self.cubesize,slv_count=self.slv_count)
-        step9.build()
-        solvated_prmtop = self.filename +'_solvated.prmtop'
-        if  os.path.exists(solvated_prmtop):
-            print('********************    Autosolvate successfully generates', solvated_prmtop,'********************    ')
+        if use_boxgen_metal:
+            print('********************    start to generate the solvated box********************    ')
+            
+            step9 = boxgen_metal.solventBoxBuilderMetal(pdb_prefix=self.filename,totalcharge=self.totalcharge,solvent=self.solvent,
+                                                solvent_frcmod=self.solvent_frcmod, solvent_off=self.solvent_off,closeness=self.closeness,
+                                                outputFile='',amberhome=self.amberhome,cube_size=self.cubesize,slv_count=self.slv_count)
+            step9.build()
+            solvated_prmtop = self.filename +'_solvated.prmtop'
+            if  os.path.exists(solvated_prmtop):
+                print('********************    Autosolvate successfully generates', solvated_prmtop,'********************    ')
+            else:
+                raise TypeError('Erorr: can not find ' + solvated_prmtop + ', please check tleap.log')
         else:
-            raise TypeError('Erorr: can not find ' + solvated_prmtop + ', please check tleap.log')
+            print("Use new version of mixture builder instead.")
         os.chdir(cwd)
 
 
@@ -647,7 +655,7 @@ def startFFgen(argumentList):
     slv_count = 210*8
     folder = './'
     cutoff = 2.8
-    maxcore = "1000"
+    maxcore = "8192"
     fakecharge = 'N'
 
     for currentArgument, currentValue in arguments:

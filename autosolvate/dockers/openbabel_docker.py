@@ -2,7 +2,7 @@ import getopt, sys, os, subprocess
 from typing import Iterable
 
 from ..molecule import *
-from ._general_docker import GeneralDocker
+from .general_docker import GeneralDocker
 
 
 

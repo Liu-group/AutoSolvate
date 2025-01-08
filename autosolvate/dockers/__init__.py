@@ -1,14 +1,16 @@
-from ._general_docker import GeneralDocker
-from ._antechamber_docker import AntechamberDocker
-from ._openbabel_docker import OpenBabelDocker
-from ._packmol_docker import PackmolDocker
-from ._parmchk_docker import ParmchkDocker
-from ._tleap_docker import TleapDocker
+from .general_docker import GeneralDocker
+from .antechamber_docker import AntechamberDocker
+from .openbabel_docker import OpenBabelDocker
+from .packmol_docker import PackmolDocker
+from .parmchk_docker import ParmchkDocker
+from .tleap_docker import TleapDocker
 
-from ._terachem_docker import TeraChemDocker
+from .terachem_docker import TeraChemDocker
 
-from ._mdgx_docker import MDGXDocker
-from ._forcebalance_docker import ForceBalanceDocker
+from .automcpb_docker import AutoMCPBDocker
+
+# from .mdgx_docker import MDGXDocker
+# from .forcebalance_docker import ForceBalanceDocker
 
 from ..utils import *
 

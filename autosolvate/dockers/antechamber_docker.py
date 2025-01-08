@@ -10,7 +10,7 @@
 import getopt, sys, os, subprocess
 
 
-from ._general_docker import GeneralDocker
+from .general_docker import GeneralDocker
 from ..molecule import *
 from ..utils import srun
 
@@ -29,7 +29,6 @@ class AntechamberDocker(GeneralDocker):
                  pl:                    int = -1,
                  
     ) -> None:      
-        "workfolder"
         #setting
         super(AntechamberDocker, self).__init__(
             executable = "antechamber",

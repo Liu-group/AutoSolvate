@@ -10,7 +10,7 @@ import numpy as np
 
 from ..Common import *
 from ..molecule import System, Molecule, MoleculeComplex, SolvatedSystem
-from ._general_docker import GeneralDocker
+from .general_docker import GeneralDocker
 from ..utils import *
 
 

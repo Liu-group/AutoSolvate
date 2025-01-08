@@ -3,7 +3,7 @@ import getopt, sys, os, subprocess
 from ..Common import * 
 from ..molecule import *
 from ..utils import srun
-from ._general_docker import GeneralDocker
+from .general_docker import GeneralDocker
 
 
 class ParmchkDocker(GeneralDocker):

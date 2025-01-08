@@ -272,6 +272,57 @@ class MixtureBuilder():
             self.logger.addHandler(self.output_handler)
         self.systemprefix = prefix
 
+    def add_transition_metal_complex_solute(self, xyzfile:str, number = 1, 
+            metal_charge = 0, spinmult = 1, total_charge = "default", chargefile = "", 
+            qm_kwargs:dict = {}, mcpb_kwargs:dict = {}, **kwargs):
+        """
+        add a transition metal complex as the solute. e.g. a metalloenzyme
+
+        Parameters
+        ----------
+        xyzfile : str
+            structure file name, can be any type within ["xyz", "pdb", "mol2"]. "prep", "lib", "off" are not supported for transition metal complex.
+        number : int, Optional, default: 1
+            number of the solute in the system. Not recommanded to set this parameter. Be cautious about this as the solute may have more than 1 fragments.
+        metal_charge : int, Optional, default: 0
+            charge of the metal atom, must be provided.
+        spinmult : int, Optional, default: 1
+            spin multiplicity of the compound, must be provided.
+        total_charge : int, Optional, default: "default"
+            total charge of the complex. If not provided, the total charge will be calculated from the charge of the metal atom and the chargefile.
+        chargefile : str, Optional, default: ""
+            path to the charge file of the legands. if not provided, all legand will be considered as neutral.
+        qm_kwargs : dict, Optional, default: {}
+            additional arguments for the quantum chemistry calculation of the metal complex. Default parameters:
+            {
+                "method": "b3lyp",
+                "basisset": "DEF2-TZVP",
+                "software": "orca",
+                "QMexe": <where the orca program installed>,
+                "maxcore": 1024,
+                "nprocs": 1,
+                "opt": True,
+                }
+        mcpb_kwargs : dict, Optional, default: {}
+            additional arguments for the mcpb.py calculation of the metal complex. Default parameters:
+            {
+                "amberhome": $AMBERHOME/bin/,
+                "cutoff": 2.8,
+                "fakecharge": False,
+                "mode": "A",
+            }
+        """
+        
+        tmc = TransitionMetalComplex(xyzfile, folder = self.folder, metal_charge = metal_charge, multiplicity = spinmult, totalcharge = total_charge, legand_charge_file = chargefile)
+        dockerparams = qm_kwargs.copy()
+        dockerparams.update(mcpb_kwargs)
+        dockerparams["workfolder"] = self.folder
+        
+        mcpb_docker = AutoMCPBDocker(**dockerparams)
+        mcpb_docker.run(tmc)
+        tmc.number = number
+        self.solutes.append(tmc)
+
     def add_complex_solute(self, xyzfile:str, fragment_charge = 0, fragment_spinmult = 1, number = 1, **kwargs):
         """
         add a molecular complex as the solute. e.g. a electron transfer donor-acceptor pair
@@ -465,6 +516,9 @@ class MixtureBuilder():
         for docker in self.custom_solvation:
             docker.run(system)
 
+
+
+
 def startmulticomponent_fromdata(data:dict):
     """
     Start the multicomponent solvation process from a python dictionary.
@@ -475,33 +529,27 @@ def startmulticomponent_fromdata(data:dict):
         dictionary containing the input parameters. Usually generated from a json file.
     """
 
+    parser = InputParser()
+    parser.read_dict(data)
+    parser.parse()
+    data = parser.data
 
     data["folder"] = WORKING_DIR
+    json.dump(data, open(os.path.join(data["folder"], "autosolvate_input_full.json"), "w"), indent=4)
+
     signature = inspect.signature(MixtureBuilder.__init__)
     function_params = signature.parameters
     filtered_data = {k: v for k, v in data.items() if k in function_params}
     builder = MixtureBuilder(**filtered_data)
-
-    if "solute" in data:
-        data["solute"] = add_missing_xyzfile_keyword(data["solute"])
-        if check_multicomponent(data["solute"]["xyzfile"]):
-            builder.add_complex_solute(**data["solute"])
-        else:
-            builder.add_solute(**data["solute"])
-    if "solvent" in data:
-        data["solvent"] = add_missing_xyzfile_keyword(data["solvent"])
-        builder.add_solvent(**data["solvent"])
-    if "solutes" in data and type(data["solutes"]) == list:
-        for i in range(len(data["solutes"])):
-            data["solutes"][i] = add_missing_xyzfile_keyword(data["solutes"][i])
-            if check_multicomponent(data["solutes"][i]["xyzfile"]):
-                builder.add_complex_solute(**data["solutes"][i])
-            else:
-                builder.add_solute(**data["solutes"][i])
-    if "solvents" in data and type(data["solvents"]) == list:
-        for i in range(len(data["solvents"])):
-            data["solvents"][i] = add_missing_xyzfile_keyword(data["solvents"][i])
-            builder.add_solvent(**data["solvents"][i])
+    for solute in data["solutes"]:
+        if solute["__TYPE__"] == "molecule":
+            builder.add_solute(**solute)
+        elif solute["__TYPE__"] == "complex":
+            builder.add_complex_solute(**solute)
+        elif solute["__TYPE__"] == "transition_metal_complex":
+            builder.add_transition_metal_complex_solute(**solute)
+    for solvent in data["solvents"]:
+        builder.add_solvent(**solvent)
     builder.build()
 
 def startmulticomponent_fromfile(file:str):
@@ -591,14 +639,11 @@ def startmulticomponent(args):
     else:
         cmd_dict.pop("file")
         data = convert_cmd_to_dict(cmd_dict)
-    data = correct_keyword(data)
-    check_inputs(data)
-
     global WORKING_DIR
     WORKING_DIR = os.getcwd()
     startmulticomponent_fromdata(data)
     
 
 if __name__ == "__main__":
-    startmulticomponent()
+    startmulticomponent(sys.argv[1:])
     

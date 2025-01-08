@@ -5,7 +5,7 @@ from typing import TextIO
 from ..Common import * 
 from ..molecule import *
 from ..utils import *
-from ._general_docker import GeneralDocker
+from .general_docker import GeneralDocker
 
 
 class TleapDocker(GeneralDocker):
