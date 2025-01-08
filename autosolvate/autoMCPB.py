@@ -174,7 +174,7 @@ class AutoMCPB():
 
     
     """
-    def __init__(self, filename, metal_charge, chargefile,mode,spinmult,round,software,amberhome,cutoff): #liglist='', denticity='',ligcons='',atomsinfo='',ligand_charge='',metal_name=''):
+    def __init__(self, filename, metal_charge, chargefile,mode,spinmult,round,software,amberhome,cutoff, fakecharge=False): #liglist='', denticity='',ligcons='',atomsinfo='',ligand_charge='',metal_name=''):
         self.metal_charge = metal_charge
         self.filename = filename
         self.xyzfile = filename + '.xyz'

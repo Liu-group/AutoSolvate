@@ -35,11 +35,14 @@ def test_single_tmc(tmpdir):
     tmcfolder = hp.get_input_dir(tmcname)
     tmcpdb = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.pdb")
     prmtop = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.prmtop")
-    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult, prmtop, tmcfolder, 
+    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult, 
+                                     prmtop = prmtop, 
+                                     origin_folder = tmcfolder, 
                                  metal_residue_names = metal_residue_name, 
                                  name = tmcname,
                                  residue_name = "TMC", 
                                  folder = os.getcwd())
+    mol_tmc.charge = charge
     mol_tmc.update()
     TleapDocker(workfolder=mol_tmc.folder).run(mol_tmc)
 
@@ -59,11 +62,14 @@ def test_tmc_water_solvated(tmpdir):
     tmcfolder = hp.get_input_dir(tmcname)
     tmcpdb = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.pdb")
     prmtop = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.prmtop")
-    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult, prmtop, tmcfolder, 
+    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult,
+                                 prmtop = prmtop, 
+                                 origin_folder = tmcfolder, 
                                  metal_residue_names = metal_residue_name, 
                                  name = tmcname,
                                  residue_name = "TMC", 
                                  folder = os.getcwd())
+    mol_tmc.charge = charge
     mol_tmc.update()
 
     systemname = tmcname + "_water_solvated"
@@ -94,11 +100,14 @@ def test_tmc_acetonitrile_solvated(tmpdir):
     tmcfolder = hp.get_input_dir(tmcname)
     tmcpdb = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.pdb")
     prmtop = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.prmtop")
-    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult, prmtop, tmcfolder, 
+    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult,
+                                 prmtop = prmtop, 
+                                 origin_folder = tmcfolder, 
                                  metal_residue_names = metal_residue_name, 
                                  name = tmcname,
                                  residue_name = "TMC", 
                                  folder = os.getcwd())
+    mol_tmc.charge = charge
     mol_tmc.update()
 
     solvPrefix = "ch3cn"
@@ -141,11 +150,14 @@ def test_tmc_IL_solvated(tmpdir):
     tmcfolder = hp.get_input_dir(tmcname)
     tmcpdb = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.pdb")
     prmtop = hp.get_input_dir(f"{tmcname}/{tmcname}_dry.prmtop")
-    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult, prmtop, tmcfolder, 
+    mol_tmc = TransitionMetalComplex(tmcpdb, charge, spinmult,
+                                 prmtop = prmtop, 
+                                 origin_folder = tmcfolder, 
                                  metal_residue_names = metal_residue_name, 
                                  name = tmcname,
                                  residue_name = "TMC", 
                                  folder = os.getcwd())
+    mol_tmc.charge = charge
     mol_tmc.update()
 
     mol_cat_pdbpath = hp.get_input_dir("IL/BMIM.pdb")

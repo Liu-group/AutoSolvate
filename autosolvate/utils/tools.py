@@ -11,7 +11,7 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 import parmed as pmd
 
-from ..Common import N_A, SOLVENT_DENSITY, SOLVENT_MW
+from ..Common import N_A, SOLVENT_DENSITY, SOLVENT_MW, USE_SRUN, DRY_RUN
 
 
 # compute solvent number

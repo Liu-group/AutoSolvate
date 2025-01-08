@@ -317,7 +317,7 @@ class MixtureBuilder():
         dockerparams = qm_kwargs.copy()
         dockerparams.update(mcpb_kwargs)
         dockerparams["workfolder"] = self.folder
-        
+        self.logger.info(dockerparams)
         mcpb_docker = AutoMCPBDocker(**dockerparams)
         mcpb_docker.run(tmc)
         tmc.number = number
@@ -547,6 +547,10 @@ def startmulticomponent_fromdata(data:dict):
         elif solute["__TYPE__"] == "complex":
             builder.add_complex_solute(**solute)
         elif solute["__TYPE__"] == "transition_metal_complex":
+            if "qm_kwargs" in data:
+                solute["qm_kwargs"] = data["qm_kwargs"]
+            if "mcpb_kwargs" in data:
+                solute["mcpb_kwargs"] = data["mcpb_kwargs"]
             builder.add_transition_metal_complex_solute(**solute)
     for solvent in data["solvents"]:
         builder.add_solvent(**solvent)

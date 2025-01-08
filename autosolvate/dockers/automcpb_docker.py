@@ -64,6 +64,8 @@ class AutoMCPBDocker(GeneralDocker):
             return False
         if mol.check_exist("prmtop"):
             self.logger.warning(f"The prmtop file of {mol.reference_name} already exists, will be overwritten.")
+
+        self.logger.info(f"nprocs = {self.nprocs}, maxcore = {self.maxcore}")
         return True
     
     def predict_output(self, mol: TransitionMetalComplex) -> str:
