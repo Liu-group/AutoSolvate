@@ -36,6 +36,7 @@ Quickstart
    installation
    tutorial
    tutorialGUI
+   tutorialWeb
    advancedTutorial
    api
    webJobParameters
