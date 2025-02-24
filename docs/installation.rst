@@ -63,7 +63,7 @@ Stay in the AutoSolvate directory and install it::
 .. warning::
   
     **Window users**: Since conda installation of AmberTools is not directly
-    available on Windnows, you will need to install AmberTools sperately
+    available on Windows, you will need to install AmberTools separately
     from source following the instructions on 
     `Amber Documentation <https://ambermd.org/GetAmber.php#ambertools>`_.
 
