@@ -407,6 +407,7 @@ class MixtureBuilder():
             else:
                 solvent_type = "autosolvate_custom"
         elif (("prep" in kwargs and os.path.isfile(kwargs["prep"])) or \
+              ("off" in kwargs and os.path.isfile(kwargs["off"])) or \
               ("mol2" in kwargs and os.path.isfile(kwargs["mol2"]))) and \
               ("frcmod" in kwargs and os.path.isfile(kwargs["frcmod"])):
             solvent_type = "custom"
@@ -423,7 +424,7 @@ class MixtureBuilder():
         Parameters
         ----------
         xyzfile : str
-            structure file name, can be any type within ["xyz", "pdb", "mol2", "prep"]. Can be ignored if the solvent is predefined in AMBER.
+            structure file name, can be any type within ["xyz", "pdb", "mol2", "prep", "off"]. Can be ignored if the solvent is predefined in AMBER.
         name : str
             name of the solvent. Predefined solvents include ["water", "methanol", "chloroform", "nma"].
         residue_name : str, Optional, default: "SLV"
@@ -473,6 +474,8 @@ class MixtureBuilder():
                 self_solvent.lib = kwargs["lib"]
             if "prep" in kwargs and os.path.isfile(kwargs["prep"]):
                 self_solvent.prep = kwargs["prep"]
+            if "off" in kwargs and os.path.isfile(kwargs["off"]):
+                self_solvent.off = kwargs["off"]
             self_solvent.get_residue_name()
             self_solvent.update()
         elif solvent_type == "generate":

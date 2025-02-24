@@ -216,7 +216,7 @@ class System(object):
 # @dataclass 
 class Molecule(System): 
     #constants 
-    _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz', 'mol2', 'prep']
+    _SUPPORT_INPUT_FORMATS = ['pdb', 'xyz', 'mol2', 'prep', 'off']
     # other
     def __init__(
             self, 
@@ -234,7 +234,7 @@ class Molecule(System):
         Parameters
         ----------
         xyzfile : str
-            The file path of the structure file of the molecule, can be in xyz, pdb, mol2 or prep format.
+            The file path of the structure file of the molecule, can be in xyz, pdb, mol2, off or prep format.
         charge : int
             The charge of the molecule.
         multiplicity : int
@@ -322,6 +322,7 @@ class Molecule(System):
     def get_residue_name(self):
         """
         Get the residue name from the provided pdb, mol2, or prep file.
+        If the off file is provided, the 'residue_name' attribute won't be updated. It can be read manually from the off file second line.
         Note that the residue name of the molecule will be automatically assigned if the residue name is not found.
         Note if the mol2, or prep file is provided, the 'residue_name' attribute will be updated according to these files instead of the argument 'residue_name'.
         """
@@ -330,8 +331,6 @@ class Molecule(System):
             new_residue_name = extract_residue_name_from_prep(self.prep)
         elif self.check_exist("lib"):
             new_residue_name = extract_residue_name_from_lib(self.lib)
-        elif self.check_exist("off"):
-            new_residue_name = extract_residue_name_from_lib(self.off)
         elif self.check_exist("mol2"):
             newpath = self.reference_name + "-frommol2.pdb"
             subprocess.run(f"obabel -i mol2 {self.mol2} -o pdb -O {newpath} ---errorlevel 0", shell = True)

@@ -569,9 +569,19 @@ def lib2pdb(mol: object) -> None:
         res = list(lib.keys())[0]
         lib[res].save(pdbpath)
     elif mol.check_exist("off"):
-        lib = pmd.load_file(mol.off)
-        res = list(lib.keys())[0]
-        lib[res].save(pdbpath)
+        try:
+            lib = pmd.load_file(mol.off)
+            res = list(lib.keys())[0]
+            lib[res].save(pdbpath)
+        except Exception as e:
+            print(f"Error loading .off file using parmed: {e}")
+            try:
+                off2pdb(mol.off, pdbpath, mol.residue_name)
+                print(f"Successfully converted .off file to pdb using tleap")
+            except Exception as e:
+                print(f"Error converting .off file to pdb using tleap: {e}")
+                raise e
+            
     mol.pdb = pdbpath
 
 def lib2pdb_withexactpath(libpath:str, pdbpath:str = "") -> None:
@@ -587,6 +597,16 @@ def lib2pdb_withexactpath(libpath:str, pdbpath:str = "") -> None:
     lib[res].save(pdbpath)
 
 
+def off2pdb(off_file:str, pdb_file:str, residue_name:str) -> None:
+    r'''
+    Handle solvent .off files when pmd.load_file() fails using tleap
+    '''
+    with open("leap_off2pdb.cmd", "w") as f: 
+        f.write(f"loadoff {off_file}\n")
+        f.write(f"savepdb {residue_name} {pdb_file}\n")
+        f.write("quit\n")
+    os.system("tleap -s -f leap_off2pdb.cmd > leap_off2pdb.log")
+    
 
 def process_system_name(name:str, xyzfile:str, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib"), check_exist = True):
     if not os.path.isfile(xyzfile) and check_exist:
