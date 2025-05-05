@@ -7,6 +7,7 @@ from autosolvate.globs import keywords_avail, available_qm_programs, available_c
 from autosolvate.resp_classes.resp_factory import resp_factory
 from autosolvate.pubchem_api import PubChemAPI
 from autosolvate.solute_info import Solute
+from autosolvate.ionsFF import file_prep_for_ion
 
 
 amber_solv_dict = {'water': [' ','TIP3PBOX '],
@@ -189,6 +190,20 @@ class solventBoxBuilder():
                 exit()
             else:
                 self.is_custom_solvent = True
+        
+        if os.path.exists(self.xyz):
+            with open(self.xyz) as f:
+                lines = f.readlines()
+                atomnumber = int(lines[0].strip())
+                if atomnumber == 1:
+                    print('Warning this is an ion!')
+                    self.ion = True
+                else:
+                    self.ion = False
+        else:
+            print("Error: solute xyz file does not exist")
+            exit()       
+                    
 
     def getSolutePDB(self):
         r"""
@@ -609,11 +624,17 @@ class solventBoxBuilder():
 	    Creates files in current directory.
 
         """
-        self.getSolutePDB()
-        self.getFrcmod()
-        self.createLib()
-        self.createAmberParm()
-        print("The script has finished successfully")
+        if self.ion:
+            ionFF = file_prep_for_ion(xyzfile=self.xyz, charge=self.slu_netcharge, solvent=self.solvent, 
+                                      cubic_size=self.cube_size,closeness=self.closeness, solvent_frcmod=self.solvent_frcmod,solvent_off=self.solvent_off)
+            ionFF.build()
+            print("The script has finished successfully")
+        else:
+            self.getSolutePDB()
+            self.getFrcmod()
+            self.createLib()
+            self.createAmberParm()
+            print("The script has finished successfully")
 
 def startboxgen(argumentList):
     r"""
