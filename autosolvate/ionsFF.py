@@ -91,50 +91,82 @@ class file_prep_for_ion():
             lines = f.readlines()
             num_atoms = int(lines[0].strip())
             print('Number of atoms in the system:', num_atoms)
-            if num_atoms == 1:
-                print('This is a single atom system')
-                element_symbol = lines[2].split()[0]
-                self.element_symbol = element_symbol.upper()
-                ### check if it is a metal ion  supported by MCPB ###
-                if any(self.element_symbol in key for key in METAL_PDB.keys()):
-                  #  print('This is an ion supported by MCPB')
-                    for key in METAL_PDB.keys():
-                        if self.element_symbol in key:
-                            atomnumber = METAL_PDB[key][0]
-                            mass = METAL_PDB[key][1]
-                            self.mass = mass
-                            self.atomnumber = atomnumber
+
+            if num_atoms != 1:
+                raise ValueError("This function only supports single-atom systems.")
+
+            print('This is a single atom system')
+            self.element_symbol = lines[2].split()[0].strip().upper()
+            print('Element symbol:', self.element_symbol)
+
+            # --- Step 1: 优先匹配 key[0] ---
+            matched_key = next((key for key in METAL_PDB if key[0] == self.element_symbol), None)
+
+            # --- Step 2: 如果 key[0] 匹配不到，再尝试 key[1] ---
+            if not matched_key:
+                matched_key = next((key for key in METAL_PDB if key[1] == self.element_symbol), None)
+
+            if matched_key:
+                print('This is a metal ion!')
+                print(f'Matched key: {matched_key} ')
+
+                try:
+                    atomnumber = METAL_PDB[matched_key][0]
+                    mass = METAL_PDB[matched_key][1]
+                    self.atomnumber = atomnumber
+                    self.mass = mass
+                    self.metal_type = matched_key[1]  # 可选：记录真实金属类型（如 CU, FE2）
+                    print(f"Mass = {self.mass}, Atom Number = {self.atomnumber}, Type = {self.metal_type}")
                     return 'metal'
-                else:
-                    print('This is not an ion supported by MCPB')
-                    print('try to search organic ions')
-                    if self.element_symbol in [ 'S', 'P', 'N', 'O', 'C', 'H']:
-                        print('This is an organic ion')
-                        self.mass = OrganicMass[self.element_symbol]
-                        return 'organic'
-                    
-                    else:
-                        raise TypeError('Error: This is not a metal ion or organic ion supported by current version of Autosolvate')
+                except Exception as e:
+                    raise ValueError(f"Error retrieving data for metal ion {matched_key}: {e}")
+
+            # --- Step 3: 检查是否是有机离子 ---
+            print(f"{self.element_symbol} is not a supported ion in MCPB.")
+            print("Try to search organic ions...")
+
+            if self.element_symbol in ['H', 'C', 'N', 'O', 'P', 'S']:
+                print("This is an organic ion.")
+                try:
+                    self.mass = OrganicMass[self.element_symbol]
+                    return 'organic'
+                except KeyError:
+                    raise ValueError(f"OrganicMass dictionary does not contain {self.element_symbol}")
+            else:
+                raise TypeError(
+                    f"Error: This is not a metal ion or organic ion supported by the current version of Autosolvate.\n"
+                    f"Element symbol: {self.element_symbol}"
+            )
+
+
         
     def gen_LJ_for_ions(self):
         IonLJParaDict = get_ionljparadict('opc')
         keyname = self.element_symbol.capitalize() + str(int(self.charge))
+        
         if keyname in IonLJParaDict.keys():
             print('This is a supported ion in MCPB')
             self.LJ = IonLJParaDict[keyname]
             self.sigma = self.LJ[0]
             self.epsilon = self.LJ[1]
         else:
-            print('This is not a supported ion in MCPB')
-            print('try to search organic ions')
-            if self.element_symbol in [ 'S', 'P', 'N']:
-                print('This is an organic ion')
-                self.LJ = organic_LJ[self.element_symbol]
-                self.sigma = self.LJ['sigma']
-                self.epsilon = self.LJ['epsilon']
+            if len(keyname) == 2:
+                newkeyname = keyname + ' '
+                if newkeyname in IonLJParaDict.keys():
+                    self.LJ = IonLJParaDict[newkeyname]
+                    self.sigma = self.LJ[0]
+                    self.epsilon = self.LJ[1]
+                else:                
+                    print('This is not a supported ion in MCPB')
+                    print('try to search organic ions')
+                    if self.element_symbol in [ 'S', 'P', 'N']:
+                        print('This is an organic ion')
+                        self.LJ = organic_LJ[self.element_symbol]
+                        self.sigma = self.LJ['sigma']
+                        self.epsilon = self.LJ['epsilon']
 
-            else:
-                raise TypeError('Error: This is not a metal ion or organic ion supported by current version of Autosolvate, please check the input file and charge')
+                    else:
+                        raise TypeError('Error: This is not a metal ion or organic ion supported by current version of Autosolvate, please check the input file and charge')
     
     def write_mol2(self):
         pdb = os.path.splitext(self.xyzfile)[0] + '.pdb'
