@@ -1,6 +1,5 @@
 from openbabel import pybel
 import getopt, sys, os
-import multiprocessing
 from openbabel import openbabel as ob
 import subprocess 
 import pkg_resources
