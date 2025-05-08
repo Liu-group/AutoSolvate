@@ -442,5 +442,5 @@ Example 4: Ion in Water
   * make sure to make note of which trajectory the clusters come from
 
   
-.. image:: _images/tutorial4_6.jpg
+.. image:: _images/tutorial4_6.png
    :width: 400
