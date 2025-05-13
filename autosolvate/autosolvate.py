@@ -625,7 +625,7 @@ class solventBoxBuilder():
 
         """
         if self.ion:
-            ionFF = file_prep_for_ion(xyzfile=self.xyz, charge=self.slu_netcharge, solvent=self.solvent, 
+            ionFF = file_prep_for_ion(xyzfile=self.xyz, charge=self.slu_netcharge, solvent=self.solvent, outputFile=self.outputFile,
                                       cubic_size=self.cube_size,closeness=self.closeness, solvent_frcmod=self.solvent_frcmod,solvent_off=self.solvent_off)
             ionFF.build()
             print("The script has finished successfully")

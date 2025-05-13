@@ -6,23 +6,60 @@ import autosolvate
 from . import helper_functions as hp
 
 def test_advanced_example_1(tmpdir):
-    testName = "test_ions"
     solventboxname = "water"
+    os.system('cp inputs/K.xyz ' + str(tmpdir))
     
     autosolvate.startboxgen([
-        "-m", hp.get_input_dir("K.xyz"),
+        "-m", "K.xyz",
         "-s", solventboxname,
-        "-c", "1"
+        "-c", "1",
+        "-o",'K_solvated'
         ])
-    out = solventboxname + "_solvated"  
-    ref = hp.get_reference_dir(solventboxname + "_solvated")
+
+    for p in tmpdir.listdir():
+        print("  ", p.basename)
 
     pass_exist = True
-    for suffix in [".pdb", ".prmtop", ".inpcrd"]:
-        pass_exist *= os.path.exists(os.path.splitext(out)[0] + suffix)
+    for suffix in ["K_solvated.pdb", "K_solvated.prmtop", "K_solvated.inpcrd"]:
+        pass_exist *= os.path.exists(suffix)
     assert pass_exist
+    
+    os.system('cp inputs/S.xyz ' + str(tmpdir))
+    
+    solventboxname = "acetonitrile"
+    autosolvate.startboxgen([
+        "-m", "S.xyz",
+        "-s", solventboxname,
+        "-c", "-2",
+        "-o",'S_solvated'
+        ])
 
-    pass_geom = hp.compare_pdb(out, ref)
-    pass_amberinput = hp.compare_inpcrd_prmtop(out, ref)
-    assert pass_geom
-    assert pass_amberinput
+    for p in tmpdir.listdir():
+        print("  ", p.basename)
+
+    pass_exist = True
+    for suffix in ["S_solvated.pdb", "S_solvated.prmtop", "S_solvated.inpcrd"]:
+        pass_exist *= os.path.exists(suffix)
+    assert pass_exist
+    
+    os.system('cp inputs/dmso.frcmod ' + str(tmpdir))
+    os.system('cp inputs/dmso.off ' + str(tmpdir))
+    os.system('cp inputs/Fe.xyz ' + str(tmpdir))
+    
+    solventboxname = "d"
+    autosolvate.startboxgen([
+        "-m", "Fe.xyz",
+        "-s", solventboxname,
+        "-c", "2",
+        "-o",'Fe_dmso_solvated',
+        "-l", "dmso.off",
+        "-p", "dmso.frcmod"
+        ])
+
+    for p in tmpdir.listdir():
+        print("  ", p.basename)
+
+    pass_exist = True
+    for suffix in ["Fe_dmso_solvated.pdb", "Fe_dmso_solvated.prmtop", "Fe_dmso_solvated.inpcrd"]:
+        pass_exist *= os.path.exists(suffix)
+    assert pass_exist

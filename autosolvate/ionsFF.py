@@ -65,7 +65,7 @@ def write_filtered_mol2(input_file, output_file, custom_line):
 
 
 class file_prep_for_ion():
-    def __init__(self, xyzfile, charge,solvent,cubic_size,closeness,solvent_off="", solvent_frcmod=""):
+    def __init__(self, xyzfile, charge,solvent,cubic_size,closeness,outputFile,solvent_off="", solvent_frcmod=""):
         self.closeness = closeness
         self.cube_size = cubic_size
         self.xyzfile = xyzfile
@@ -76,6 +76,7 @@ class file_prep_for_ion():
         self.volumne = (float(self.cube_size) * 10**(-10))**3
         self.solvent_off = solvent_off
         self.solvent_frcmod = solvent_frcmod
+        self.outputFile = outputFile
         
         if self.solvent not in ['acetonitrile','water','methanol','nma','chloroform']:
             print("Warning: solvent not supported for automated counting determination, using the default number")
@@ -116,7 +117,7 @@ class file_prep_for_ion():
                     self.atomnumber = atomnumber
                     self.mass = mass
                     self.metal_type = matched_key[1]  # 可选：记录真实金属类型（如 CU, FE2）
-                    print(f"Mass = {self.mass}, Atom Number = {self.atomnumber}, Type = {self.metal_type}")
+                    print(f"Mass = {self.mass}, Atom Number = {self.atomnumber}, Type = {self.metal_type}, Charge = {self.charge}")
                     return 'metal'
                 except Exception as e:
                     raise ValueError(f"Error retrieving data for metal ion {matched_key}: {e}")
@@ -141,7 +142,7 @@ class file_prep_for_ion():
 
         
     def gen_LJ_for_ions(self):
-        IonLJParaDict = get_ionljparadict('opc')
+        IonLJParaDict = get_ionljparadict('tip3p')
         keyname = self.element_symbol.capitalize() + str(int(self.charge))
         
         if keyname in IonLJParaDict.keys():
@@ -149,7 +150,7 @@ class file_prep_for_ion():
             self.LJ = IonLJParaDict[keyname]
             self.sigma = self.LJ[0]
             self.epsilon = self.LJ[1]
-        else:
+        elif keyname not in IonLJParaDict.keys():
             if len(keyname) == 2:
                 newkeyname = keyname + ' '
                 if newkeyname in IonLJParaDict.keys():
@@ -160,13 +161,23 @@ class file_prep_for_ion():
                     print('This is not a supported ion in MCPB')
                     print('try to search organic ions')
                     if self.element_symbol in [ 'S', 'P', 'N']:
-                        print('This is an organic ion')
+                        print('This is an organic ion',self.element_symbol)
                         self.LJ = organic_LJ[self.element_symbol]
                         self.sigma = self.LJ['sigma']
                         self.epsilon = self.LJ['epsilon']
 
                     else:
                         raise TypeError('Error: This is not a metal ion or organic ion supported by current version of Autosolvate, please check the input file and charge')
+            elif len(keyname) != 2:
+                print('try to search organic ions')
+                if self.element_symbol in [ 'S', 'P', 'N']:
+                    print('This is an organic ion',self.element_symbol)
+                    self.LJ = organic_LJ[self.element_symbol]
+                    self.sigma = self.LJ['sigma']
+                    self.epsilon = self.LJ['epsilon']               
+            else:
+                raise TypeError('Error: This is not a metal ion or organic ion supported by current version of Autosolvate, please check the input file and charge')
+                
     
     def write_mol2(self):
         pdb = os.path.splitext(self.xyzfile)[0] + '.pdb'
@@ -272,8 +283,8 @@ class file_prep_for_ion():
             ofile.write("addIons2 mol " + ion + ' ' + ionnum + '\n')
         ofile.write('check mol\n')
         
-        ofile.write('savepdb mol '+os.path.splitext(self.xyzfile)[0]+'_solvated.pdb\n')
-        ofile.write('saveamberparm mol '+os.path.splitext(self.xyzfile)[0]+'_solvated.prmtop' + ' ' + os.path.splitext(self.xyzfile)[0]+'_solvated.inpcrd\n')
+        ofile.write('savepdb mol '+self.outputFile+'.pdb\n')
+        ofile.write("saveamberparm mol " + self.outputFile + ".prmtop " + self.outputFile + ".inpcrd\n")
         ofile.write('quit\n')
         ofile.close()
     
@@ -381,8 +392,8 @@ class file_prep_for_ion():
             ofile.write("addIons2 mol " + ion + ' ' + ionnum + '\n')
         
         ofile.write('check mol\n')
-        ofile.write('savepdb mol '+os.path.splitext(self.xyzfile)[0]+'_solvated.pdb\n')
-        ofile.write('saveamberparm mol '+os.path.splitext(self.xyzfile)[0]+'_solvated.prmtop' + ' ' + os.path.splitext(self.xyzfile)[0]+'_solvated.inpcrd\n')
+        ofile.write('savepdb mol '+self.outputFile+'.pdb\n')
+        ofile.write("saveamberparm mol " + self.outputFile + ".prmtop " + self.outputFile + ".inpcrd\n")
         ofile.write('quit\n')
         ofile.close()
     
@@ -417,8 +428,8 @@ class file_prep_for_ion():
                 ion = 'Na+'
             ofile.write("addIons2 mol " + ion + " 0\n")
         ofile.write("check mol\n")
-        ofile.write("savepdb mol " + os.path.splitext(self.xyzfile)[0] + "_solvated.pdb\n")
-        ofile.write("saveamberparm mol " + os.path.splitext(self.xyzfile)[0] + "_solvated.prmtop " + os.path.splitext(self.xyzfile)[0] + "_solvated.inpcrd\n")
+        ofile.write('savepdb mol '+self.outputFile+'.pdb\n')
+        ofile.write("saveamberparm mol " + self.outputFile + ".prmtop " + self.outputFile + ".inpcrd\n")
         ofile.write("quit\n")
         ofile.close()
     
