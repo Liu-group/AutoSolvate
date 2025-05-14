@@ -16,6 +16,7 @@ amber_solv_dict = {'water': [' ','TIP3PBOX '],
                    'nma': ['loadOff solvents.lib\n loadamberparams frcmod.nma\n', 'NMABOX ']}
 
 custom_solv_dict = {'acetonitrile':'ch3cn'}
+    
 
 class solventBoxBuilder():
     r"""
@@ -46,8 +47,8 @@ class solventBoxBuilder():
     """
 
 
-    def __init__(self, xyzfile, solvent='water', slu_netcharge=0, cube_size=54, 
-            charge_method="resp", slu_spinmult=1, outputFile="", 
+    def __init__(self, xyzfile, nprocs,solvent='water', slu_netcharge=0, cube_size=54, 
+            charge_method="resp", slu_spinmult=1, outputFile="",
             srun_use=False, qm_program='gaussian', qm_exe=None, qm_dir=None,
             amberhome=None, closeness=0.8,
             solvent_off="", solvent_frcmod="",rundir=""):
@@ -91,6 +92,7 @@ class solventBoxBuilder():
         self.solvent_off=solvent_off
         self.solvent_frcmod=solvent_frcmod
         self.is_custom_solvent = False
+        self.nprocs = nprocs
         self.inputCheck()
 
     def inputCheck(self):
@@ -106,7 +108,7 @@ class solventBoxBuilder():
 
         if self.charge_method == "resp":
             if self.qm_program not in available_qm_programs:
-               print("Error! Selectd quantum chemistry package for RESP charge fittig is not supported:", qm_program)
+               print("Error! Selectd quantum chemistry package for RESP charge fittig is not supported:", self.qm_program)
                exit()
                 
             elif self.qm_program == "gaussian":
@@ -143,6 +145,33 @@ class solventBoxBuilder():
                         print("Does not exist! Exiting...")
                         exit()
             
+            elif self.qm_program == "orca":
+                nprocs_available =  int(os.environ.get("SLURM_NTASKS", 1))
+                print("Number of processors available: ", str(nprocs_available))
+                if self.qm_exe == None:
+                   print("WARNING: ORCA executable name is not specified for RESP charge fitting!")
+                   print("WARNING: Using rungms by default. If failed later,\
+                          please rerun with the option -e specified!")
+                   self.qm_exe = 'orca'
+                if len(self.nprocs) == 0:
+                     print("WARNING: Number of processors is not specified for RESP charge fitting!")
+                     print("WARNING: Using",str(nprocs_available),"processors by default.")
+                     self.nprocs = str(nprocs_available)
+                elif len(self.nprocs) > 0:
+                    print("Number of processors specified for RESP charge fitting: ", str(self.nprocs))
+                    try:
+                        tmp = int(self.nprocs)
+                        if int(self.nprocs) > nprocs_available:
+                            print("WARNING: Number of processors specified for RESP charge fitting",str(self.nprocs), "is larger than the total requested", str(nprocs_available))
+                            print("WARNING: Using",str(nprocs_available),"processors by default.")
+                            self.nprocs = str(nprocs_available)
+                        else:
+                            self.nprocs = str(tmp)
+                    except (TypeError, ValueError):
+                        print("Error, nprocs must be integer")
+                        self.nprocs = str(nprocs_available)
+
+                        
         if self.amberhome == None:
             print("WARNING: Amber home directory is not specified in input options")
             print("WARNING: Checking AMBERHOME environment variable...")
@@ -260,8 +289,8 @@ class solventBoxBuilder():
         self.removeConectFromPDB()
 
         if self.charge_method == "resp":
-           myresp = resp_factory(pdbfile="solute.xyz.pdb", charge=self.slu_netcharge,
-                                 spinmult=self.slu_spinmult, qm_program=self.qm_program,
+           myresp = resp_factory(pdbfile="solute.xyz.pdb", charge=self.slu_netcharge,xyzfile = self.xyz,
+                                 spinmult=self.slu_spinmult, qm_program=self.qm_program, nprocs = self.nprocs,
                                  qm_exe=self.qm_exe, qm_dir=self.qm_dir,srun_use=self.srun_use,rundir=self.rundir)
            myresp.run()
 
@@ -666,6 +695,7 @@ def startboxgen(argumentList):
          -l, --solventoff  path to the custom solvent .off library file. Required if the user want to use some custom solvent other than the 5 solvents contained in AutoSolvate (TIP3P water, methanol, NMA, chloroform, MeCN)
          -p, --solventfrcmod  path to the custom solvent .frcmod file. Required if the user wants to use some custom solvent other than the 5 solvents contained in AutoSolvate. 
          -v, --validation  option to run validation step for given solute's name
+         -y, --nprocs procs to run orca resp charge calculation, if -q orca
          -h, --help  short usage description
 
     Returns
@@ -675,8 +705,8 @@ def startboxgen(argumentList):
     """
 
     #print(argumentList)
-    options = "hm:n:s:o:c:b:g:u:rq:e:d:a:t:l:p:vD:"
-    long_options = ["help", "main","solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod", "validation", "runningdirectory"]
+    options = "hm:n:s:o:c:b:g:u:rq:e:d:a:t:l:p:y:vD:"
+    long_options = ["help", "main","solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","qmprogram","qmexe", "qmdir", "amberhome", "closeness","solventoff","solventfrcmod","nprocs", "validation", "runningdirectory"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
     solutename = ""
     solutexyz=""
@@ -697,6 +727,7 @@ def startboxgen(argumentList):
     solvent_off=""
     solvent_frcmod=""
     rundir = ""
+    nprocs = ""
     for currentArgument, currentValue in arguments:
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
@@ -718,6 +749,7 @@ def startboxgen(argumentList):
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
             print('  -n, --solutename           initialize suggested parameter for given solute')
             print('  -v, --validation           option to run validation step for input parameters')
+            print('  -y, --nprocs               procs to run orca resp charge calculation, if -q orca')
             print('  -h, --help                 short usage description')
             exit()
         elif currentArgument in ("-m", "--main"):
@@ -753,6 +785,8 @@ def startboxgen(argumentList):
         elif currentArgument in ("-b", "--cubesize"):
             print ("Cubesize:", currentValue)
             cube_size=float(currentValue)
+        elif currentArgument in ("-y","--nprocs"):
+            nprocs = str(currentValue)
         elif currentArgument in ("-g", "--chargemethod"):
             print ("Chargemethod:", currentValue)
             charge_method=str(currentValue)
@@ -815,7 +849,7 @@ def startboxgen(argumentList):
         print(solutexyz," cannot be opened with openbabel.\n Exiting...")
         exit()
      
-    builder = solventBoxBuilder(solutexyz, solvent=solvent, slu_netcharge=slu_netcharge,
+    builder = solventBoxBuilder(solutexyz, solvent=solvent, slu_netcharge=slu_netcharge,nprocs=nprocs,
                                 cube_size=cube_size, charge_method=charge_method, 
                                 slu_spinmult=slu_spinmult, outputFile=outputFile, srun_use=srun_use, 
                                 qm_program=qmprogram, qm_exe=qmexe, qm_dir=qmdir,
