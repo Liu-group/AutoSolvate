@@ -1,0 +1,100 @@
+-------------------------------------------------------------
+----------------------- !PROPERTIES! ------------------------
+-------------------------------------------------------------
+# -----------------------------------------------------------
+$ PAL_Flags
+   description: The PAL Flags
+   geom. index: 1
+   prop. index: 1
+        Diskflag:     2
+# -----------------------------------------------------------
+$ SCF_Energy
+   description: The SCF energy
+   geom. index: 1
+   prop. index: 1
+        SCF Energy:     -510.1262574357
+# -----------------------------------------------------------
+$ DFT_Energy
+   description: The DFT energy
+   geom. index: 1
+   prop. index: 1
+   Number of Alpha Electrons                 42.9999852182 
+   Number of Beta  Electrons                 42.9999852182 
+   Total number of  Electrons                85.9999704364 
+   Exchange energy                          -53.8604042329 
+   Correlation energy                        -3.4733475704 
+   Correlation energy NL                      0.0000000000 
+   Exchange-Correlation energy              -57.3337518033 
+   Embedding correction                       0.0000000000 
+   Total DFT Energy (No VdW correction)    -510.1262574357 
+# -----------------------------------------------------------
+$ Calculation_Info
+   description: Details of the calculation
+   geom. index: 1
+   prop. index: 1
+     Multiplicity:                          1
+     Charge:                                0
+     number of atoms:                       21
+     number of electrons:                   0
+     number of frozen core electrons:       1
+     number of correlated electrons:        0
+     number of basis functions:             132
+     number of aux C basis functions:       0
+     number of aux J basis functions:       689
+     number of aux JK basis functions:      0
+     number of aux CABS basis functions:    0
+     Total Energy                           -510.126257
+# -----------------------------------------------------------
+$ SCF_Electric_Properties
+   description: The SCF Calculated Electric Properties
+   geom. index: 1
+   prop. index: 1
+       Filename                          : FeCP2_plus2_large_mk.orca.scfp 
+       Do Dipole Moment Calculation      : true 
+       Do Quadrupole Moment Calculation  : false 
+       Do Polarizability Calculation     : false 
+** Dipole moment part of electric properties **
+        Magnitude of dipole moment (Debye) :        0.0023957743
+        Electronic Contribution:
+                  0    
+      0      -0.050631
+      1      -0.000016
+      2      -0.000467
+        Nuclear Contribution:
+                  0    
+      0       0.051572
+      1      -0.000003
+      2       0.000514
+        Total Dipole moment:
+                  0    
+      0       0.000941
+      1      -0.000019
+      2       0.000047
+# -------------------------------------------------------------
+----------------------- !GEOMETRIES! ------------------------
+# -------------------------------------------------------------
+------------------------ !GEOMETRY! -------------------------
+    Number of atoms:    21 
+    Geometry Index:     1 
+    Coordinates:
+               0 Fe    -5.813556000000   -3.840429000000   -1.541359000000
+               1 H     -5.284290000000   -1.364379000000   -2.917879000000
+               2 C     -5.531688000000   -1.776113000000   -1.948973000000
+               3 H     -7.787107000000   -1.779068000000   -1.952460000000
+               4 H     -3.511093000000   -2.185487000000   -1.032548000000
+               5 C     -6.862434000000   -1.996932000000   -1.435666000000
+               6 C     -4.588746000000   -2.212575000000   -0.946681000000
+               7 C     -6.742313000000   -2.569518000000   -0.115912000000
+               8 C     -5.337082000000   -2.702118000000    0.186424000000
+               9 H     -7.561501000000   -2.855192000000    0.529725000000
+              10 H     -4.918681000000   -3.106578000000    1.097918000000
+              11 H     -4.919503000000   -4.571976000000   -4.181551000000
+              12 C     -5.335874000000   -4.977509000000   -3.269608000000
+              13 H     -7.561042000000   -4.830272000000   -3.610615000000
+              14 H     -3.507312000000   -5.489366000000   -2.052426000000
+              15 C     -6.740439000000   -5.113752000000   -2.965805000000
+              16 C     -4.585113000000   -5.465070000000   -2.137262000000
+              17 C     -6.857731000000   -5.686627000000   -1.645943000000
+              18 C     -5.525853000000   -5.904008000000   -1.133989000000
+              19 H     -7.781217000000   -5.906926000000   -1.128057000000
+              20 H     -5.276426000000   -6.315106000000   -0.165334000000

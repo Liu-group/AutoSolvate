@@ -1,4 +1,0 @@
- FE       1     FE     1
-LG0       1    LG0     2
-LG1       1    LG1     3
-LG2       1    LG2     4

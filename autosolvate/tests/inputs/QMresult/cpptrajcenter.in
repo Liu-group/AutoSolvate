@@ -1,6 +1,0 @@
-parm ref_121_nvt_80ps.pdb
-trajin  ref_121_nvt_80ps.pdb
-center :1 mass    # center molecule number 1
-image center familiar
-trajout  ref_121_nvt_80ps_dt100_center.pdb pdb
-go
