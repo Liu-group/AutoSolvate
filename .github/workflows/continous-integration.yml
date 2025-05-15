@@ -34,6 +34,9 @@ jobs:
     - name: Create conda environment
       run: conda env create -f devtools/conda-envs/environment.yml
 
+    - name: Update pymsmt_autosolvate only
+      run:  pip install --upgrade --no-deps git+https://github.com/Liu-group/pymsmt_autosolvate.git
+
     - name: Activate conda environment
       shell: bash -l {0}
       run: conda activate autosolvate
