@@ -39,6 +39,11 @@ def testAutoMCPB_acn_solvated(tmpdir):
     assert os.path.exists('Kcryptand_solvated.prmtop')
     assert os.path.exists('Kcryptand_solvated.inpcrd')
     
+    cmd = 'cp ' + str(tmpdir) +'/Kcryptand_solvated.inpcrd ~'
+    os.system(cmd)
+    cmd = 'cp ' + str(tmpdir) +'/Kcryptand_solvated.prmtop ~'
+    os.system(cmd)
+    
     out =  'Kcryptand_solvated'
     ref = os.path.join(hp.get_reference_dir(), 'metalcomplex/Kcryptand/Kcryptand_solvated')
     compare_inpcrd, compare_prmtop = compare_boxgen(out, ref)
