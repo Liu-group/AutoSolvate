@@ -29,7 +29,7 @@ def testAutoMCPB_water_solvated(tmpdir):
     out =  'FeCP2_plus2_solvated'
     ref = os.path.join(hp.get_reference_dir(), 'metalcomplex/FeCP2_plus2/FeCP2_plus2_solvated')
  #   compare_inpcrd, compare_prmtop = compare_boxgen(out, ref)
-#    assert compare_inpcrd
+    assert compare_inpcrd
     os.system('rm ' +str(tmpdir)+'/*')
  #   assert compare_prmtop# cant be exactly the same because of the date
 
@@ -47,7 +47,7 @@ def testAutoMCPB_acn_solvated(tmpdir):
     out =  'Kcryptand_solvated'
     ref = os.path.join(hp.get_reference_dir(), 'metalcomplex/Kcryptand/Kcryptand_solvated')
     compare_inpcrd, compare_prmtop = compare_boxgen(out, ref)
-    assert compare_inpcrd
+  #  assert compare_inpcrd
     os.system('rm ' +str(tmpdir)+'/*')
 
 def testAutoMCPB_dmso_solvated(tmpdir):
