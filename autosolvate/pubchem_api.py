@@ -59,7 +59,30 @@ class PubChemAPI():
         except:
             print(f'Error, {self.name} corresponding compound ID cannot be obtained from PubChem API.')
             return 0
+            
+    def get_prop(self, label, name):
+        r"""
+        Get property from newly updated PubChem API using label and name.
 
+        Parameters
+        ----------
+        label: str, Required
+            Property label in PubChem API.
+        name: str, Required
+            Property name in PubChem API.
+
+        Returns
+        -------
+            Property value: str or float or int
+                Return property value in string or float or integer form.
+                If the property is not available, return None.
+        """
+        for p in (self.mol.record or {}).get('props', []):
+            urn = p.get('urn', {})
+            if urn.get('label') == label and urn.get('name') == name:
+                v = p.get('value', {})
+                return v.get('sval') or v.get('fval') or v.get('ival')
+        return None
 
     def set_SMILES(self):
         r"""
@@ -75,7 +98,7 @@ class PubChemAPI():
         
         """
         try:
-            self.sml = self.mol.canonical_smiles
+            self.sml = self.get_prop('SMILES', 'Connectivity')
             return 1
         except:
             print(f'Error, solute molecule is not correctly set up, make sure set_up_mol() is called before.')
