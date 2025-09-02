@@ -425,3 +425,22 @@ Example 3: Naphthalene in Acetonitrile (custom solvent)
   
 .. image:: _images/tutorial4_5.jpg
    :width: 400
+
+Example 4: Ion in Water 
+----------------------------------------------------------
+
+``autosolvate boxgen -m K.xyz -s water -c 1 -u 1 -o K_in_water``
+  * The first step is putting the ion K+ in the solvent box, which uses the boxgen command. 
+    ``-m`` K.xyz is the ion coordinates file.
+    ``-c`` is the charge of the ion.
+    ``-s`` is the solvent.
+    ``-u`` is the multiplicity of the ion.
+    ``-o`` is the output file name. 
+``autosolvate mdrun -f K_in_water -q 1 -u 1 -d``
+  * copy the contents of runMM.sh and runQMMM.sh into a submit script that calls Terachem and submits the (very long) job into a queue with sufficient time
+``autosolvate clustergen -f K_in_water.prmtop -t K_in_water-mmnpt.netcdf -s 4``
+  * make sure to make note of which trajectory the clusters come from
+
+  
+.. image:: _images/tutorial4_6.png
+   :width: 400
