@@ -292,6 +292,7 @@ class InputParser(object):
         all_number_missing = True
         all_vratio_exist = True
         all_wratio_exist = True
+        all_mratio_exist = True
         for solvent in self.data['solvents']:
             if "number" not in solvent:
                 all_number_exist = False
@@ -301,6 +302,8 @@ class InputParser(object):
                 all_vratio_exist = False
             if "weight_ratio" not in solvent:
                 all_wratio_exist = False
+            if "molar_ratio" not in solvent:
+                all_mratio_exist = False
             if "name" not in solvent:
                 if "xyzfile" in solvent:
                     solvent["name"] = os.path.basename(solvent["xyzfile"]).split(".")[0]
@@ -331,8 +334,8 @@ class InputParser(object):
             else:
                 raise ValueError(f"Cannot determine the number of the solvent. Please provide the 'number' parameter.")
         # if there are multiple solvents, the number of each solvent must be provided
-        if not all_vratio_exist and not all_wratio_exist:
-            raise ValueError("Please provide the 'volume_ratio' or 'weight_ratio' parameter for all solvents if the 'number' parameter is not provided.")
+        if not all_vratio_exist and not all_wratio_exist and not all_mratio_exist:
+            raise ValueError("Please provide the 'volume_ratio' or 'weight_ratio' or 'molar_ratio' parameter for all solvents to determine the number of solvent molecules.")
         for solvent in self.data['solvents']:
             # determine density
             if solvent["name"] in SOLVENT_DENSITY and "density" not in solvent:
@@ -363,6 +366,15 @@ class InputParser(object):
                     [s["weight_ratio"] for s in self.data["solvents"]],
                     volume_in_m3
                 )
+        elif all_mratio_exist:
+            numbers = calculate_solvent_numbers_from_molar_portions(
+                    [s["molecular_weight"] for s in self.data["solvents"]],
+                    [s["density"] for s in self.data["solvents"]],
+                    [s["molar_ratio"] for s in self.data["solvents"]],
+                    volume_in_m3
+                )
+        else:
+            raise ValueError("Please provide the 'volume_ratio' or 'weight_ratio' or 'molar_ratio' parameter for all solvents if the 'number' parameter is not provided.")
         for i, solvent in enumerate(self.data['solvents']):
             solvent['number'] = numbers[i]
 
@@ -373,7 +385,8 @@ class InputParser(object):
         # step 2: change 'solute': {...} to 'solutes': [{...},]; change 'solvent': {...} to 'solvents': [{...},]
         check_inputs(self.data)
         if ('solute' not in self.data or len(self.data['solute']) == 0) and ('solutes' not in self.data or len(self.data['solutes']) == 0):
-            raise ValueError("No solute is provided.")
+            self.logger.info("This box only contains solvent molecules.")
+            self.data['solutes'] = []
         if ('solute' in self.data and len(self.data['solute']) > 0) and ('solutes' in self.data and len(self.data['solutes']) > 0):
             raise ValueError("Both 'solute' and 'solutes' are provided. Please provide only one.")
         if ('solute' in self.data and len(self.data['solute']) > 0) and ('solutes' not in self.data or len(self.data['solutes']) == 0):

@@ -84,6 +84,40 @@ def calculate_solvent_numbers_from_volume_portions(
     return list(map(int, numbers))
 
 
+def calculate_solvent_numbers_from_molar_portions(
+        solvent_mws:Iterable[float],
+        solvent_densities:Iterable[float],
+        molar_portions:Iterable[float],
+        total_volume:float) -> float:
+    """
+    Calculate the number of solvent molecules in a given volume with different solvent portions.
+
+    Note: the real density of the mixture is close but NOT equal to the weighted average of the densities of the solvents. The solvent box still needed to be equilibrated under the NPT ensemble.
+
+    Parameters
+    ----------
+    solvent_mws : Iterable[float]
+        molecular weights of solvents in g/mol
+    solvent_densities : Iterable[float]
+        densities of solvents in kg/m3
+    molar_portions : Iterable[float]
+        molar portions of solvents in the mixture, from 0 to 1. This indicates the fraction of moles of each solvent in the total moles of solvents.
+    volume : float
+        volume in m3
+    """
+    weight_portions = [(molar_portion * mw) for molar_portion, mw in zip(molar_portions, solvent_mws)]
+    total_weight_portion = sum(weight_portions)
+    weight_portions = [wp / total_weight_portion for wp in weight_portions]
+    estimated_density = 1 / sum([portion / density for portion, density in zip(weight_portions, solvent_densities)])
+    # density in g/cm3
+    # volume in m3
+    # so we should convert density to kg/m3
+    mass = total_volume * estimated_density * 1000
+    # now mass are in kg as kg/m3 * m3 = kg
+    # so we should convert mass to g for using the N_A
+    numbers = [mass * 1000 * portion / mw * N_A for mw, portion in zip(solvent_mws, weight_portions)]
+    print(weight_portions, estimated_density, mass, numbers)
+    return list(map(int, numbers))
 
 
 # MCPB utilities
