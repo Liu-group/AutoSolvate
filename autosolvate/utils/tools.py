@@ -56,6 +56,7 @@ def calculate_solvent_numbers_from_weight_portions(
     """
     estimated_density = 1 / sum([portion / density for portion, density in zip(weight_portions, solvent_densities)])
     mass = total_volume * estimated_density 
+    mass = mass * 1000  # convert to g
     numbers = [mass * 1000 * portion / mw * N_A for mw, portion in zip(solvent_mws, weight_portions)]
     return list(map(int, numbers))
 
@@ -80,7 +81,7 @@ def calculate_solvent_numbers_from_volume_portions(
     volume : float
         volume in m3
     """
-    numbers = [portion * total_volume * density * N_A * 1000 / mw for mw, density, portion in zip(solvent_mws, solvent_densities, volume_portions)]
+    numbers = [portion * total_volume * density * 1000 * N_A * 1000 / mw for mw, density, portion in zip(solvent_mws, solvent_densities, volume_portions)]
     return list(map(int, numbers))
 
 
