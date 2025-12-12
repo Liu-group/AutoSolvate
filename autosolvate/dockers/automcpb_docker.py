@@ -49,6 +49,13 @@ class AutoMCPBDocker(GeneralDocker):
             amberhome = "$AMBERHOME/bin/"
         self.amberhome = amberhome
         self.cutoff = cutoff
+
+        # process fakecharge
+        if isinstance(fakecharge, bool):
+            if fakecharge:
+                fakecharge = 'Y'
+            else:
+                fakecharge = 'N'
         self.fakecharge = fakecharge
         self.mode = mode
 
@@ -89,7 +96,7 @@ class AutoMCPBDocker(GeneralDocker):
             metal_charge = mol.metal_charge,
             spinmult = mol.spinmult,
             chargefile = mol.charge_file,
-            totalcharge= mol.totalcharge,
+            totalcharge= str(mol.totalcharge),
 
             # AutoMCPB parameters
             amberhome=self.amberhome,
