@@ -83,6 +83,19 @@ class AutoMCPBDocker(GeneralDocker):
         self.charge_info = mol.name + ".info"
         self.mcpb_frcmod = mol.name + "_mcpbpy.frcmod"
 
+    def all_output_exists(self, mol: TransitionMetalComplex) -> bool:
+        # if the generated_pdb, generated_prmtop, mcpb_frcmod, charge_info all exist, return True
+        if not os.path.exists(os.path.join(self.mcpb_folder, self.generated_prmtop)):
+            return False
+        if not os.path.exists(os.path.join(self.mcpb_folder, self.generated_pdb)):
+            return False
+        if not os.path.exists(os.path.join(self.mcpb_folder, self.charge_info)):
+            return False
+        if not os.path.exists(os.path.join(self.mcpb_folder, self.mcpb_frcmod)):
+            return False
+        self.logger.info(f"All output files already exist in {self.mcpb_folder}, skip generation.")
+        return True
+
     def generate_input(self, mol):
         pass 
     
@@ -173,9 +186,10 @@ class AutoMCPBDocker(GeneralDocker):
         if not self.check_system(mol):
             return False
         self.predict_output(mol)
-        self.generate_input(mol)
-        self.generate_cmd(mol)
-        self.execute(mol)
+        if not self.all_output_exists(mol):
+            self.generate_input(mol)
+            self.generate_cmd(mol)
+            self.execute(mol)
         if not self.check_output(mol):
             return False
         self.process_output(mol)
