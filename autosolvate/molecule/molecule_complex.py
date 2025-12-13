@@ -29,6 +29,7 @@ class MoleculeComplex(System):
                 residue_name:   str = "SYS",
                 folder:         str = ".",
                 reorder_pdb:    bool = False,
+                centered:       bool = False,
                 ):
         """
         The data class storing the files for a molecule complex (a pdb file with more than 1 fragment)
@@ -55,6 +56,8 @@ class MoleculeComplex(System):
             The folder to store the output files. Default is current folder
         reorder_pdb : bool
             Whether to reorder the pdb file. Default is False. If true then the atoms with in single fragment will be aggregated together.
+        centered: bool
+            A flag to indicate whether the molecule complex should be centered at the box, by default False
         """
 
         self.name           = process_system_name(name, xyzfile, support_input_format=MoleculeComplex._SUPPORT_INPUT_FORMATS)   

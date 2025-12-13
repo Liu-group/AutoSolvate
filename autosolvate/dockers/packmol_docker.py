@@ -64,6 +64,10 @@ class PackmolDocker(GeneralDocker):
                 self.logger.info("\t solute count: {}".format(slu.number))
             if slu.number > 1:
                 self.logger.info("The solute {} has more than one molecule, the position of solvents will be randomly generated.".format(slu.name))
+            elif slu.centered:
+                self.logger.info("The solute {} is centered at the box.".format(slu.name))
+            elif not slu.centered:
+                self.logger.info("The solute {}'s position will be randomly generated.".format(slu.name))
         for slv in solvents:
             if isinstance(slv, SolventBox):
                 self.logger.critical("The solvent should also be a molecule, not a pre-built solvent box!")
@@ -106,8 +110,9 @@ class PackmolDocker(GeneralDocker):
             return 
         solute = solutes[0]
         solute: Molecule
+        center_pos = box.cubesize / 2.0 
         if len(solutes) == 1 and solute.number == 1:
-            solute_pos  = box.cubesize / 2.0 
+            
             doc.write('{}                                        \n'.format('# add the solute'))
             # doc.write('{:<15} {}                                 \n'.format('structure', solute.pdb))
             if not os.path.exists(os.path.join(self.workfolder, os.path.basename(solute.pdb))):
@@ -115,7 +120,7 @@ class PackmolDocker(GeneralDocker):
                 # this is actually a bug in packmol. The path to the pdb file cannot be too long. One have to copy the file to the working directory
             doc.write('{:<15} {}                                 \n'.format('structure', os.path.basename(solute.pdb)))
             doc.write('{:<15} {:<5}                              \n'.format('number',    1))
-            doc.write('{:<10} {posx} {posy} {posz} {com} {com} {com}\n'.format('fixed', posx=solute_pos[0], posy=solute_pos[1], posz=solute_pos[2], com=0.0))
+            doc.write('{:<10} {posx} {posy} {posz} {com} {com} {com}\n'.format('fixed', posx=center_pos[0], posy=center_pos[1], posz=center_pos[2], com=0.0))
             doc.write('{:<15}                                    \n'.format('centerofmass'))
             doc.write('{:<15} {:<5}                              \n'.format('resnumbers', '2'))
             doc.write('{:<15}                                    \n'.format('end structure'))
@@ -128,7 +133,12 @@ class PackmolDocker(GeneralDocker):
                     shutil.copy(solute.pdb, os.path.join(self.workfolder, os.path.basename(solute.pdb)))
                 doc.write('{:<15} {}                                 \n'.format('structure', os.path.basename(solute.pdb)))
                 doc.write('{:<15} {:<5}                              \n'.format('number',solute.number))
-                doc.write('{:<10} {xmin} {ymin} {zmin} {xmax} {ymax} {zmax}\n'.format('inside box', xmin='0.', ymin='0.', zmin='0.', xmax=box.cubesize[0], ymax=box.cubesize[1], zmax=box.cubesize[2]))
+
+                if solute.number == 1 and solute.centered:
+                    doc.write('{:<10} {posx} {posy} {posz} {com} {com} {com}\n'.format('fixed', posx=center_pos[0], posy=center_pos[1], posz=center_pos[2], com=0.0))
+                    doc.write('{:<15}                                    \n'.format('centerofmass'))
+                else:
+                    doc.write('{:<10} {xmin} {ymin} {zmin} {xmax} {ymax} {zmax}\n'.format('inside box', xmin='0.', ymin='0.', zmin='0.', xmax=box.cubesize[0], ymax=box.cubesize[1], zmax=box.cubesize[2]))
                 doc.write('{:<15} {:<5}                              \n'.format('resnumbers', '2'))
                 doc.write('{:<15}                                    \n'.format('end structure'))
                 doc.write('\n')

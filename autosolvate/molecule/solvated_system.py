@@ -137,8 +137,8 @@ class SolvatedSystem(System):
             raise ValueError("Solute is invalid")
     
         if len(self.solutes) > 1:
-            self.logger.warning("More than one solute molecule is given. The relative position between solute molecules will be randomly generated")
-            self.logger.warning("If you want to keep the relative position, please prepare a molecule using a single xyz/pdb file contains all fragments.")
+            self.logger.info("More than one solute molecule is given. Relative position is not guaranteed to be kept.")
+            self.logger.info("If you want to keep the relative position, please prepare a molecule using a single xyz/pdb file contains all fragments.")
         
     def check_solvent(self) -> None:
         '''

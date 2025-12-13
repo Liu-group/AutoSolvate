@@ -227,6 +227,7 @@ class Molecule(System):
             residue_name    = "",
             folder          = WORKING_DIR,
             amber_solvent   = False,
+            centered        = False,
             ) -> None:
         """
         The data class for holding all files of a molecule.
@@ -247,6 +248,8 @@ class Molecule(System):
             The folder to store all files of the molecule, by default is the current working directory.
         amber_solvent : bool, optional
             A flag to indicate whether the molecule will use amber predefined parameters, by default False.
+        centered : bool, optional
+            A flag to indicate whether the molecule should be centered at the box, by default False.
         """
 
         self.folder         = os.path.abspath(folder)
@@ -255,7 +258,8 @@ class Molecule(System):
         self.spinmult       = multiplicity
         self.residue_name   = residue_name
         self.number         = 0
-        self.amber_solvent = amber_solvent 
+        self.amber_solvent  = amber_solvent 
+        self.centered       = centered
         self.name           = name
         super(Molecule, self).__init__(name = self.name)
         self.logger.name = self.__class__.__name__

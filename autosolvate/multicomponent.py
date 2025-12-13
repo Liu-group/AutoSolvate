@@ -313,7 +313,15 @@ class MixtureBuilder():
             }
         """
         
-        tmc = TransitionMetalComplex(xyzfile, folder = self.folder, metal_charge = metal_charge, multiplicity = spinmult, totalcharge = total_charge, legand_charge_file = chargefile)
+        tmc = TransitionMetalComplex(
+            xyzfile, 
+            folder = self.folder, 
+            metal_charge = metal_charge, 
+            multiplicity = spinmult, 
+            totalcharge = total_charge, 
+            legand_charge_file = chargefile,
+            centered = kwargs.get("centered", False)
+        )
         dockerparams = qm_kwargs.copy()
         dockerparams.update(mcpb_kwargs)
         dockerparams["workfolder"] = self.folder
@@ -341,6 +349,8 @@ class MixtureBuilder():
             Other arguments that need to be included in the solute. Remained for future development.
         """
         molecule = MoleculeComplex(xyzfile, charges=fragment_charge, multiplicities=fragment_spinmult, folder = self.folder)
+        if "centered" in kwargs and isinstance(kwargs["centered"], bool):
+            molecule.centered = kwargs["centered"]
         for fragment in molecule.newmolecules:
             for docker in self.single_molecule_pipeline:
                 docker.run(fragment)
@@ -388,6 +398,8 @@ class MixtureBuilder():
             for docker in self.single_molecule_pipeline:
                 docker.run(molecule)
         molecule.number = number
+        if "centered" in kwargs and isinstance(kwargs["centered"], bool):
+            molecule.centered = kwargs["centered"]
         self.solutes.append(molecule)
 
     def get_solvent_type(self, xyzfile = "", name = "", **kwargs):
@@ -444,7 +456,9 @@ class MixtureBuilder():
             frcmod : str
                 the path of the frcmod file of the solvent
         """
-
+        if "centered" in kwargs:
+            del kwargs["centered"]
+            self.logger.warning("The 'centered' argument is not supported for solvents and will be ignored.")
         solvent_type = self.get_solvent_type(xyzfile, name, **kwargs)
         if solvent_type == "amber":
             self.logger.info(f"Adding predefined solvent {name}")

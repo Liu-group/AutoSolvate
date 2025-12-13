@@ -418,7 +418,21 @@ class InputParser(object):
         # for solvent in self.data['solvents']:
         #     if check_transition_metal_complex(solvent['xyzfile']) or check_multicomponent(solvent['xyzfile']):
         #         raise ValueError("Transition metal complex or molecule complex as solvent is not supported.")
-            
+        
+        # step 4.5: for all solutes, find which one the user want to centered at the box center
+        # this is by finding the keyword "centered": true
+        # if a solute's number is greater than 1, we cannot center it.
+        center_found = False
+        for solute in self.data['solutes']:
+            if "centered" not in solute:
+                solute["centered"] = False
+            if solute["centered"] in [True, "true", "True", "Y", "y", "YES", "yes"]:
+                if center_found:
+                    raise ValueError("Only one solute can be centered at the box center. Multiple solutes are marked to be centered.")
+                if "number" in solute and solute["number"] > 1:
+                    raise ValueError("Cannot center a solute with number greater than 1.")
+                center_found = True
+
         # step 5: add the missing keywords for transiton metal complex
         if has_tmc:
             self.logger.info("Transition metal complex is detected. Will use AutoMCPB to generate the force field parameters.")
