@@ -284,7 +284,24 @@ class InputParser(object):
             solutedata["total_charge"] = "default"
             self.logger.info("The 'total_charge' parameter is not provided. Will be determined automatically.")
         if "chargefile" not in solutedata:
-            solutedata["chargefile"] = ""    
+            solutedata["chargefile"] = ""   
+
+    def resolve_tleap_bond_issue(self):
+        """
+        Resolve the tleap adding bond issue for transition metal complex
+        by adding the "bond" keyword in the tleap input file
+        """
+        if "custom_tleap_path" not in self.data:
+            return 
+        elif not os.path.exists(self.data["custom_tleap_path"]):
+            self.logger.error(f"The custom tleap path {self.data['custom_tleap_path']} does not exist.")
+            raise FileNotFoundError(f"The custom tleap path {self.data['custom_tleap_path']} does not exist.")
+        tleap_path = self.data["custom_tleap_path"]
+        for solute in self.data['solutes']:
+            if solute["__TYPE__"] != "transition_metal_complex":
+                continue
+            solute["custom_tleap_path"] = tleap_path
+            
 
     def assign_solvent_numbers(self):
         # in-place operation
@@ -448,6 +465,10 @@ class InputParser(object):
             self.add_qm_kwargs()
             self.add_mcpb_kwargs()
 
+        # step 6.5: resolve the tleap adding bond issue
+        if has_tmc:
+            self.resolve_tleap_bond_issue()
+            
         # step 7: assign the number of solvent molecules
         self.assign_solvent_numbers()
 
