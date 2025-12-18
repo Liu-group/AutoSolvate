@@ -1,0 +1,92 @@
+prompt_system_type_choice = """AutoSolvate supports two system types based on your model: **Solute + Solvent** (Type 1) for a specific molecule(s) in a bulk environment, or **Homogeneous mixture** (Type 2) where all components are peers.
+
+**1**. if you have one or a few special molecules (solutes) embedded in many other molecules (solvents).
+**2**. if all components are present in comparable amounts, with no obvious "solute" to single out.
+
+### examples (Type 1):
+- *One citric acid molecule in water* (study hydration).
+- *One perylene molecule in a methanol/cyclohexane mixture* (solute is perylene; solvents are the mixture).
+- *One transition metal complex + counter ions in acetonitrile* (e.g., redox potential workflow).
+- *A donor–acceptor pair in acetonitrile* (charge-transfer study).
+- *A small cluster like 10 perylene molecules in a solvent mixture* (aggregation), where perylene is still the “solute set”.
+
+### examples (Type 2):
+- *An equimolar ethanol/water mixture* (miscibility, hydrogen-bond network).
+- *A 30/70 acetonitrile/water mixture* (mixture dielectric/transport behavior).
+- *A disordered box of tetracene molecules* (organic semiconductor morphology).
+- *A mixed donor/acceptor material at similar fractions* (bulk electronic structure in disordered blends).
+- *Electrolyte mixtures with multiple ionic species and solvent molecules* where no single “solute” is special.
+
+### A quick decision rule
+If you can point to a specific molecule (or small set) and say “**this is what I’m studying**,” choose **1**.
+If you instead say “**the mixture itself is the system**,” choose **2**.
+Always only type **1** or **2** to select your system type.
+
+Please select the system type by typing **1** or **2** below:
+"""
+
+prompt_composition_method = """
+Composition method:
+1. Number. Specify the exact number of molecules for each component.
+2. Weight portion. Specify the weight fraction for each component. 
+3. Volume portion. Specify the volume fraction for each component. 
+4. Molar portion. Specify the molar fraction for each component. 
+
+Please select the composition method by typing **1**, **2**, **3**, or **4** below:
+"""
+
+prompt_single_component_method = """
+Specify solvent amount by:
+1. By molecule count (enter an exact integer).
+2. By target density (g/cm^3) and molecular weight (g/mol); Then estimate molecule count from cube size.
+
+Type **1** or **2** to choose.
+"""
+
+prompt_density_adjustment_choice = """
+Density check options:
+1. Suggest a new cube size to move the overall density toward the solvent density (preview only; you must confirm to apply).
+2. Scale all solvent counts proportionally to the solvent density (preview only; you must confirm to apply).
+3. Keep the current settings.
+
+Type **1**, **2**, or **3** to choose.
+"""
+
+prompt_ask_solvent = """
+How many solvent/components are present? (integer >=1 and <=10)
+This refers to the number of distinct solvent types, not the total number of molecules.
+"""
+
+prompt_packmol_closeness = """
+Packmol closeness controls minimum intermolecular distance.
+- Default is 2.0 Å for general cases and custom solvents.
+- For a single preset Amber solvent, we use its recommended closeness if available.
+
+Press Enter to accept the suggested value or override it.
+"""
+
+prompt_solvent_choice = """
+Enter a preset solvent name from the list below.
+- water
+- methanol
+- chloroform
+- nma
+- acetonitrile
+
+These solvents have predefined mw, density, and force field parameters in Amber.
+
+Enter "custom" if:
+- your solvent is not listed, or
+- you want to provide custom force field parameters.
+"""
+# after determines copies
+# check the solute type 
+# then display the fragment
+# display the number of copies for each residue:
+# such as SUF: 1 copies, 5 atoms
+
+# total charge
+
+# the estimation is 1.0 g/cm3. the understanding is incorrect for some solvents such as chloroform
+
+# if a preset solvent is used, and there is only a single solvent, set the default packmol closeness to that solvent's value

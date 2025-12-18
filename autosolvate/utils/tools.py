@@ -11,114 +11,35 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 import parmed as pmd
 
-from ..Common import N_A, SOLVENT_DENSITY, SOLVENT_MW, USE_SRUN, DRY_RUN
+from ..Common import N_A, SOLVENT_DENSITY, SOLVENT_MW, USE_SRUN, DRY_RUN, ATOMIC_MW
+# avoid import anything else from this package to prevent circular imports
 
 
-# compute solvent number
-def calculate_solvent_number(solvent_name, volume):  ###Volume should be m3
-    """
-    Calculate the number of solvent molecules in a given volume
+def determine_mw_from_xyz(xyzfile: str) -> float:
+    """Determine molecular weight from an XYZ file."""
+    with open(xyzfile, "r") as f:
+        lines = f.readlines()
+    mw = 0.0
+    for line in lines[2:]:
+        parts = line.split()
+        if len(parts) == 4:
+            atom_label = parts[0]
+            # replace any possible number in atom label, e.g. C1, H2, O3
+            atom_label = ''.join(filter(str.isalpha, atom_label))
+            if atom_label not in SOLVENT_MW and atom_label not in SOLVENT_DENSITY and atom_label not in []:
+                # fallback to ATOMIC_MW if available via Common import
+                if atom_label not in ATOMIC_MW:
+                    raise ValueError(f"Cannot determine the molecular weight of atom {atom_label}")
+                mw += ATOMIC_MW[atom_label]
+            else:
+                mw += ATOMIC_MW.get(atom_label, 0)
+    return mw
 
-    Parameters
-    ----------
-    solvent_name : str
-        solvent name, can only be 'water', 'methanol', 'chloroform', 'nma', 'acetonitrile'
-    volume : float
-        volume in m3
-    """
-    denisty = SOLVENT_DENSITY[solvent_name]
-    weight  = SOLVENT_MW[solvent_name]
-    mass    = volume * denisty  ## kg
-    mol     = mass * 1000 / weight
-    number  = mol * N_A
-    return number
-
-def calculate_solvent_numbers_from_weight_portions(
-        solvent_mws:Iterable[float], 
-        solvent_densities:Iterable[float], 
-        weight_portions:Iterable[float], 
-        total_volume:float) -> float:
-    """
-    Calculate the number of solvent molecules in a given volume with different solvent portions.
-
-    Note: the real density of the mixture is close but NOT equal to the weighted average of the densities of the solvents. The solvent box still needed to be equilibrated under the NPT ensemble.
-
-    Parameters
-    ----------
-    solvent_mws : Iterable[float]
-        molecular weights of solvents in g/mol
-    solvent_densities : Iterable[float]
-        densities of solvents in kg/m3
-    solvent_portions : Iterable[float]
-        weight portions of solvents in the mixture, from 0 to 1
-    volume : float
-        volume in m3
-    """
-    estimated_density = 1 / sum([portion / density for portion, density in zip(weight_portions, solvent_densities)])
-    mass = total_volume * estimated_density 
-    mass = mass * 1000  # convert to g
-    numbers = [mass * 1000 * portion / mw * N_A for mw, portion in zip(solvent_mws, weight_portions)]
-    return list(map(int, numbers))
-
-def calculate_solvent_numbers_from_volume_portions(
-        solvent_mws:Iterable[float],
-        solvent_densities:Iterable[float],
-        volume_portions:Iterable[float],
-        total_volume:float) -> float:
-    """
-    Calculate the number of solvent molecules in a given volume with different solvent portions.
-
-    Note: the real density of the mixture is close but NOT equal to the weighted average of the densities of the solvents. The solvent box still needed to be equilibrated under the NPT ensemble.
-
-    Parameters
-    ----------
-    solvent_mws : Iterable[float]
-        molecular weights of solvents in g/mol
-    solvent_densities : Iterable[float]
-        densities of solvents in kg/m3
-    solvent_portions : Iterable[float]
-        volume portions of solvents in the mixture, from 0 to 1
-    volume : float
-        volume in m3
-    """
-    numbers = [portion * total_volume * density * 1000 * N_A * 1000 / mw for mw, density, portion in zip(solvent_mws, solvent_densities, volume_portions)]
-    return list(map(int, numbers))
-
-
-def calculate_solvent_numbers_from_molar_portions(
-        solvent_mws:Iterable[float],
-        solvent_densities:Iterable[float],
-        molar_portions:Iterable[float],
-        total_volume:float) -> float:
-    """
-    Calculate the number of solvent molecules in a given volume with different solvent portions.
-
-    Note: the real density of the mixture is close but NOT equal to the weighted average of the densities of the solvents. The solvent box still needed to be equilibrated under the NPT ensemble.
-
-    Parameters
-    ----------
-    solvent_mws : Iterable[float]
-        molecular weights of solvents in g/mol
-    solvent_densities : Iterable[float]
-        densities of solvents in kg/m3
-    molar_portions : Iterable[float]
-        molar portions of solvents in the mixture, from 0 to 1. This indicates the fraction of moles of each solvent in the total moles of solvents.
-    volume : float
-        volume in m3
-    """
-    weight_portions = [(molar_portion * mw) for molar_portion, mw in zip(molar_portions, solvent_mws)]
-    total_weight_portion = sum(weight_portions)
-    weight_portions = [wp / total_weight_portion for wp in weight_portions]
-    estimated_density = 1 / sum([portion / density for portion, density in zip(weight_portions, solvent_densities)])
-    # density in g/cm3
-    # volume in m3
-    # so we should convert density to kg/m3
-    mass = total_volume * estimated_density * 1000
-    # now mass are in kg as kg/m3 * m3 = kg
-    # so we should convert mass to g for using the N_A
-    numbers = [mass * 1000 * portion / mw * N_A for mw, portion in zip(solvent_mws, weight_portions)]
-    print(weight_portions, estimated_density, mass, numbers)
-    return list(map(int, numbers))
+def determine_mw_from_pdb(pdbfile: str) -> float:
+    wt = 0.0
+    for molecule in pybel.readfile("pdb", pdbfile):
+        wt += molecule.molwt
+    return wt
 
 
 # MCPB utilities
@@ -140,11 +61,38 @@ def check_transition_metal_complex(filename:str):
     """
     mol = pybel.readfile(os.path.splitext(filename)[-1][1:], filename).__next__()
     mol_obmol = mol.OBMol
-    for i in range(mol_obmol.NumAtoms()):
+    natom = mol_obmol.NumAtoms()
+    if natom == 1:
+        return False    # single atom is not a complex
+    for i in range(natom):
         atom = mol_obmol.GetAtom(i+1)
         if atom.IsMetal():
             return True
     return False
+
+def list_metal_atoms(filename:str) -> List[str]:
+    """
+    List all metal atoms in the given file
+
+    Parameters
+    ----------
+    filename : str
+        file name
+
+    Returns
+    -------
+    metals : List[str]
+        list of metal atom names
+    """
+    mol = pybel.readfile(os.path.splitext(filename)[-1][1:], filename).__next__()
+    mol_obmol = mol.OBMol
+    natom = mol_obmol.NumAtoms()
+    metals = []
+    for i in range(natom):
+        atom = mol_obmol.GetAtom(i+1)
+        if atom.IsMetal():
+            metals.append(atom.GetType())
+    return metals
 
 def compute_total_charge(chargefile:str):
     with open(chargefile, 'r') as f:
@@ -190,6 +138,22 @@ def check_multicomponent(filename:str):
     mol_obmol = mol.OBMol
     fragments = mol_obmol.Separate()
     return len(fragments) > 1
+
+
+def summarize_pdb_fragments(pdbname: str):
+    """Return fragment (residue) summary for a PDB: list of (resname, copies, atoms_per_copy)."""
+    mol = pybel.readfile("pdb", pdbname).__next__()
+    residues = {}
+    for res in ob.OBResidueIter(mol.OBMol):
+        name = res.GetName().strip()
+        atoms = res.GetNumAtoms()
+        if name not in residues:
+            residues[name] = {"copies": 0, "atoms_per_copy": atoms}
+        residues[name]["copies"] += 1
+        # keep first atoms_per_copy
+    summary = [(k, v["copies"], v["atoms_per_copy"]) for k, v in residues.items()]
+    summary.sort(key=lambda x: x[0])
+    return summary
 
 def splitpdb(pdbname:str):
     """

@@ -10,6 +10,7 @@ import logging
 from typing import Iterable, List, Dict, Any, Tuple
 
 from .tools import *
+from .solvent_calculation import *
 from ..Common import *
 
 
@@ -106,20 +107,31 @@ def overwrite_keyword(data:dict, arguments:List[Tuple[str, Any]]) -> dict:
     return newdata
 
 def check_inputs(data:dict) -> dict:
+    """Check basic consistency of inputs.
+
+    system_type rules:
+    - "solute_solvent": must have solute(s) and solvent(s).
+    - "mixture": solvent(s) required; solute optional and may be empty.
     """
-    Check if the input is valid
-    """
-    if "solute" not in data and "solutes" not in data:
-        raise ValueError("No solute is provided")
-    if "solvent" not in data and "solvents" not in data:
+    sys_type = data.get("system_type")
+    has_solute_key = ("solute" in data) or ("solutes" in data)
+    has_solvent_key = ("solvent" in data) or ("solvents" in data)
+
+    if not has_solvent_key:
         raise ValueError("No solvent is provided")
+
     if "solute" in data and "solutes" in data:
         raise ValueError("You cannot provide both solute and solutes, only provide the solute argument if you want to use single solute")
     if "solvent" in data and "solvents" in data:
         raise ValueError("You cannot provide both solvent and solvents, only provide the solvent argument if you want to use single solvent")
-    if "solutes" in data and (not isinstance(data["solutes"], list) or len(data["solutes"]) == 0):
+
+    if sys_type == "solute_solvent" or (sys_type is None and has_solute_key):
+        if ("solute" not in data and "solutes" not in data):
+            raise ValueError("No solute is provided")
+
+    if "solutes" in data and not isinstance(data["solutes"], list):
         raise ValueError("solutes must be a list")
-    if "solvents" in data and (not isinstance(data["solvents"], list) or len(data["solvents"]) == 0):
+    if "solvents" in data and not isinstance(data["solvents"], list):
         raise ValueError("solvents must be a list")
     
 
@@ -256,7 +268,11 @@ class InputParser(object):
         }
         # check if amberhome exists 
         if 'amberhome' not in self.data:
-            self.data['amberhome'] = os.getenv("AMBERHOME") + "/bin/"
+            env_amber = os.getenv("AMBERHOME")
+            if env_amber:
+                self.data['amberhome'] = os.path.join(env_amber, "bin")
+            else:
+                raise FileNotFoundError("AMBERHOME is not set and 'amberhome' is not provided")
         amberhomepath = os.path.expandvars(self.data['amberhome'])
         if not os.path.exists(amberhomepath):
             self.logger.error(f"Cannot find the amberhome path {amberhomepath}. Make sure AMBER is installed and the path is correct.")
@@ -341,15 +357,32 @@ class InputParser(object):
             volume = float(a) * float(b) * float(c)
         volume_in_m3 = volume * 1e-30
         if len(self.data['solvents']) == 1:
-            solventname = self.data['solvents'][0]['name']
+            solvent = self.data['solvents'][0]
+            solventname = solvent.get('name')
             if solventname in AMBER_SOLVENT_NAMES:
                 return  # Use amber prebuilt solvent box.
-            elif solventname in SOLVENT_DENSITY:
+            density = solvent.get("density")
+            if density is None and solventname in SOLVENT_DENSITY:
+                density = SOLVENT_DENSITY[solventname] / 1000.0
+            mw = solvent.get("molecular_weight")
+            if mw is None and solventname in SOLVENT_MW:
+                mw = SOLVENT_MW[solventname]
+            if mw is None and "xyzfile" in solvent:
+                mw = determine_mw_from_xyz(solvent["xyzfile"])
+            if density is not None and mw is not None:
+                density_g_cm3 = density if density < 50 else density / 1000.0
+                number = calculate_solvent_number_from_density(mw, density_g_cm3, volume_in_m3)
+                solvent["number"] = number
+                solvent["density"] = density
+                solvent["molecular_weight"] = mw
+                return
+            if solventname in SOLVENT_DENSITY:
                 number  = calculate_solvent_number(solventname, volume_in_m3)
-                self.data['solvents'][0]['number'] = number
+                solvent['number'] = number
+                solvent['density'] = solvent.get("density", SOLVENT_DENSITY[solventname] / 1000.0)
+                solvent['molecular_weight'] = solvent.get("molecular_weight", SOLVENT_MW[solventname])
                 return 
-            else:
-                raise ValueError(f"Cannot determine the number of the solvent. Please provide the 'number' parameter.")
+            raise ValueError(f"Cannot determine the number of the solvent. Please provide the 'number' parameter or density/molecular_weight.")
         # if there are multiple solvents, the number of each solvent must be provided
         if not all_vratio_exist and not all_wratio_exist and not all_mratio_exist:
             raise ValueError("Please provide the 'volume_ratio' or 'weight_ratio' or 'molar_ratio' parameter for all solvents to determine the number of solvent molecules.")
@@ -399,9 +432,19 @@ class InputParser(object):
         # step 1: correct the keyword
         self.data = self.correct_keyword(self.data)
 
+        # step 1.1: assign system_type if missing
+        if "system_type" not in self.data:
+            has_solute = ("solute" in self.data and self.data["solute"]) or ("solutes" in self.data and self.data["solutes"])
+            self.data["system_type"] = "solute_solvent" if has_solute else "mixture"
+        elif self.data.get("system_type") not in ["solute_solvent", "mixture"]:
+            self.logger.warning(f"Unrecognized system_type {self.data['system_type']}, defaulting to solute_solvent")
+            self.data["system_type"] = "solute_solvent"
+
         # step 2: change 'solute': {...} to 'solutes': [{...},]; change 'solvent': {...} to 'solvents': [{...},]
         check_inputs(self.data)
-        if ('solute' not in self.data or len(self.data['solute']) == 0) and ('solutes' not in self.data or len(self.data['solutes']) == 0):
+        if ('solute' not in self.data or len(self.data.get('solute', {})) == 0) and ('solutes' not in self.data or len(self.data.get('solutes', [])) == 0):
+            if self.data.get("system_type") == "solute_solvent":
+                raise ValueError("No solute is provided for solute_solvent system type")
             self.logger.info("This box only contains solvent molecules.")
             self.data['solutes'] = []
         if ('solute' in self.data and len(self.data['solute']) > 0) and ('solutes' in self.data and len(self.data['solutes']) > 0):
@@ -425,13 +468,23 @@ class InputParser(object):
         # step 4: check solute type. add "__TYPE__" keyword to indicate the type of the solute
         has_tmc = False
         for solute in self.data['solutes']:
-            if check_transition_metal_complex(solute['xyzfile']):
+            declared = solute.get("solute_type") or solute.get("__TYPE__")
+            if declared in ["transition_metal_complex", "tmc"]:
                 solute["__TYPE__"] = "transition_metal_complex"
-                has_tmc = True
-            elif check_multicomponent(solute['xyzfile']):
+            elif declared in ["complex", "multi_fragment", "multifragment"]:
                 solute["__TYPE__"] = "complex"
-            else:
+            elif declared in ["molecule", "regular"]:
                 solute["__TYPE__"] = "molecule"
+            else:
+                if check_transition_metal_complex(solute['xyzfile']):
+                    solute["__TYPE__"] = "transition_metal_complex"
+                elif check_multicomponent(solute['xyzfile']):
+                    solute["__TYPE__"] = "complex"
+                else:
+                    solute["__TYPE__"] = "molecule"
+            solute["solute_type"] = solute["__TYPE__"]
+            if solute["__TYPE__"] == "transition_metal_complex":
+                has_tmc = True
         # for solvent in self.data['solvents']:
         #     if check_transition_metal_complex(solvent['xyzfile']) or check_multicomponent(solvent['xyzfile']):
         #         raise ValueError("Transition metal complex or molecule complex as solvent is not supported.")
