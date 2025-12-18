@@ -7,7 +7,7 @@ from .tleap_docker import TleapDocker
 
 from .terachem_docker import TeraChemDocker
 
-from .automcpb_docker import AutoMCPBDocker
+# from .automcpb_docker import AutoMCPBDocker
 
 # from .mdgx_docker import MDGXDocker
 # from .forcebalance_docker import ForceBalanceDocker
