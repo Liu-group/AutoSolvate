@@ -14,8 +14,13 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 
 from ..Common import *
-from ..utils import *
-from .molecule import *
+from ..utils.tools import (
+    process_system_name,
+    formatPDB,
+    reorderPDB,
+    updatePDB,
+)
+from .molecule import Molecule, System
 
 class MoleculeComplex(System):
 
@@ -102,10 +107,10 @@ class MoleculeComplex(System):
     def check_protein_fragment(self, fragment_obmol:ob.OBMol, fragment_index = 0):
         for j in range(fragment_obmol.NumResidues()):
             if fragment_obmol.GetResidue(j).GetName() not in self.aminoacidresidues:
-                logger.critical(f"The fragment {fragment_index} contains {fragment_obmol.NumResidues()} residues")
-                logger.critical(f"of which the {j}th residue {fragment_obmol.GetResidue(j).GetName()} is not a canonical amino acid residue. ")
-                logger.critical(f"Autosolvate currently does not support automatically fitting a force field for a residue. ")
-                logger.critical(f"If the original system does not contain this residue, please check whether the structure of the system is reasonable.""")
+                self.logger.critical(f"The fragment {fragment_index} contains {fragment_obmol.NumResidues()} residues")
+                self.logger.critical(f"of which the {j}th residue {fragment_obmol.GetResidue(j).GetName()} is not a canonical amino acid residue. ")
+                self.logger.critical(f"Autosolvate currently does not support automatically fitting a force field for a residue. ")
+                self.logger.critical(f"If the original system does not contain this residue, please check whether the structure of the system is reasonable.""")
                 raise NotImplementedError("see the log for details")
 
     def generate_fragment_key(self, frag:ob.OBMol, atomorder = True, smiles = True):
@@ -143,7 +148,7 @@ class MoleculeComplex(System):
                 fragmentname = "-".join([fragment_obmol.GetResidue(j).GetName() for j in range(fragment_obmol.NumResidues())])
                 self.fragmols.append(ob.OBMol(fragment_obmol))
                 self.fragresiduenames.append(fragmentname)
-                logger.info(f"Fragment {i} is a peptide with {fragment_obmol.NumResidues()} residues. ")
+                self.logger.info(f"Fragment {i} is a peptide with {fragment_obmol.NumResidues()} residues. ")
                 continue
             fragres = fragment_obmol.GetResidue(0)
             fragresname = fragres.GetName()
@@ -151,7 +156,7 @@ class MoleculeComplex(System):
             if fragresname == "HOH" or fragresname == "WAT" or fragresname in AMINO_ACID_RESIDUES:
                 self.fragmols.append(ob.OBMol(fragment_obmol))
                 self.fragresiduenames.append(fragresname)
-                logger.info(f"Fragment {i} is a known molecule with res name {fragresname}. ")
+                self.logger.info(f"Fragment {i} is a known molecule with res name {fragresname}. ")
                 continue
             # This is not a regular molecule. We need to generate the forcefield for it.
             # The atom order for each same fragment should be the same. This is guaranteed by computing smiles
@@ -180,7 +185,7 @@ class MoleculeComplex(System):
                 self.newfragpdbs.append(self.reference_name + "-" + resname.lower() + ".pdb")
                 self.newfragmols.append(ob.OBMol(fragment_obmol))
                 self.newresiduenames.append(resname)
-                logger.info(f"Fragment {i} is a new molecule with res name {resname}. Update the term list.")
+                self.logger.info(f"Fragment {i} is a new molecule with res name {resname}. Update the term list.")
             else:
                 self.logger.debug(f"Fragment {i} is a known molecule with res name {resname}. ")
             self.fragmols.append(fragment_obmol)
@@ -207,7 +212,7 @@ class MoleculeComplex(System):
         Change the atom label in pdb to the standard amber format. The atom label in the mainpdb may be incorrect, which may cause problems when running tleap. Only the NEW residues will be updated.
         """
         # get standard atom names for each individual residues.
-        logger.info("Start to update the atom label to standard amber format")
+        self.logger.info("Start to update the atom label to standard amber format")
         res_aname_dict = {}
 
         for fragpdb in self.newfragpdbs:
@@ -257,49 +262,49 @@ class MoleculeComplex(System):
 
     def checkParams(self):
         """check parameters, especially for the length of charge and multiplicity"""
-        logger.info(f"All fragments: {' '.join(self.fragresiduenames)}")
-        logger.info(f"New fragments: {' '.join(self.newresiduenames)}")
+        self.logger.info(f"All fragments: {' '.join(self.fragresiduenames)}")
+        self.logger.info(f"New fragments: {' '.join(self.newresiduenames)}")
         if isinstance(self.charges, int):
-            logger.warning("All charges are set to 0")
+            self.logger.warning("All charges are set to 0")
             self.charges = {frname:0 for frname in self.fragresiduenames}
         if isinstance(self.spinmults, int):
-            logger.warning("All multiplicities are set to 1")
+            self.logger.warning("All multiplicities are set to 1")
             self.spinmults = {frname:1 for frname in self.fragresiduenames}
         if isinstance(self.charges, list):
             if len(self.charges) != len(self.fragresiduenames):
-                logger.critical(f"Only charge for {len(self.charges)} fragments are provided. This file has {len(self.fragresiduenames)} fragments!")
+                self.logger.critical(f"Only charge for {len(self.charges)} fragments are provided. This file has {len(self.fragresiduenames)} fragments!")
                 raise ValueError(f"Only charge for {len(self.charges)} fragments are provided. This file has {len(self.fragresiduenames)} fragments!")
             self.charges = {frname:c for (frname, c) in zip(self.fragresiduenames, self.charges)}
         if isinstance(self.spinmults, list):
             if len(self.spinmults) != len(self.fragresiduenames):
-                logger.critical(f"Only multiplicity for {len(self.spinmults)} fragments are provided. This file has {len(self.fragresiduenames)} fragments!")
+                self.logger.critical(f"Only multiplicity for {len(self.spinmults)} fragments are provided. This file has {len(self.fragresiduenames)} fragments!")
                 raise ValueError(f"Only multiplicity for {len(self.spinmults)} fragments are provided. This file has {len(self.fragresiduenames)} fragments!")
             self.spinmults = {frname:c for (frname, c) in zip(self.fragresiduenames, self.spinmults)}
         if isinstance(self.charges, dict) and isinstance(self.spinmults, dict):
             for frname in self.fragresiduenames:
                 if len(frname) > 5:
-                    logger.info(f"{frname} is a peptide with standard residues.")
+                    self.logger.info(f"{frname} is a peptide with standard residues.")
                 elif frname in self.newresiduenames:
                     if frname[0] == "U":
-                        logger.info(f"{frname} corresponds to a new fragment with auto-generated name.")
+                        self.logger.info(f"{frname} corresponds to a new fragment with auto-generated name.")
                     else:
-                        logger.info(f"{frname} corresponds to a new fragment.")
+                        self.logger.info(f"{frname} corresponds to a new fragment.")
                     if frname not in self.charges:
-                        logger.warning(f"charge for {frname} not defined! Set it to 0 by default.")
+                        self.logger.warning(f"charge for {frname} not defined! Set it to 0 by default.")
                         self.charges[frname] = 0
                     else:
-                        logger.info(f"Set charge for {frname} to {self.charges[frname]}")
+                        self.logger.info(f"Set charge for {frname} to {self.charges[frname]}")
                     if frname not in self.spinmults:
-                        logger.warning(f"multiplicity for {frname} not defined! Set it to 1 by default.")
+                        self.logger.warning(f"multiplicity for {frname} not defined! Set it to 1 by default.")
                         self.spinmults[frname] = 1
                     else:
-                        logger.info(f"Set multiplicity for {frname} to {self.spinmults[frname]}")
+                        self.logger.info(f"Set multiplicity for {frname} to {self.spinmults[frname]}")
                 else:
-                    logger.info(f"{frname} is a known fragment.")
+                    self.logger.info(f"{frname} is a known fragment.")
         else:
-            logger.critical("input of charge or multiplicity not accepted")
-            logger.critical(f"charge: {self.charges}")
-            logger.critical(f"multiplicity: {self.spinmults}")
+            self.logger.critical("input of charge or multiplicity not accepted")
+            self.logger.critical(f"charge: {self.charges}")
+            self.logger.critical(f"multiplicity: {self.spinmults}")
             raise ValueError("input of charge or multiplicity not accepted")
         
     def computeNetCharge(self):
@@ -308,7 +313,7 @@ class MoleculeComplex(System):
             if frname in self.newresiduenames:
                 netcharge += self.charges[frname]
         self.netcharge = netcharge
-        logger.info(f"Net charge of the molecule is {netcharge}")
+        self.logger.info(f"Net charge of the molecule is {netcharge}")
 
     def computeMultiplicity(self):
         not_paired_electrons = 0
@@ -316,7 +321,7 @@ class MoleculeComplex(System):
             if frname in self.newresiduenames:
                 not_paired_electrons += self.spinmults[frname] - 1
         self.multiplicity = not_paired_electrons + 1
-        logger.info(f"Total multiplicity of the molecule is {self.multiplicity}")
+        self.logger.info(f"Total multiplicity of the molecule is {self.multiplicity}")
 
     def build_molecules(self):
         self.getFragments()
@@ -329,7 +334,7 @@ class MoleculeComplex(System):
         self.computeMultiplicity()
 
         for newresiduename, newpdbname, newfragmol in zip(self.newresiduenames, self.newfragpdbs, self.newfragmols):
-            logger.info(f"Create Molecule object for fragment {newresiduename}")
+            self.logger.info(f"Create Molecule object for fragment {newresiduename}")
             charge = self.charges[newresiduename]
             spinmult = self.spinmults[newresiduename]
             mol = Molecule(newpdbname, charge, spinmult, residue_name=newresiduename, folder = self.folder)
@@ -338,13 +343,13 @@ class MoleculeComplex(System):
     def tleap_pre_process(self):
         if self.pdb_processed:
             return 
-        logger.info("Before being passed to tleap, the atom label in the original pdb should be updated.")
-        logger.info("original pdb: {}".format(self.pdb))
+        self.logger.info("Before being passed to tleap, the atom label in the original pdb should be updated.")
+        self.logger.info("original pdb: {}".format(self.pdb))
         allgenerated = True
         for molecule in self.newmolecules:
             molecule:Molecule
             if not molecule.check_exist("mol2") and not molecule.check_exist("prep") and not molecule.check_exist("frcmod"):
-                logger.critical("molecule {} has not been parameterized!".format(molecule.residue_name))
+                self.logger.critical("molecule {} has not been parameterized!".format(molecule.residue_name))
                 allgenerated = False
         if not allgenerated:
             raise ValueError("Molecules in this complex are not fully parameterized!")

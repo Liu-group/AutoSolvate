@@ -3,12 +3,7 @@
 #
 # !/usr/bin/env python
 
-from autosolvate.GUI.tk_autosolvate import *
-from autosolvate.autosolvate import *
-from autosolvate.generatetrajs import *
-from autosolvate.clustergen import *
-from autosolvate.FFmetalcomplex import *
-from autosolvate.multicomponent import *
+import sys
 
 ## Main function
 #  @param args Argument namespace
@@ -19,6 +14,7 @@ def main(args=None):
     if len(args) == 0:
         print('AutoSolvate is starting with graphical user interface!')
         ### create main application
+        from autosolvate.GUI.tk_autosolvate import autosolvateGUI, cleanUp, Tk
         window = Tk()
         my_gui = autosolvateGUI(window)
         window.mainloop()
@@ -39,23 +35,32 @@ def main(args=None):
     elif args[0] == 'boxgen':
         print('AutoSolvate is starting in command line mode!')
         print('Running the module to generate solvent box and force field parameters.')
+        from autosolvate.autosolvate import startboxgen
         startboxgen(args[1:])
     elif args[0] == 'boxgen_metal':
+        from autosolvate.FFmetalcomplex import startFFgen
         print('AutoSolvate is starting in command line mode!')
         print('Running the module to generate solvent box and force field parameters for organometallic compounds.')
         startFFgen(args[1:])
     elif args[0] == 'mdrun':
         print('AutoSolvate is starting in command line mode!')
         print('Running the module to automatically run MD simulations of solvated structure.')
+        from autosolvate.generatetrajs import startmd
         startmd(args[1:])
     elif args[0] == 'clustergen':
         print('AutoSolvate is starting in command line mode!')
         print('Running the module to extract microsolvated clusters from MD trajectories with solvent box.')
+        from autosolvate.clustergen import startclustergen
         startclustergen(args[1:])
     elif args[0] == 'boxgen_multicomponent':
         print('AutoSolvate is starting in command line mode!')
         print('Running the module to generate solvent box and force field parameters for multicomponent systems.')
+        from autosolvate.multicomponent import startmulticomponent
         startmulticomponent(args[1:]) 
+    elif args[0] == 'boxgen_interactive':
+        print('AutoSolvate interactive input generator!')
+        from autosolvate.cli.boxgen_interactive import main as interactive_main
+        interactive_main(args[1:])
     else:
         print('Invalid syntax for AutoSolvate command line interface.')
         print('Please run \'autosolvate -h\' to check out the basic usage.')

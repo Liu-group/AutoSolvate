@@ -25,10 +25,19 @@ import inspect
 import argparse
 
 from .molecule import *
-from .dockers import *
+from .dockers import (
+    AntechamberDocker,
+    ParmchkDocker,
+    TleapDocker,
+    PackmolDocker,
+)
 from .utils import *
 
-from autosolvate.autosolvate import *
+from autosolvate.autosolvate import (
+    build_resp_terachem, 
+    custom_solv_dict,
+    custom_solv_residue_name,
+)
 
 class MulticomponentParamsBuilder():
     """
@@ -312,7 +321,7 @@ class MixtureBuilder():
                 "mode": "A",
             }
         """
-        
+        from .dockers.automcpb_docker import AutoMCPBDocker
         tmc = TransitionMetalComplex(
             xyzfile, 
             folder = self.folder, 
@@ -520,6 +529,8 @@ class MixtureBuilder():
         """
         if not self.systemprefix:
             system_name = "-".join([m.name for m in self.solutes] + [m.name for m in self.solvents])
+            if len(self.solutes) + len(self.solvents) == 1:
+                system_name = f"{system_name}_box"
         else:
             system_name = self.systemprefix
         self.solutes :List[Molecule] 
@@ -605,6 +616,7 @@ def create_parser_multicomponent():
     parser.add_argument('-e', '--gaussianexe',     type=str,                   help='name of the Gaussian quantum chemistry package executable')
     parser.add_argument('-d', '--gaussiandir',     type=str,                   help='path to the Gaussian package')
     parser.add_argument('-a', '--amberhome',       type=str,                   help='path to the AMBER molecular dynamics package root directory')
+    parser.add_argument('--agent-mode',            action='store_true',        help='Skip free-form editing when invoked by agents')
     return parser
 
 def startmulticomponent(args):

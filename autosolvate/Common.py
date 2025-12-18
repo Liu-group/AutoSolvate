@@ -6,6 +6,7 @@ import logging
 from logging import DEBUG, INFO, WARN, WARNING, CRITICAL
 logging.basicConfig(level = INFO, force = True, handlers=[])
 
+# do not import anything else from this package to prevent circular imports
 
 #global variable for the whole project 
 DRY_RUN         = False
