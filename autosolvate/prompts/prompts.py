@@ -23,6 +23,7 @@ If you instead say “**the mixture itself is the system**,” choose **2**.
 Always only type **1** or **2** to select your system type.
 
 Please select the system type by typing **1** or **2** below:
+>
 """
 
 prompt_composition_method = """
@@ -33,6 +34,7 @@ Composition method:
 4. Molar portion. Specify the molar fraction for each component. 
 
 Please select the composition method by typing **1**, **2**, **3**, or **4** below:
+>
 """
 
 prompt_single_component_method = """
@@ -41,6 +43,7 @@ Specify solvent amount by:
 2. By target density (g/cm^3) and molecular weight (g/mol); Then estimate molecule count from cube size.
 
 Type **1** or **2** to choose.
+>
 """
 
 prompt_density_adjustment_choice = """
@@ -50,6 +53,7 @@ Density check options:
 3. Keep the current settings.
 
 Type **1**, **2**, or **3** to choose.
+>
 """
 
 prompt_ask_solvent = """
@@ -63,6 +67,7 @@ Packmol closeness controls minimum intermolecular distance.
 - For a single preset Amber solvent, we use its recommended closeness if available.
 
 Press Enter to accept the suggested value or override it.
+>
 """
 
 prompt_solvent_choice = """
@@ -78,6 +83,7 @@ These solvents have predefined mw, density, and force field parameters in Amber.
 Enter "custom" if:
 - your solvent is not listed, or
 - you want to provide custom force field parameters.
+>
 """
 # after determines copies
 # check the solute type 

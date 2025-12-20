@@ -5,6 +5,7 @@ import json
 import os
 
 from autosolvate.input_wizard import run_wizard
+from autosolvate.utils.interactive_input_utils import InputAbort
 
 
 def main(argv=None):
@@ -13,7 +14,11 @@ def main(argv=None):
     parser.add_argument("-o", "--output", type=str, default="generated_input.json", help="Output JSON path")
     args = parser.parse_args(argv)
 
-    config = run_wizard(agent_mode=args.agent_mode)
+    try:
+        config = run_wizard(agent_mode=args.agent_mode)
+    except InputAbort:
+        print("Wizard aborted by user.")
+        return 0
     out_path = args.output
     if not os.path.isabs(out_path):
         out_path = os.path.join(config.get("folder", os.getcwd()), out_path)
