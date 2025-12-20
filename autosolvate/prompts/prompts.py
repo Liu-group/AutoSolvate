@@ -23,8 +23,7 @@ If you instead say “**the mixture itself is the system**,” choose **2**.
 Always only type **1** or **2** to select your system type.
 
 Please select the system type by typing **1** or **2** below:
->
-"""
+> """
 
 prompt_composition_method = """
 Composition method:
@@ -34,8 +33,7 @@ Composition method:
 4. Molar portion. Specify the molar fraction for each component. 
 
 Please select the composition method by typing **1**, **2**, **3**, or **4** below:
->
-"""
+> """
 
 prompt_single_component_method = """
 Specify solvent amount by:
@@ -43,8 +41,7 @@ Specify solvent amount by:
 2. By target density (g/cm^3) and molecular weight (g/mol); Then estimate molecule count from cube size.
 
 Type **1** or **2** to choose.
->
-"""
+> """
 
 prompt_density_adjustment_choice = """
 Density check options:
@@ -53,38 +50,89 @@ Density check options:
 3. Keep the current settings.
 
 Type **1**, **2**, or **3** to choose.
->
-"""
+> """
 
 prompt_ask_solvent = """
 How many solvent/components are present? (integer >=1 and <=10)
 This refers to the number of distinct solvent types, not the total number of molecules.
-"""
+> """
 
 prompt_packmol_closeness = """
 Packmol closeness controls minimum intermolecular distance.
 - Default is 2.0 Å for general cases and custom solvents.
 - For a single preset Amber solvent, we use its recommended closeness if available.
 
-Press Enter to accept the suggested value or override it.
->
-"""
+Press Enter to accept the suggested value, or type a new value in angstroms (e.g., 1.5):
+> """
 
-prompt_solvent_choice = """
-Enter a preset solvent name from the list below.
+prompt_solvent_choice = """Select solvent/component {i}.
+
+Eligible preset solvents (case-insensitive):
 - water
 - methanol
 - chloroform
 - nma
 - acetonitrile
 
-These solvents have predefined mw, density, and force field parameters in Amber.
+Type one preset name from the list above.
 
-Enter "custom" if:
-- your solvent is not listed, or
-- you want to provide custom force field parameters.
->
-"""
+Type "custom" if:
+- your solvent is not listed, OR
+- you want to provide a custom structure file (.xyz/.pdb) and optionally your own frcmod/mol2/off/lib/prep.
+
+Input examples:
+- acetonitrile
+- water
+- custom
+> """
+
+prompt_n_solute_species = """How many distinct solute species? (integer >= 1)
+
+Definition: a “solute species” corresponds to ONE structure file (.xyz/.pdb) that AutoSolvate will treat as a unit.
+
+Examples:
+- If you have two separate solutes A and B and you do NOT care about their initial relative geometry: provide 2 files -> enter 2.
+- If your solute file contains multiple fragments / ion pairs that must keep a specific relative configuration: provide 1 multi-fragment file -> enter 1, then classify it as “multi-fragment/ion-pair”.
+
+Type an integer (e.g., 1, 2, 3):
+> """
+
+prompt_classify_solute = """Classify this solute (choose 1/2/3):
+1) Regular molecule (typical organic/ionic molecule)
+2) Transition metal complex (requires MCPB + QM settings)
+3) Multi-fragment / ion-pair complex (one file containing multiple fragments)
+
+Tip: press Enter to accept the auto-detected suggestion shown in parentheses.
+> """
+
+prompt_ligand_chargefile = """Optional: ligand charge file path for MCPB (Amber MCPB charge file).
+
+- Press Enter / type "skip" if you do not have one; AutoSolvate will try to determine ligand charges automatically.
+- Otherwise, provide a file path.
+
+> """
+
+prompt_qm_software_choice = """Select QM software for MCPB.
+
+Auto-detection will be printed above if available.
+Type one of: orca / gau / g09 / g03 / gms
+Press Enter to use the default (orca).
+
+> """
+
+prompt_qm_executable_path = """Path to QM executable.
+
+- Press Enter / type "skip" to rely on your PATH (recommended if QM software is already on PATH).
+- Otherwise, provide the full path to the executable (e.g., /path/to/orca).
+
+> """
+
+prompt_amberhome_path = """Provide AMBERHOME path.
+
+- Press Enter / type "skip" to use the detected AMBERHOME shown above.
+- Otherwise, provide the AMBERHOME directory path (e.g., /opt/amber22).
+
+> """
 # after determines copies
 # check the solute type 
 # then display the fragment

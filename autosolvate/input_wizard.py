@@ -55,6 +55,8 @@ def _detect_amber():
             print(f"Detected {name}: {path}")
     if amberhome and all(v for v in tools.values()):
         print(f"Successfully detected AmberTools installation at {amberhome}")
+    if not amberhome.endswith("/"):
+        amberhome += "/"
     return amberhome, tools
 
 
@@ -112,7 +114,7 @@ def _ask_solutes(system_type: str) -> List[dict]:
     if system_type == "mixture":
         return []
     n = ask_value(
-        "How many distinct solute species? (integer >=1)\n Note: If your solute molecule contains multiple fragments or ion pairs, it would be considered a complex and should be treated as a single species.\n> ",
+        prompt_n_solute_species,
         parser=parse_int,
         validator=lambda v: v >= 1,
     )
@@ -143,7 +145,7 @@ def _ask_solutes(system_type: str) -> List[dict]:
             print(f"Detected metal centers in solute #{i}: " + ", ".join(metals))
         type_backmap = {"molecule": "regular molecule", "transition_metal_complex": "transition metal complex", "complex": "multi-fragment/ion-pair"}
         kind_choice = ask_value(
-            f"Classify solute #{i}: 1) regular molecule 2) transition metal complex 3) multi-fragment/ion-pair (auto: {type_backmap[detected]})\n> ",
+            f"{prompt_classify_solute.rstrip()} (auto: {type_backmap[detected]})\n",
             parser      = parse_int,
             validator   = lambda v: v in (1, 2, 3),
             default     = {"molecule": 1, "transition_metal_complex": 2, "complex": 3}.get(detected, 1),
@@ -246,7 +248,7 @@ def _ask_solutes(system_type: str) -> List[dict]:
                 validator=lambda v: True,
             )
             chargefile = ask_value(
-                "Optional ligand charge file path (skip if none)\n> ",
+                prompt_ligand_chargefile,
                 parser=lambda x: x.strip(),
                 validator=lambda v: _exists_or_skip(v, allow_blank=True),
                 default="",
@@ -287,14 +289,14 @@ def _ask_qm_settings(has_tmc: bool, config: dict, amberhome_default: Optional[st
     if avail_str:
         print("Detected QM software:\n" + avail_str)
     short = ask_value(
-        "Select QM software: orca/gau/g09/g03/gms (default orca)\n> ",
+        prompt_qm_software_choice,
         parser=lambda x: x.strip().lower(),
         validator=lambda v: v in {"orca", "gau", "g09", "g03", "gms", ""},
         default="orca",
         allow_skip=True,
     ) or "orca"
     qmexe = ask_value(
-        "Path to QM executable (skip to rely on PATH)\n> ",
+        prompt_qm_executable_path,
         parser=lambda x: x.strip(),
         validator=lambda v: True,
         default=detected.get(short) or "",
@@ -333,7 +335,7 @@ def _ask_qm_settings(has_tmc: bool, config: dict, amberhome_default: Optional[st
     opt = ask_yes_no("Run geometry optimization? (yes/no, default yes)\n> ", default=True)
     amberhome = amberhome_default or detect_amberhome() or ""
     amberhome = ask_value(
-        "Provide AMBERHOME path (default uses detected)\n> ",
+        prompt_amberhome_path,
         parser=lambda x: x.strip(),
         validator=lambda v: True,
         default=amberhome,
@@ -346,7 +348,7 @@ def _ask_qm_settings(has_tmc: bool, config: dict, amberhome_default: Optional[st
         "method": method,
         "nprocs": nprocs,
         "opt": opt,
-        "amberhome": amberhome,
+        # "amberhome": amberhome,   # TODO: automcpb treats antechamber, tleap, paths as $AMBERHOME/<executable>. Need to modify it into $AMBERHOME/bin/<executable> first.
     })
     if maxcore is not None:
         config["maxcore"] = maxcore
@@ -391,7 +393,7 @@ def _ask_solvents(cube_size: Any) -> List[dict]:
     for j in range(1, n + 1):
         comp: Dict[str, Any] = {}
         choice = ask_value(
-            prompt_solvent_choice + "\n> ",
+            prompt_solvent_choice.format(i=j),
             parser=lambda x: x.strip().lower(),
             validator=lambda v: len(v) > 0,
         )
@@ -439,8 +441,12 @@ def _ask_solvents(cube_size: Any) -> List[dict]:
             default_density = comp.get("density")
             if "density" not in comp and comp.get("name") in SOLVENT_DENSITY:
                 default_density = SOLVENT_DENSITY[comp["name"]] / 1000.0
+            if not default_density:
+                density_prompt = f"Enter target density g/cm^3 for component #{j} (e.g., {TARGET_DENSITY_G_CM3})\n> "
+            else:
+                density_prompt = f"Enter target density g/cm^3 for component #{j} (default {default_density:.2f})\n> "
             density = ask_value(
-                f"Target density g/cm^3 for component #{j} (default {default_density:.2f})\n> ",
+                density_prompt,
                 parser=parse_float,
                 validator=lambda v: v > 0,
                 default=default_density,
@@ -455,8 +461,12 @@ def _ask_solvents(cube_size: Any) -> List[dict]:
                     default_mw = determine_mw_from_xyz(comp["xyzfile"])
                 elif comp["xyzfile"].lower().endswith(".pdb"):
                     default_mw = determine_mw_from_pdb(comp["xyzfile"])
+            if not default_mw:
+                mw_prompt = f"Enter molecular weight g/mol for component #{j}\n> "
+            else:
+                mw_prompt = f"Molecular weight g/mol for component #{j} (default {default_mw:.2f})\n> "
             mw = ask_value(
-                f"Molecular weight g/mol for component #{j} (default {default_mw:.2f})\n> ",
+                mw_prompt,
                 parser=parse_float,
                 validator=lambda v: v > 0,
                 default=default_mw,
@@ -477,8 +487,12 @@ def _ask_solvents(cube_size: Any) -> List[dict]:
                 default_density = comp["density"]
             else:
                 default_density = None
+            if default_density is None:
+                density_prompt = f"Enter the density g/cm^3 for component #{j} (e.g., {TARGET_DENSITY_G_CM3})\n> "
+            else:
+                density_prompt = f"Enter the density g/cm^3 for component #{j} (default {default_density:.2f})\n> "
             density = ask_value(
-                f"Density g/cm^3 for component #{j} (default {default_density:.2f})\n> ",
+                density_prompt,
                 parser=parse_float,
                 validator=lambda v: v > 0,
                 default=default_density,
@@ -556,6 +570,12 @@ def _density_sanity_checks(config: dict):
     print(f"Estimated overall density: {current_density:.3f} g/cm^3")
     solvent_density = estimate_solvent_density(solvents, cube)
     print(f"Estimated solvent-only density: {solvent_density:.3f} g/cm^3")
+    if solvent_density <= 0:
+        print(
+            "Note: solvent-only density could not be estimated (missing/invalid solvent number or molecular weight). "
+            "Skipping density sanity check."
+        )
+        return
     deviation = abs(current_density - solvent_density) / solvent_density
     if deviation > 0.05:
         print(f"Warning: overall density considering solutes deviates significantly from solvent-only density by {deviation*100:.2f}%. Consider adjustments to solvent density to simulate dilute solutions.")
@@ -611,14 +631,7 @@ def _ask_packmol_and_output(config: dict):
     config["folder"] = folder
 
 
-def _review_and_edit(config: dict, agent_mode: bool = False):
-    print("Current config preview:")
-    print(json.dumps(config, indent=2))
-    if agent_mode:
-        return
-    write_now = ask_yes_no("Write the JSON file now? (yes/no)\n> ", default=True)
-    if write_now:
-        return
+def _edit_mode(config: dict):
     print("Entering edit mode. Example: config[\"cube_size\"] = 60")
     for _ in range(MAX_RETRIES):
         cmd = input("Edit command (or type 'done' to finish): ")
@@ -629,8 +642,38 @@ def _review_and_edit(config: dict, agent_mode: bool = False):
             continue
         else:
             print("Could not parse command; try again.")
-    print("Re-validating after edits...")
 
+def _review_and_edit(config: dict, agent_mode: bool = False):
+    if agent_mode:
+        print("Final configuration:")
+        print(json.dumps(config, indent=2))
+        confirm = ask_yes_no("Proceed with this configuration? (yes/no)\n> ", default=True)
+        return confirm
+    
+    confirm = "no"
+    while confirm.lower() != "yes":
+        print("Current configuration:")
+        print(json.dumps(config, indent=2))
+        confirm = ask_value(
+            "Type 'yes' to proceed with this configuration, 'edit' to modify, 'write_only' to save the JSON without execution, or 'exit' to abort.\n> ",
+            parser=lambda x: x.strip().lower(),
+            validator=lambda v: v in {"yes", "edit", "write_only", "exit"},
+        )
+        if confirm == "edit":
+            _edit_mode(config)
+        elif confirm == "exit":
+            raise InputAbort("User aborted during review.")
+        elif confirm == "write_only":
+            break
+    return confirm
+    
+def execute(config: dict):
+    # Placeholder for execution logic
+    print("Executing with the provided configuration...")
+    # Actual execution code would go here
+    # start lazy import 
+    from autosolvate.multicomponent import startmulticomponent_fromdata
+    startmulticomponent_fromdata(config)
 
 def run_wizard(agent_mode: bool = False) -> Dict[str, Any]:
     config: Dict[str, Any] = {}
@@ -648,7 +691,12 @@ def run_wizard(agent_mode: bool = False) -> Dict[str, Any]:
     config["solvents"] = solvents
     _density_sanity_checks(config)
     _ask_packmol_and_output(config)
-    _review_and_edit(config, agent_mode=agent_mode)
+    confirm = _review_and_edit(config, agent_mode=agent_mode)
+    with open(os.path.join(config.get("folder", os.getcwd()), "wizard_input.json"), "w") as fh:
+        json.dump(config, fh, indent=2)
+    print(f"Wrote configuration to {os.path.join(config.get('folder', os.getcwd()), 'wizard_input.json')}")
+    if confirm == "yes":
+        execute(config)
     return config
 
 
@@ -656,13 +704,8 @@ def main():
     try:
         config = run_wizard(agent_mode=False)
     except InputAbort:
-        print("Wizard aborted by user.")
+        print("Aborted by user.")
         return
-    out_path = os.path.join(config.get("folder", os.getcwd()), "generated_input.json")
-    with open(out_path, "w") as fh:
-        json.dump(config, fh, indent=2)
-    print(f"Saved input to {out_path}")
-
 
 if __name__ == "__main__":
     main()

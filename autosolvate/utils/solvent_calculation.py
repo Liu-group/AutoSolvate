@@ -120,7 +120,14 @@ def estimate_solvent_density(solvents: Sequence[dict], cube_size: CubeSize) -> f
     for item in solvents:
         if "number" not in item or "molecular_weight" not in item:
             continue
-        total_mass_g += item["number"] * float(item["molecular_weight"]) / N_A
+        try:
+            number = int(item["number"])
+            mw = float(item["molecular_weight"])
+        except Exception:
+            continue
+        if number <= 0 or mw <= 0:
+            continue
+        total_mass_g += number * mw / N_A
     return estimate_density_g_cm3(total_mass_g, volume_m3)
 
 

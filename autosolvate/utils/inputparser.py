@@ -273,10 +273,14 @@ class InputParser(object):
                 self.data['amberhome'] = os.path.join(env_amber, "bin")
             else:
                 raise FileNotFoundError("AMBERHOME is not set and 'amberhome' is not provided")
+        if not self.data['amberhome'].endswith("/"):
+            self.data['amberhome'] = self.data['amberhome'] 
         amberhomepath = os.path.expandvars(self.data['amberhome'])
         if not os.path.exists(amberhomepath):
             self.logger.error(f"Cannot find the amberhome path {amberhomepath}. Make sure AMBER is installed and the path is correct.")
             raise FileNotFoundError(f"Cannot find the amberhome path {amberhomepath}")
+        if not amberhomepath.endswith("/"):
+            amberhomepath += "/"
         not_all_parameters = False
         for key, value in default_mcpb_kwargs.items():
             if key not in self.data:
