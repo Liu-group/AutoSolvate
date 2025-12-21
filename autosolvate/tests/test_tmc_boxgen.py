@@ -8,6 +8,7 @@ import os
 import pytest
 import numpy as np
 
+from autosolvate.utils.resources import autosolvate_resource
 from . import helper_functions as hp
 from ..molecule import *
 from ..dockers import *
@@ -112,12 +113,15 @@ def test_tmc_acetonitrile_solvated(tmpdir):
 
     solvPrefix = "ch3cn"
     solvresname = "C3N"
-    solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
-        os.path.join('data',solvPrefix,solvPrefix+".frcmod"))
-    solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
-        os.path.join('data',solvPrefix,solvPrefix+".prep"))
-    solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 
-        os.path.join('data',solvPrefix,solvPrefix+".pdb"))
+    solvent_frcmod_path = autosolvate_resource(
+        os.path.join('data', solvPrefix, solvPrefix + '.frcmod')
+    )
+    solvent_prep_path = autosolvate_resource(
+        os.path.join('data', solvPrefix, solvPrefix + '.prep')
+    )
+    solvent_pdb_path = autosolvate_resource(
+        os.path.join('data', solvPrefix, solvPrefix + '.pdb')
+    )
     solvent = Molecule(solvent_pdb_path, 0, 1, "solvent", residue_name = solvresname, folder = mol_tmc.folder)
     solvent.frcmod = solvent_frcmod_path
     solvent.prep = solvent_prep_path

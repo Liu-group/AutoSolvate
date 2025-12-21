@@ -1,6 +1,5 @@
 import autosolvate
 import pytest
-from pkg_resources import resource_filename, Requirement
 from . import helper_functions as hp
 
 import numpy as np

@@ -23,6 +23,7 @@ import json
 import logging
 import inspect
 import argparse
+from autosolvate.utils.resources import autosolvate_resource
 
 from .molecule import *
 from .dockers import (
@@ -188,12 +189,15 @@ class MulticomponentSolventBoxBuilder():
         elif solvent in custom_solv_dict:
             # solvent data prepared by autosolvate
             solvPrefix = custom_solv_dict[solvent]
-            solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".frcmod"))
-            solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".prep"))
-            solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".pdb"))
+            solvent_frcmod_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + ".frcmod")
+            )
+            solvent_prep_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + ".prep")
+            )
+            solvent_pdb_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + ".pdb")
+            )
             self_solvent = Molecule(solvent_pdb_path, 0, 1, solvent, residue_name = custom_solv_residue_name[solvent], folder = self.folder)
             self_solvent.frcmod = solvent_frcmod_path
             self_solvent.prep   = solvent_prep_path
@@ -477,12 +481,15 @@ class MixtureBuilder():
         elif solvent_type == "autosolvate_custom":
             self.logger.info(f"Adding autosolvate custom solvent {name}")
             solvPrefix = custom_solv_dict[name]
-            solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".frcmod"))
-            solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".prep"))
-            solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".pdb"))
+            solvent_frcmod_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + ".frcmod")
+            )
+            solvent_prep_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + ".prep")
+            )
+            solvent_pdb_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + ".pdb")
+            )
             self_solvent = Molecule(solvent_pdb_path, 0, 1, name, residue_name = custom_solv_residue_name[name], folder = self.folder)
             self_solvent.frcmod = solvent_frcmod_path
             self_solvent.prep   = solvent_prep_path

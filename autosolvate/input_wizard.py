@@ -692,9 +692,12 @@ def run_wizard(agent_mode: bool = False) -> Dict[str, Any]:
     _density_sanity_checks(config)
     _ask_packmol_and_output(config)
     confirm = _review_and_edit(config, agent_mode=agent_mode)
-    with open(os.path.join(config.get("folder", os.getcwd()), "wizard_input.json"), "w") as fh:
+    out_dir = config.get("folder", os.getcwd())
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "wizard_input.json"), "w") as fh:
         json.dump(config, fh, indent=2)
-    print(f"Wrote configuration to {os.path.join(config.get('folder', os.getcwd()), 'wizard_input.json')}")
+    print(f"Wrote configuration to {os.path.join(out_dir, 'wizard_input.json')}")
     if confirm == "yes":
         execute(config)
     return config

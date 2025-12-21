@@ -1,4 +1,4 @@
-import pkg_resources
+from autosolvate.utils.resources import autosolvate_resource
 import sys 
 import getopt
 
@@ -160,12 +160,15 @@ class solventBoxBuilder(object):
         elif solvent in custom_solv_dict:
             # solvent data prepared by autosolvate
             solvPrefix = custom_solv_dict[solvent]
-            solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".frcmod"))
-            solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".prep"))
-            solvent_pdb_path = pkg_resources.resource_filename('autosolvate', 
-                os.path.join('data',solvPrefix,solvPrefix+".pdb"))
+            solvent_frcmod_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + '.frcmod')
+            )
+            solvent_prep_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + '.prep')
+            )
+            solvent_pdb_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvPrefix + '.pdb')
+            )
             self_solvent = Molecule(solvent_pdb_path, 0, 1, solvent, residue_name = custom_solv_residue_name[solvent], folder = self.folder)
             self_solvent.frcmod = solvent_frcmod_path
             self_solvent.prep   = solvent_prep_path

@@ -4,9 +4,9 @@
 # path: autosolvate/tests/helper_functions.py
 #--------------------------------------------------------------------------------------------------#
 from collections import Counter
-from pkg_resources import resource_filename, Requirement, DistributionNotFound
 import os
 import random
+
 
 import numpy as np
 import pytest
@@ -28,11 +28,7 @@ def get_input_dir(name = ""):
     # use this directory if we move the folder "tests" to the Autosolvate-main directory with setup.py . 
     path1 = os.path.join(os.getcwd(), "inputs")
     path2 = os.path.join(os.path.dirname(__file__), "inputs")
-    try:
-        path3 = resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/inputs")
-    except DistributionNotFound:
-        path3 = path2
-    for ppath in [path1, path2, path3]:
+    for ppath in [path1, path2, os.path.join(os.path.dirname(__file__), 'inputs')]:
         if not os.path.exists(ppath):
             continue
         if os.path.exists(os.path.join(ppath, name)):
@@ -46,11 +42,7 @@ def get_input_dir(name = ""):
 def get_reference_dir(name = ""):
     """will return the reference directory if name is empty"""
     path2 = os.path.join(os.path.dirname(__file__), "refs")
-    try:
-        path3 = resource_filename(Requirement.parse("autosolvate"), "autosolvate/tests/refs")
-    except DistributionNotFound:
-        path3 = path2
-    for ppath in [path2, path3]:
+    for ppath in [path2]:
         if not os.path.exists(ppath):
             continue
         if os.path.exists(os.path.join(ppath, name)):

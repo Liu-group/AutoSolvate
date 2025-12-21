@@ -250,7 +250,7 @@ def test_wizard_boxgen(tmpdir):
         wait_scheduler.update("autosolvate.log")
     session.close()
     # start to verify generated files
-    assert os.path.exists("wizard_input.json"), str(os.listdir())
+    assert os.path.exists(os.path.join(str(tmpdir), "wizard_input.json")), str(os.listdir(str(tmpdir)))
     assert os.path.exists("naphthalene-acetonitrile.prmtop"), str(os.listdir())
     assert os.path.exists("naphthalene-acetonitrile.inpcrd")
     assert os.path.exists("naphthalene-acetonitrile.pdb")
@@ -304,7 +304,7 @@ def test_wizard_perylene_box(tmpdir):
         wait_scheduler.update("autosolvate.log")
     session.close()
     # start to verify generated files
-    assert os.path.exists("wizard_input.json"), str(os.listdir())
+    assert os.path.exists(os.path.join(str(tmpdir), "wizard_input.json")), str(os.listdir(str(tmpdir)))
     assert os.path.exists("perylene_box.prmtop"), str(os.listdir())
     assert os.path.exists("perylene_box.inpcrd")
     assert os.path.exists("perylene_box.pdb")

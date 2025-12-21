@@ -2,7 +2,7 @@
 import getopt, sys, os
 import subprocess
 from glob import glob
-import pkg_resources
+from autosolvate.utils.resources import autosolvate_resource
 
 Number_A = 6.02214076 * 10**23
 
@@ -230,8 +230,9 @@ class solventBoxBuilderMetal(object):
         else:
             solvPrefix = custom_solv_dict[self.solvent]
             solvent_pdb = solvPrefix+'.pdb'
-            solvent_pdb_origin = pkg_resources.resource_filename('autosolvate', 
-                    os.path.join('data/', solvPrefix, solvent_pdb))
+            solvent_pdb_origin = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvent_pdb)
+            )
             subprocess.call(['cp',solvent_pdb_origin,solvent_pdb])
       #      init_file_path = autosolvate.__file__
       #      autosolvate_dir = os.path.dirname
@@ -278,19 +279,21 @@ class solventBoxBuilderMetal(object):
             solvent_pdb = solvPrefix+'.pdb'
 
           #  autosolvate_dir = os.path.dirname(autosolvate.__file__)
-         #   solvent_frcmod = solvPrefix + '.frcmod'
+          #  solvent_frcmod = solvPrefix + '.frcmod'
           #  solvent_frcmod_path = os.path.join(autosolvate_dir, 'data', solvPrefix, solvent_frcmod)
 
           #  solvent_prep = solvPrefix + '.prep'
           #  solvent_prep_path = os.path.join(autosolvate_dir, 'data', solvPrefix, solvent_prep)
        
             solvent_frcmod = solvPrefix+'.frcmod'
-            solvent_frcmod_path = pkg_resources.resource_filename('autosolvate', 
-                    os.path.join('data',solvPrefix,solvent_frcmod))
+            solvent_frcmod_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvent_frcmod)
+            )
 
             solvent_prep = solvPrefix+'.prep'
-            solvent_prep_path = pkg_resources.resource_filename('autosolvate', 
-                    os.path.join('data',solvPrefix,solvent_prep))
+            solvent_prep_path = autosolvate_resource(
+                os.path.join('data', solvPrefix, solvent_prep)
+            )
          
             f = open("leap_add_solventbox.cmd","w")
             f.write("source leaprc.protein.ff14SB\n")

@@ -3,7 +3,7 @@ import sys
 import os
 import shutil
 import subprocess
-import pkg_resources
+from autosolvate.utils.resources import autosolvate_resource
 import glob
 import logging
 
