@@ -244,7 +244,7 @@ def test_wizard_boxgen(tmpdir):
         # print(read_result.text)
     wait_scheduler = WaitScheduler()
     for i in range(20):
-        if os.path.exists("naphthalene-acetonitrile.pdb"):
+        if os.path.exists("naphthalene-acetonitrile.prmtop") and os.path.exists("naphthalene-acetonitrile.inpcrd") and os.path.exists("naphthalene-acetonitrile.pdb"):
             break
         time.sleep(wait_scheduler.current_wait)
         wait_scheduler.update("autosolvate.log")
@@ -298,7 +298,7 @@ def test_wizard_perylene_box(tmpdir):
         # print(read_result.text)
     wait_scheduler = WaitScheduler()
     for i in range(20):
-        if os.path.exists("perylene_box.prmtop"):
+        if os.path.exists("perylene_box.prmtop") and os.path.exists("perylene_box.inpcrd") and os.path.exists("perylene_box.pdb"):
             break
         time.sleep(wait_scheduler.current_wait)
         wait_scheduler.update("autosolvate.log")
