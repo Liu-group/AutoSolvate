@@ -82,6 +82,12 @@ class AutoMCPBDocker(GeneralDocker):
         self.generated_pdb = mol.name + "_dry.pdb"
         self.charge_info = mol.name + ".info"
         self.mcpb_frcmod = mol.name + "_mcpbpy.frcmod"
+        self.output_files = [
+            os.path.join(self.mcpb_folder, self.generated_prmtop),
+            os.path.join(self.mcpb_folder, self.generated_pdb),
+            os.path.join(self.mcpb_folder, self.charge_info),
+            os.path.join(self.mcpb_folder, self.mcpb_frcmod),
+        ]
 
     def all_output_exists(self, mol: TransitionMetalComplex) -> bool:
         # if the generated_pdb, generated_prmtop, mcpb_frcmod, charge_info all exist, return True
@@ -135,6 +141,7 @@ class AutoMCPBDocker(GeneralDocker):
             folder = self.mcpb_folder
         )
         genff.build(use_boxgen_metal=False)
+        print(f"[AutoSolvate] Done  {self.__class__.__name__.replace('Docker', '')}\n Output Folder: {self.mcpb_folder}\n Generated Files: {', '.join(self.output_files)}", flush=True)
 
     def check_output(self, mol: TransitionMetalComplex) -> bool:
         if not os.path.exists(os.path.join(self.mcpb_folder, self.generated_prmtop)):
