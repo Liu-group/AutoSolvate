@@ -191,6 +191,15 @@ class TleapDocker(GeneralDocker):
         self.logger.debug("The tleap input file will be generated at {}".format(self.leapinp))
         self.leapout = os.path.join(self.workfolder, "leap_{}.log".format(mol.name))
         self.logger.debug("The tleap output file will be generated at {}".format(self.leapout))
+        self.output_files = [
+            self.outpdb,
+            self.outlib,
+            self.outmol2,
+            self.outprmtop,
+            self.outinpcrd,
+            self.leapinp,
+            self.leapout,
+        ]
     
     ##### generate_input method for different systems
     def load_forcefield(self, doc: TextIO) -> None:

@@ -43,7 +43,7 @@ class PackmolDocker(GeneralDocker):
         solutes = mol.solutes
         solvents = mol.solvents
         if len(solutes) == 0:
-            self.logger.warning("The input system does not contain any solutes!")
+            self.logger.info("The input system does not contain any solutes!")
         elif len(solutes) > 1:
             self.logger.info("The input system contains more than one kind of solutes. Position of solutes will be randomly generated.")
         if len(solvents) == 0:
@@ -90,6 +90,7 @@ class PackmolDocker(GeneralDocker):
         self.packmolinp = inpname
         self.packmolout = outname
         self.outpdb     = outpdb
+        self.output_files = [self.packmolinp, self.packmolout, self.outpdb]
 
     # generate input file
     def load_solute(self, doc: TextIO, box: SolvatedSystem) -> None: 
@@ -179,17 +180,22 @@ class PackmolDocker(GeneralDocker):
         cmd = "{} < {} > {}".format(self.executable, self.packmolinp, self.packmolout)
         return cmd
     
-    # execute of packmol is a little different with other softwares. the path of input file cannot be very long
+    # execute of packmol is a little different with other softwares:
+    # - packmol prefers running in workfolder
+    # - input/output paths should be relative and co-located
     def execute(self, cmd: str) -> None:
-        cwd = os.getcwd()
-        os.chdir(self.workfolder)
         tmp_packmolinp = os.path.basename(self.packmolinp)
         tmp_packmolout = os.path.basename(self.packmolout)
         cmd = "{} < {} > {}".format(self.executable, tmp_packmolinp, tmp_packmolout)
-        self.logger.info("Running packmol ...")
-        self.logger.info("Packmol command: {}".format(cmd))
-        subprocess.run(cmd, shell=True)
-        os.chdir(cwd)
+
+        # Reuse GeneralDocker's milestone prints + stderr routing, while
+        # keeping packmol's relative-path constraint.
+        prev = getattr(self, "exeoutfile", None)
+        try:
+            self.exeoutfile = None
+            super().execute(cmd)
+        finally:
+            self.exeoutfile = prev
 
     
     # check if the output file is generated        

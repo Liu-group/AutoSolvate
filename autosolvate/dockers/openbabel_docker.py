@@ -41,6 +41,7 @@ class OpenBabelDocker(GeneralDocker):
                 self.logger.warning("The {} file {} will be overwritten!".format(self.out_format, getattr(mol, self.out_format)))
             self.logger.info("Will generate {} file at {}".format(self.out_format, getattr(mol, self.out_format)))
             self.outfile = mol.reference_name + "." + self.out_format
+            self.output_files = [self.outfile]
         elif isinstance(self.out_format, Iterable):
             self.outfile = []
             for fmt in self.out_format:
@@ -48,6 +49,7 @@ class OpenBabelDocker(GeneralDocker):
                     self.logger.warning("The {} file {} will be overwritten!".format(fmt, getattr(mol, fmt)))
                 self.logger.info("Will generate {} file at {}".format(fmt, getattr(mol, fmt)))
                 self.outfile.append(mol.reference_name + "." + fmt)
+            self.output_files = list(self.outfile)
 
     def generate_input(self, mol: System) -> None:
         pass
@@ -73,12 +75,12 @@ class OpenBabelDocker(GeneralDocker):
             exeout = sys.stdout
             for cmd in self.cmds:
                 self.logger.info("CMD: {}".format(cmd))
-                subprocess.run(cmd, shell = True, stdout=exeout, stderr=sys.stdout)
+                subprocess.run(cmd, shell = True, stdout=exeout, stderr=sys.stderr)
         else:
             exeout = open(self.exeoutfile, "w")
             for cmd in self.cmds:
                 self.logger.info("CMD: {}".format(cmd))
-                subprocess.run(cmd, shell = True, stdout=exeout, stderr=sys.stdout)
+                subprocess.run(cmd, shell = True, stdout=exeout, stderr=sys.stderr)
             exeout.close()
         os.chdir(cwd)
         # obConversion = ob.OBConversion() 

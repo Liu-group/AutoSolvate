@@ -133,6 +133,14 @@ prompt_amberhome_path = """Provide AMBERHOME path.
 - Otherwise, provide the AMBERHOME directory path (e.g., /opt/amber22).
 
 > """
+
+
+prompt_final_confirmation_agent = """After reviewing the system setup above, 
+
+Type **proceed** to start building the solvated system.
+Type **write** to save the current configuration to a JSON file for later use and do not proceed.
+Type **exit** to quit without saving or proceeding.
+> """
 # after determines copies
 # check the solute type 
 # then display the fragment

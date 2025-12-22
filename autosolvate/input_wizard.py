@@ -647,7 +647,11 @@ def _review_and_edit(config: dict, agent_mode: bool = False):
     if agent_mode:
         print("Final configuration:")
         print(json.dumps(config, indent=2))
-        confirm = ask_yes_no("Proceed with this configuration? (yes/no)\n> ", default=True)
+        confirm = ask_value(
+            prompt_final_confirmation_agent,
+            parser=lambda x: x.strip().lower(),
+            validator=lambda v: v in {"proceed", "write", "exit"},
+        )
         return confirm
     
     confirm = "no"
@@ -669,11 +673,15 @@ def _review_and_edit(config: dict, agent_mode: bool = False):
     
 def execute(config: dict):
     # Placeholder for execution logic
-    print("Executing with the provided configuration...")
-    # Actual execution code would go here
-    # start lazy import 
+    print("Starting AutoSolvate execution (milestone output, details in logs)...", flush=True)
     from autosolvate.multicomponent import startmulticomponent_fromdata
-    startmulticomponent_fromdata(config)
+    try:
+        startmulticomponent_fromdata(config)
+    except Exception:
+        print("Execution failed. Check log files for details.", flush=True)
+        raise
+    else:
+        print("Execution finished. Outputs and logs are in the working directory.", flush=True)
 
 def run_wizard(agent_mode: bool = False) -> Dict[str, Any]:
     config: Dict[str, Any] = {}
@@ -698,7 +706,7 @@ def run_wizard(agent_mode: bool = False) -> Dict[str, Any]:
     with open(os.path.join(out_dir, "wizard_input.json"), "w") as fh:
         json.dump(config, fh, indent=2)
     print(f"Wrote configuration to {os.path.join(out_dir, 'wizard_input.json')}")
-    if confirm == "yes":
+    if confirm == "yes" and not agent_mode or confirm == "proceed" and agent_mode:
         execute(config)
     return config
 

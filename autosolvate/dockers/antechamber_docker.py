@@ -118,6 +118,7 @@ class AntechamberDocker(GeneralDocker):
         outname = self.generate_outputfile_name(mol, self.out_format)
         self.logger.info("The {} file will be generated at {}".format(self.out_format, outname))
         self.outfile = outname
+        self.output_files = [self.outfile]
         if os.path.exists(outname):
             self.logger.info("Found a existing file with the same name: {}".format(outname))
             self.logger.info("This file will be Overwritten!".format(outname))
