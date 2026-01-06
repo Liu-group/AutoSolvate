@@ -671,7 +671,7 @@ def startmulticomponent(args):
     parser = create_parser_multicomponent()
     args = parser.parse_args(args)
     cmd_dict = vars(args)
-    if "file" in cmd_dict and cmd_dict["file"] and os.path.exists(cmd_dict["file"]):
+    if "file" in cmd_dict and cmd_dict["file"]:
         if not os.path.exists(cmd_dict["file"]):
             raise FileNotFoundError(f"File {cmd_dict['file']} not found")
         with open(cmd_dict["file"], "r") as f:
