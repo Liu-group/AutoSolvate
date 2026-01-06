@@ -37,11 +37,17 @@ def calculate_solvent_numbers_from_weight_portions(
     weight_portions: Iterable[float],
     total_volume_m3: float,
 ) -> List[int]:
-    estimated_density = 1 / sum(portion / density for portion, density in zip(weight_portions, solvent_densities))
-    mass = total_volume_m3 * estimated_density  # kg
-    mass_g = mass * 1000
-    numbers = [mass_g * portion / mw * N_A for mw, portion in zip(solvent_mws, weight_portions)]
-    return list(map(int, numbers))
+    # Densities in input JSON are typically in g/cm^3. The mixture rule below expects
+    # consistent units; we keep density in g/cm^3 and convert volume to cm^3.
+    densities_g_cm3 = [float(d) if float(d) < 50 else float(d) / 1000.0 for d in solvent_densities]
+    portions = [float(p) for p in weight_portions]
+    mws_g_mol = [float(mw) for mw in solvent_mws]
+
+    estimated_density_g_cm3 = 1.0 / sum(p / rho for p, rho in zip(portions, densities_g_cm3))
+    volume_cm3 = float(total_volume_m3) * 1e6
+    total_mass_g = volume_cm3 * estimated_density_g_cm3
+    numbers = [total_mass_g * p / mw * N_A for mw, p in zip(mws_g_mol, portions)]
+    return [int(n) for n in numbers]
 
 
 def calculate_solvent_numbers_from_volume_portions(
