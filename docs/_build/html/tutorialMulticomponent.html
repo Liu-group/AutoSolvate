@@ -1,23 +1,22 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial for Mixed Solvent Box Generation &mdash; AutoSolvate  documentation</title>
+  <title>Tutorial for AutoSolvate Multicomponent &mdash; AutoSolvate  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -50,10 +49,31 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial for Mixed Solvent Box Generation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#step-1-generate-the-mixed-solvent-box-with-json-input">Step-1 : Generate the mixed solvent box with JSON input.</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#step-2-3-run-md-simulation-and-extract-microsolvated-clusters">Step-2 &amp; 3 : Run MD simulation and extract microsolvated clusters.</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial for AutoSolvate Multicomponent</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-1-naphthalene-in-mixed-water-acetonitrile">Example 1: Naphthalene in mixed water/acetonitrile</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-generate-the-mixed-solvent-box-with-json-input">Step 1: Generate the mixed solvent box with JSON input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-3-run-md-simulation-and-extract-microsolvated-clusters">Step 2 &amp; 3: Run MD simulation and extract microsolvated clusters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example-2-organometallic-compounds-counterions-in-mixed-carbonate-solvents">Example 2: Organometallic Compounds + counterions in mixed carbonate solvents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#download-the-input-files">Download the input files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-a-start-a-minimal-json-skeleton">Step A: Start a minimal JSON skeleton</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-b-define-the-solutes">Step B: Define the solutes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#add-the-organometallic-compound-mathrm-fe-bpy-3-2-febpy3">1) Add the organometallic compound <span class="math notranslate nohighlight">\([\mathrm{Fe(bpy)_3}]^{2+}\)</span> (Febpy3)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#add-the-counterions-bis-trifluoromethylsulfonyl-imide-tfsi">2) Add the counterions bis(trifluoromethylsulfonyl)imide (TFSI)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#step-c-define-the-mixed-solvent-by-ratios">Step C: Define the mixed solvent by ratios</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-d-add-qm-settings-required-because-of-the-metal-complex">Step D: Add QM settings (required because of the metal complex)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#final-json-build-json">Final JSON (build.json)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-the-example">Run the example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#expected-outputs">Expected outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example-3-run-example-2-using-the-interactive-cli">Example 3: Run Example 2 using the interactive CLI</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
@@ -75,7 +95,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Tutorial for Mixed Solvent Box Generation</li>
+      <li class="breadcrumb-item active">Tutorial for AutoSolvate Multicomponent</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/tutorialMulticomponent.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -85,12 +105,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="tutorial-for-mixed-solvent-box-generation">
-<h1>Tutorial for Mixed Solvent Box Generation<a class="headerlink" href="#tutorial-for-mixed-solvent-box-generation" title="Permalink to this heading"></a></h1>
-<p>The following tutorial illustrates the basic usage of <strong>Autosolvate Multicomponent</strong> module in the command line interface (CLI).</p>
-<p>There will be one example systems: naphthalene in mixed water and acetonitrile solvent. The tutorial will be broken down into three steps:</p>
+  <section id="tutorial-for-autosolvate-multicomponent">
+<h1>Tutorial for AutoSolvate Multicomponent<a class="headerlink" href="#tutorial-for-autosolvate-multicomponent" title="Permalink to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<p>The <strong>Multicomponent</strong> module is an powerful extension of the standard AutoSolvate workflow and the AutoMCPB module, this module enables the following advanced functionalities:</p>
+<ul class="simple">
+<li><p>Interactive CLI for building complex multicomponent systems.</p></li>
+<li><p>Mixed solvent box generation with arbitrary organic and aqueous solvents.</p></li>
+<li><p>Specifying the solvent composition by molecule number, weight ratio, volume ratio, or molar ratio.</p></li>
+<li><p>Multiple solutes in the same solvent box.</p></li>
+<li><p>Input pre-defined force field parameters for solute/solvent molecules.</p></li>
+<li><p>Organometallic compounds and counterions in mixed solvents.</p></li>
+</ul>
+<p>Due to the module’s powerful functionality, it is invoked by JSON input files. The traditional CLI interface is retained only as a legacy option.</p>
+<p>The following tutorial illustrates the basic usage of the <strong>Multicomponent</strong> module in the command line interface (CLI).</p>
+<p>This tutorial contains two examples:</p>
+<ol class="arabic simple">
+<li><p>Naphthalene in a mixed water/acetonitrile solvent box.</p></li>
+<li><p>A transition metal complex (Febpy3) with counterions in a mixed carbonate solvent box.</p></li>
+<li><p>Using the interactive CLI to build complex multicomponent systems.</p></li>
+</ol>
+</section>
+<section id="example-1-naphthalene-in-mixed-water-acetonitrile">
+<h2>Example 1: Naphthalene in mixed water/acetonitrile<a class="headerlink" href="#example-1-naphthalene-in-mixed-water-acetonitrile" title="Permalink to this heading"></a></h2>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h3>
 <p>Once you have AutoSolvate and all dependencies installed you will need the pdb files for solute and solvents. However, the TIP3P water model are pre-defined in AMBER so you don’t need to prepare its pdb or xyz file. Make sure run the example in its own directory to have clear separation of files.</p>
 <p>naphthalene_neutral.xyz:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">18</span>
@@ -152,7 +192,7 @@
 </div>
 </section>
 <section id="step-1-generate-the-mixed-solvent-box-with-json-input">
-<h2>Step-1 : Generate the mixed solvent box with JSON input.<a class="headerlink" href="#step-1-generate-the-mixed-solvent-box-with-json-input" title="Permalink to this heading"></a></h2>
+<h3>Step 1: Generate the mixed solvent box with JSON input<a class="headerlink" href="#step-1-generate-the-mixed-solvent-box-with-json-input" title="Permalink to this heading"></a></h3>
 <p>The first step is putting the solute in the solvent box, which uses the <code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen_multicomponent</span></code> command. The usage for multiple solvent requires a <strong>json</strong> file as the input, but the command line options will still be available for single solute with single solvent.</p>
 <p>step1_input.json:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -257,7 +297,7 @@
 </div>
 </section>
 <section id="step-2-3-run-md-simulation-and-extract-microsolvated-clusters">
-<h2>Step-2 &amp; 3 : Run MD simulation and extract microsolvated clusters.<a class="headerlink" href="#step-2-3-run-md-simulation-and-extract-microsolvated-clusters" title="Permalink to this heading"></a></h2>
+<h3>Step 2 &amp; 3: Run MD simulation and extract microsolvated clusters<a class="headerlink" href="#step-2-3-run-md-simulation-and-extract-microsolvated-clusters" title="Permalink to this heading"></a></h3>
 <p>With the amber input coordinate and topology file (<code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.inpcrd</span></code>, <code class="docutils literal notranslate"><span class="pre">naphthalene-water-acetonitrile.prmtop</span></code>). One can perform the following steps in the exactly the same way as described in the <cite>autosolvate boxgen</cite> tutorial. The following command will generate a classical MD trajectory for the mixed solvent box:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autosolvate</span> <span class="n">mdrun</span> <span class="o">-</span><span class="n">f</span> <span class="n">naphthalene</span><span class="o">-</span><span class="n">water</span><span class="o">-</span><span class="n">acetonitrile</span> <span class="o">-</span><span class="n">q</span> <span class="mi">0</span> <span class="o">-</span><span class="n">u</span> <span class="mi">1</span> <span class="o">-</span><span class="n">t</span> <span class="mi">300</span> <span class="o">-</span><span class="n">p</span> <span class="mi">1</span> <span class="o">-</span><span class="n">i</span> <span class="mi">100</span> <span class="o">-</span><span class="n">m</span> <span class="mi">10000</span> <span class="o">-</span><span class="n">b</span> <span class="mi">0</span> <span class="o">-</span><span class="n">n</span> <span class="mi">10000</span> <span class="o">-</span><span class="n">l</span> <span class="mi">0</span> <span class="o">-</span><span class="n">o</span> <span class="mi">0</span> <span class="o">-</span><span class="n">s</span> <span class="mi">0</span>
 </pre></div>
@@ -268,6 +308,376 @@
 </div>
 <p>This will result in the following microsolvated cluster:</p>
 <a class="reference internal image-reference" href="_images/tutorial5_4.png"><img alt="_images/tutorial5_4.png" src="_images/tutorial5_4.png" style="width: 600px;" /></a>
+</section>
+</section>
+<section id="example-2-organometallic-compounds-counterions-in-mixed-carbonate-solvents">
+<h2>Example 2: Organometallic Compounds + counterions in mixed carbonate solvents<a class="headerlink" href="#example-2-organometallic-compounds-counterions-in-mixed-carbonate-solvents" title="Permalink to this heading"></a></h2>
+<p>This example demonstrates a more advanced workflow where:</p>
+<ol class="arabic simple">
+<li><p>The primary solute is Tris(bipyridine)iron(II) (<span class="math notranslate nohighlight">\([\mathrm{Fe(bpy)_3}]^{2+}\)</span>), an <strong>organometallic compound</strong>, which triggers AutoMCPB.</p></li>
+<li><p>Two bis(trifluoromethylsulfonyl)imide (TFSI) <strong>counterions</strong> are added to neutralize the charge of the organometallic compound.</p></li>
+<li><p>The solvent is a <strong>mixture</strong> of multiple organic carbonate solvents (EC/PC/EMC) specified by <strong>weight ratio</strong>.</p></li>
+</ol>
+<section id="id1">
+<h3>Prerequisites<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>Before running this example, please make sure you have the ORCA quantum chemistry software installed. You will need:</p>
+<ol class="arabic simple">
+<li><p>The ORCA executable name (<code class="docutils literal notranslate"><span class="pre">qmexe</span></code>), typically <code class="docutils literal notranslate"><span class="pre">orca</span></code>.</p></li>
+<li><p>The absolute path to the ORCA executable (<code class="docutils literal notranslate"><span class="pre">qmdir</span></code>).</p></li>
+</ol>
+</section>
+<section id="download-the-input-files">
+<h3>Download the input files<a class="headerlink" href="#download-the-input-files" title="Permalink to this heading"></a></h3>
+<p><a class="reference download internal" download="" href="_downloads/640fa052728445f805e84004ba3771f9/build.json"><code class="xref download docutils literal notranslate"><span class="pre">build.json</span></code></a>
+<a class="reference download internal" download="" href="_downloads/e5b699b7d1029614ef45c58dc2c889d2/Febpy3.xyz"><code class="xref download docutils literal notranslate"><span class="pre">Febpy3.xyz</span></code></a>
+<a class="reference download internal" download="" href="_downloads/61e73a6cd55d5e1ba8a6c12364fae92e/TFSI.pdb"><code class="xref download docutils literal notranslate"><span class="pre">TFSI.pdb</span></code></a>
+<a class="reference download internal" download="" href="_downloads/8f1eee11849abfe6956cd4e594142ad6/TFSI.mol2"><code class="xref download docutils literal notranslate"><span class="pre">TFSI.mol2</span></code></a>
+<a class="reference download internal" download="" href="_downloads/814cb1ad792cdf36aee2435da8ca35dc/TFSI.frcmod"><code class="xref download docutils literal notranslate"><span class="pre">TFSI.frcmod</span></code></a>
+<a class="reference download internal" download="" href="_downloads/8147b739dbc9fe9210295a20c662e2ce/EC.xyz"><code class="xref download docutils literal notranslate"><span class="pre">EC.xyz</span></code></a>
+<a class="reference download internal" download="" href="_downloads/7abe1d75488278492d70a167b8b1f06f/PC.xyz"><code class="xref download docutils literal notranslate"><span class="pre">PC.xyz</span></code></a>
+<a class="reference download internal" download="" href="_downloads/02e4d3f808ad427f7309e07bd351de24/EMC.xyz"><code class="xref download docutils literal notranslate"><span class="pre">EMC.xyz</span></code></a></p>
+<p>You should have at least:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">build</span><span class="o">.</span><span class="n">json</span>  <span class="n">Febpy3</span><span class="o">.</span><span class="n">xyz</span>  <span class="n">TFSI</span><span class="o">.</span><span class="n">pdb</span>  <span class="n">TFSI</span><span class="o">.</span><span class="n">mol2</span>  <span class="n">TFSI</span><span class="o">.</span><span class="n">frcmod</span>  <span class="n">EC</span><span class="o">.</span><span class="n">xyz</span>  <span class="n">PC</span><span class="o">.</span><span class="n">xyz</span>  <span class="n">EMC</span><span class="o">.</span><span class="n">xyz</span>
+</pre></div>
+</div>
+</section>
+<section id="step-a-start-a-minimal-json-skeleton">
+<h3>Step A: Start a minimal JSON skeleton<a class="headerlink" href="#step-a-start-a-minimal-json-skeleton" title="Permalink to this heading"></a></h3>
+<p>We first decide the <strong>box size</strong> and the default charge method for molecules that may need GAFF/antechamber.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+      <span class="s2">&quot;cube_size&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+      <span class="s2">&quot;charge_method&quot;</span><span class="p">:</span> <span class="s2">&quot;bcc&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;solutes&quot;</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="s2">&quot;solvents&quot;</span><span class="p">:</span> <span class="p">[]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="step-b-define-the-solutes">
+<h3>Step B: Define the solutes<a class="headerlink" href="#step-b-define-the-solutes" title="Permalink to this heading"></a></h3>
+<p>In this example, the “solute” part contains <strong>two kinds of molecules</strong>:</p>
+<ol class="arabic simple">
+<li><p>A single organometallic compound <code class="docutils literal notranslate"><span class="pre">Febpy3</span></code> (<span class="math notranslate nohighlight">\([\mathrm{Fe(bpy)_3}]^{2+}\)</span>), which triggers AutoMCPB.</p></li>
+<li><p>Two <code class="docutils literal notranslate"><span class="pre">TFSI</span></code> counterions.</p></li>
+</ol>
+<section id="add-the-organometallic-compound-mathrm-fe-bpy-3-2-febpy3">
+<h4>1) Add the organometallic compound <span class="math notranslate nohighlight">\([\mathrm{Fe(bpy)_3}]^{2+}\)</span> (Febpy3)<a class="headerlink" href="#add-the-organometallic-compound-mathrm-fe-bpy-3-2-febpy3" title="Permalink to this heading"></a></h4>
+<p>For an organometallic compound, you should provide:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">xyzfile</span></code>: the structure file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metal_charge</span></code>: the oxidation/valence used by AutoMCPB.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spinmultiplicity</span></code> or <code class="docutils literal notranslate"><span class="pre">spinmult</span></code>: spin multiplicity of the metal atom. all legands are assumed closed-shell.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">total_charge</span></code>: total charge of the complex.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number</span></code>: how many solutes to add (for a centered solute, this should be 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centered:</span> <span class="pre">true</span></code> to place this solute at the box center (only one solute can be centered).</p></li>
+</ul>
+<p>Optionally, you can set:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> for labeling. Default is the structure file name without extension.</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">chargefile</span></code>: path to the ligand charge file used by AutoMCPB.</dt><dd><p>&lt;EXPLANATION_NEEDED_CHARGEFILE_FORMAT&gt;</p>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">total_charge</span></code>: total charge of the complex. If omitted, AutoSolvate may attempt to determine it automatically. Will be overriden if <code class="docutils literal notranslate"><span class="pre">chargefile</span></code> is provided.</p></li>
+</ul>
+<p>Add the following JSON blob to the <code class="docutils literal notranslate"><span class="pre">solutes</span></code> list</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Febpy3&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;Febpy3.xyz&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;total_charge&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+   <span class="s2">&quot;spinmultiplicity&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+   <span class="s2">&quot;metal_charge&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+   <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+   <span class="s2">&quot;centered&quot;</span><span class="p">:</span> <span class="n">true</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="add-the-counterions-bis-trifluoromethylsulfonyl-imide-tfsi">
+<h4>2) Add the counterions bis(trifluoromethylsulfonyl)imide (TFSI)<a class="headerlink" href="#add-the-counterions-bis-trifluoromethylsulfonyl-imide-tfsi" title="Permalink to this heading"></a></h4>
+<p>For ionic liquids, using existing force field parameters is recommended. Here, we utilized the parameters derived from Sambasivarao and Acevedo (2009) for TFSI (<a class="reference external" href="https://pubs.acs.org/doi/10.1021/ct900009a">J. Chem. Theory Comput., 2009, 5, 1038-1050</a>).</p>
+<p>Provide the following keywords to specify pre-generated GAFF-style parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">xyzfile</span></code>: structure file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frcmod</span></code>: Amber frcmod file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mol2</span></code> : MOL2 file with atom type and atomic charges specified.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">charge</span></code>: formal charge. -1 for TFSI.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spinmultiplicity</span></code> or <code class="docutils literal notranslate"><span class="pre">spinmult</span></code>: spin multiplicity. 1 for closed-shell.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number</span></code>: how many to add.</p></li>
+</ul>
+<p>Here, we add two TFSI anions to neutralize the +2 charge from the Febpy3 complex. This results in a net charge of zero for the entire system. Add the following JSON blob to the <code class="docutils literal notranslate"><span class="pre">solutes</span></code> list</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI.pdb&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;charge&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+   <span class="s2">&quot;spinmultiplicity&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+   <span class="s2">&quot;frcmod&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI.frcmod&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;mol2&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI.mol2&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">2</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the charge is not neutralized, AutoSolvate will add Na+ or Cl- ions to neutralize the system automatically.</p>
+</div>
+</section>
+</section>
+<section id="step-c-define-the-mixed-solvent-by-ratios">
+<h3>Step C: Define the mixed solvent by ratios<a class="headerlink" href="#step-c-define-the-mixed-solvent-by-ratios" title="Permalink to this heading"></a></h3>
+<p>Here we want a <strong>three-solvent mixture</strong> composed of ethylene carbonate (EC), propylene carbonate (PC), and ethyl methyl carbonate (EMC). Instead of manually providing molecule counts, we specify:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">weight_ratio</span></code> for each solvent (must sum to 1.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">density</span></code> density of each solvent in g/cm³</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">molecular_weight</span></code> of each solvent in g/mol. If not provided, AutoSolvate will attempt to calculate it from the structure file.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>AutoSolvate also supports using molar ratio or volume ratio for mixed solvents by providing <code class="docutils literal notranslate"><span class="pre">molar_ratio</span></code> or <code class="docutils literal notranslate"><span class="pre">volume_ratio</span></code> for all solvents. In these two cases, <code class="docutils literal notranslate"><span class="pre">density</span></code> and <code class="docutils literal notranslate"><span class="pre">molecular_weight</span></code> are still required for conversion.</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;solvents&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;EC&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;EC&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;weight_ratio&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+         <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;EC.xyz&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="mf">1.32</span><span class="p">,</span>
+         <span class="s2">&quot;molecular_weight&quot;</span><span class="p">:</span> <span class="mf">88.06</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;PC&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;PC&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;weight_ratio&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+         <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;PC.xyz&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+         <span class="s2">&quot;molecular_weight&quot;</span><span class="p">:</span> <span class="mf">102.09</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;EMC&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;EMC&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;weight_ratio&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+         <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;EMC.xyz&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="mf">1.006</span><span class="p">,</span>
+         <span class="s2">&quot;molecular_weight&quot;</span><span class="p">:</span> <span class="mf">104.15</span>
+      <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>AutoSolvate assumes ideal mixing when calculating solvent molecule numbers. This may not reflect real densities for some solvent mixtures and excessive number of solute molecules. Therefore, the system should be equilibrated under NPT before production runs.</p>
+</div>
+</section>
+<section id="step-d-add-qm-settings-required-because-of-the-metal-complex">
+<h3>Step D: Add QM settings (required because of the metal complex)<a class="headerlink" href="#step-d-add-qm-settings-required-because-of-the-metal-complex" title="Permalink to this heading"></a></h3>
+<p>Because <code class="docutils literal notranslate"><span class="pre">Febpy3</span></code> is an organometallic compound, you must specify QM settings so AutoMCPB can run the QM step.</p>
+<p>At minimum:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">qmexe</span></code>: QM program name (here <code class="docutils literal notranslate"><span class="pre">orca</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qmdir</span></code>: absolute path to the QM executable</p></li>
+</ul>
+<p>Common ORCA settings:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nprocs</span></code>: number of MPI processes used by ORCA</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxcore</span></code>: memory per core used by ORCA (in MB)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">method</span></code> and <code class="docutils literal notranslate"><span class="pre">basisset</span></code>: DFT method and basis set</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opt</span></code>: whether to perform geometry optimization before frequency calculation (default: true)</p></li>
+</ul>
+<p>Additionally, the following parameters can be specified for AutoMCPB:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cutoff</span></code>: distance cutoff (in Å) for identifying metal-legand bonds (default: 2.8 Å)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fakecharge</span></code>: whether to skip the RESP charge fitting for TMC legands and use “fake” charges instead (default: false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode</span></code>: AutoMCPB mode, “A” for “Auto”, “M” for “Manual” (default: “A”). Use M will let the user provide the metal-ligand bonding information manually.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amberhome</span></code>: absolute path to the AmberTools installation. default uses the <code class="docutils literal notranslate"><span class="pre">AMBERHOME</span></code> environment variable.</p></li>
+</ul>
+</section>
+<section id="final-json-build-json">
+<h3>Final JSON (build.json)<a class="headerlink" href="#final-json-build-json" title="Permalink to this heading"></a></h3>
+<p>Putting everything together, the final <code class="docutils literal notranslate"><span class="pre">build.json</span></code> is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+      <span class="s2">&quot;cube_size&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+      <span class="s2">&quot;charge_method&quot;</span><span class="p">:</span> <span class="s2">&quot;bcc&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;solutes&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Febpy3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;Febpy3.xyz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_charge&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;spinmultiplicity&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;metal_charge&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;centered&quot;</span><span class="p">:</span> <span class="n">true</span>
+         <span class="p">},</span>
+         <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI.pdb&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;charge&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;spinmultiplicity&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;frcmod&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI.frcmod&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;mol2&quot;</span><span class="p">:</span> <span class="s2">&quot;TFSI.mol2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">2</span>
+         <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;solvents&quot;</span><span class="p">:[</span>
+         <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;EC&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;EC&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;weight_ratio&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+            <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;EC.xyz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="mf">1.32</span><span class="p">,</span>
+            <span class="s2">&quot;molecular_weight&quot;</span><span class="p">:</span> <span class="mf">88.06</span>
+         <span class="p">},</span>
+         <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;PC&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;PC&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;weight_ratio&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+            <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;PC.xyz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+            <span class="s2">&quot;molecular_weight&quot;</span><span class="p">:</span> <span class="mf">102.09</span>
+         <span class="p">},</span>
+         <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;EMC&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;residue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;EMC&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;weight_ratio&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s2">&quot;xyzfile&quot;</span><span class="p">:</span> <span class="s2">&quot;EMC.xyz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="mf">1.006</span><span class="p">,</span>
+            <span class="s2">&quot;molecular_weight&quot;</span><span class="p">:</span> <span class="mf">104.15</span>
+         <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;qmexe&quot;</span><span class="p">:</span> <span class="s2">&quot;orca&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;qmdir&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/orca/executable&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;maxcore&quot;</span><span class="p">:</span> <span class="mi">4096</span><span class="p">,</span>
+      <span class="s2">&quot;nprocs&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+      <span class="s2">&quot;basisset&quot;</span><span class="p">:</span> <span class="s2">&quot;def2-tzvp&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;b3lyp&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="run-the-example">
+<h3>Run the example<a class="headerlink" href="#run-the-example" title="Permalink to this heading"></a></h3>
+<p>Execute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autosolvate</span> <span class="n">boxgen_multicomponent</span> <span class="o">-</span><span class="n">f</span> <span class="n">build</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>This calculation will trigger AutoMCPB internally to parameterize the organometallic compound Febpy3 which may take 1-2 hours depending on your QM settings and hardware.</p>
+</section>
+<section id="expected-outputs">
+<h3>Expected outputs<a class="headerlink" href="#expected-outputs" title="Permalink to this heading"></a></h3>
+<p>After a successful run, you should see files similar to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ANTECHAMBER_AC</span><span class="o">.</span><span class="n">AC</span>            <span class="n">EC</span><span class="o">.</span><span class="n">inpcrd</span>      <span class="n">Febpy3_automcpb</span><span class="o">/</span>                   <span class="n">leap_EMC</span><span class="o">.</span><span class="n">cmd</span>                    <span class="n">PC</span><span class="o">.</span><span class="n">xyz</span>
+<span class="n">ANTECHAMBER_AC</span><span class="o">.</span><span class="n">AC0</span>           <span class="n">EC</span><span class="o">.</span><span class="n">lib</span>         <span class="n">Febpy3_dry</span><span class="o">.</span><span class="n">pdb</span>                     <span class="n">leap_EMC</span><span class="o">.</span><span class="n">log</span>                    <span class="n">sqm</span><span class="o">.</span><span class="ow">in</span>
+<span class="n">ANTECHAMBER_AM1BCC</span><span class="o">.</span><span class="n">AC</span>        <span class="n">EC</span><span class="o">.</span><span class="n">mol2</span>        <span class="n">Febpy3_dry</span><span class="o">.</span><span class="n">prmtop</span>                  <span class="n">leap_Febpy3</span><span class="o">-</span><span class="n">TFSI</span><span class="o">-</span><span class="n">EC</span><span class="o">-</span><span class="n">PC</span><span class="o">-</span><span class="n">EMC</span><span class="o">.</span><span class="n">cmd</span>  <span class="n">sqm</span><span class="o">.</span><span class="n">out</span>
+<span class="n">ANTECHAMBER_AM1BCC_PRE</span><span class="o">.</span><span class="n">AC</span>    <span class="n">EC</span><span class="o">.</span><span class="n">pdb</span>         <span class="n">Febpy3_mcpbpy</span><span class="o">.</span><span class="n">frcmod</span>               <span class="n">leap_Febpy3</span><span class="o">-</span><span class="n">TFSI</span><span class="o">-</span><span class="n">EC</span><span class="o">-</span><span class="n">PC</span><span class="o">-</span><span class="n">EMC</span><span class="o">.</span><span class="n">log</span>  <span class="n">sqm</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">ANTECHAMBER_BOND_TYPE</span><span class="o">.</span><span class="n">AC</span>     <span class="n">EC</span><span class="o">.</span><span class="n">prmtop</span>      <span class="n">Febpy3</span><span class="o">-</span><span class="n">TFSI</span><span class="o">-</span><span class="n">EC</span><span class="o">-</span><span class="n">PC</span><span class="o">-</span><span class="n">EMC</span><span class="o">.</span><span class="n">inpcrd</span>       <span class="n">leap</span><span class="o">.</span><span class="n">log</span>                        <span class="n">TFSI</span><span class="o">.</span><span class="n">frcmod</span>
+<span class="n">ANTECHAMBER_BOND_TYPE</span><span class="o">.</span><span class="n">AC0</span>    <span class="n">EC</span><span class="o">.</span><span class="n">xyz</span>         <span class="n">Febpy3</span><span class="o">-</span><span class="n">TFSI</span><span class="o">-</span><span class="n">EC</span><span class="o">-</span><span class="n">PC</span><span class="o">-</span><span class="n">EMC_packmol</span><span class="o">.</span><span class="n">inp</span>  <span class="n">leap_PC</span><span class="o">.</span><span class="n">cmd</span>                     <span class="n">TFSI</span><span class="o">-</span><span class="n">frommol2</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">antechamber</span><span class="o">.</span><span class="n">log</span>              <span class="n">EMC</span><span class="o">.</span><span class="n">frcmod</span>     <span class="n">Febpy3</span><span class="o">-</span><span class="n">TFSI</span><span class="o">-</span><span class="n">EC</span><span class="o">-</span><span class="n">PC</span><span class="o">-</span><span class="n">EMC_packmol</span><span class="o">.</span><span class="n">out</span>  <span class="n">leap_PC</span><span class="o">.</span><span class="n">log</span>                     <span class="n">TFSI</span><span class="o">.</span><span class="n">mol2</span>
+<span class="n">ATOMTYPE</span><span class="o">.</span><span class="n">INF</span>                 <span class="n">EMC</span><span class="o">.</span><span class="n">inpcrd</span>     <span class="n">Febpy3</span><span class="o">-</span><span class="n">TFSI</span><span class="o">-</span><span class="n">EC</span><span class="o">-</span><span class="n">PC</span><span class="o">-</span><span class="n">EMC</span><span class="o">.</span><span class="n">pdb</span>          <span class="n">PC</span><span class="o">.</span><span class="n">frcmod</span>                       <span class="n">TFSI</span><span class="o">.</span><span class="n">pdb</span>
+<span class="n">autosolvate_input_full</span><span class="o">.</span><span class="n">json</span>  <span class="n">EMC</span><span class="o">.</span><span class="n">lib</span>        <span class="n">Febpy3</span><span class="o">-</span><span class="n">TFSI</span><span class="o">-</span><span class="n">EC</span><span class="o">-</span><span class="n">PC</span><span class="o">-</span><span class="n">EMC</span><span class="o">.</span><span class="n">prmtop</span>       <span class="n">PC</span><span class="o">.</span><span class="n">inpcrd</span>
+<span class="n">autosolvate</span><span class="o">.</span><span class="n">log</span>              <span class="n">EMC</span><span class="o">.</span><span class="n">mol2</span>       <span class="n">Febpy3</span><span class="o">.</span><span class="n">xyz</span>                         <span class="n">PC</span><span class="o">.</span><span class="n">lib</span>
+<span class="n">build</span><span class="o">.</span><span class="n">json</span>                   <span class="n">EMC</span><span class="o">.</span><span class="n">pdb</span>        <span class="n">leap_EC</span><span class="o">.</span><span class="n">cmd</span>                        <span class="n">PC</span><span class="o">.</span><span class="n">mol2</span>
+<span class="n">EC</span><span class="o">.</span><span class="n">frcmod</span>                    <span class="n">EMC</span><span class="o">.</span><span class="n">prmtop</span>     <span class="n">leap_EC</span><span class="o">.</span><span class="n">log</span>                        <span class="n">PC</span><span class="o">.</span><span class="n">pdb</span>
+</pre></div>
+</div>
+<p>Here, the <code class="docutils literal notranslate"><span class="pre">Febpy3-TFSI-EC-PC-EMC.inpcrd</span></code>, <code class="docutils literal notranslate"><span class="pre">Febpy3-TFSI-EC-PC-EMC.prmtop</span></code>, and <code class="docutils literal notranslate"><span class="pre">Febpy3-TFSI-EC-PC-EMC.pdb</span></code> files are the main outputs for running MD simulations.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Febpy3_automcpb/</span></code> folder contains all intermediate and output files generated by AutoMCPB during the parameterization of the organometallic compound.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">autosolvate.log</span></code> file contains detailed logs of the entire process.</p>
+<p>Since AutoSolvate may determine some parameters automatically, the full JSON input used for the run is saved as <code class="docutils literal notranslate"><span class="pre">autosolvate_input_full.json</span></code>.</p>
+</section>
+</section>
+<section id="example-3-run-example-2-using-the-interactive-cli">
+<h2>Example 3: Run Example 2 using the interactive CLI<a class="headerlink" href="#example-3-run-example-2-using-the-interactive-cli" title="Permalink to this heading"></a></h2>
+<p>Because constructing complex JSON input files can be time‑consuming and requires familiarity with many control keywords, AutoSolvate provides an interactive command‑line interface (CLI) that enables users to configure systems without explicitly recalling these keywords.</p>
+<p>The CLI workflow is adaptive and context‑dependent; for example, it requests quantum chemistry settings only when a transition metal complex is present among the specified solutes.</p>
+<p>Execute the following command to start the interactive CLI for building the same system as in Example 2:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autosolvate</span> <span class="n">boxgen_interactive</span>
+</pre></div>
+</div>
+<p>This will launch an interactive session in your terminal. The initial welcoming message will appear as follows:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Welcome to the AutoSolvate Interactive Input Generator</span>
+<span class="go">Working directory: ~/path/to/your/directory</span>
+<span class="go">Control words: &#39;skip&#39; to use default, &#39;exit&#39; to abort</span>
+
+<span class="go">Default AMBERHOME: ~/path/to/your/amberhome</span>
+<span class="go">Detected antechamber: ~/path/to/your/amberhome/bin/antechamber</span>
+<span class="go">Detected parmchk2: ~/path/to/your/amberhome/bin/parmchk2</span>
+<span class="go">Detected tleap: ~/path/to/your/amberhome/bin/tleap</span>
+<span class="go">Detected packmol: ~/path/to/your/packmol</span>
+<span class="go">Detected obabel: ~/path/to/your/obabel</span>
+<span class="go">Successfully detected AmberTools installation at ~/path/to/your/amberhome</span>
+<span class="go">Enter the simulation box size in Angstrom.</span>
+<span class="go">- ONE number for cubic (e.g., 50)</span>
+<span class="go">- THREE numbers comma-separated for orthorhombic (e.g., 50,60,70)</span>
+</pre></div>
+</div>
+<p>The prompt will guide you through a series of questions to define your solutes, solvents, and other simulation parameters. In each step, the CLI will prompt the expected input format (integer, file path, yes/no, etc.) and provide default values where applicable.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The interactive CLI accepts the following control words at any step:
+- <code class="docutils literal notranslate"><span class="pre">exit</span></code>: Abort the entire process.
+- <code class="docutils literal notranslate"><span class="pre">skip</span></code>: Accept the default value for the current prompt. Only applicable for “skippable” parameters.
+- <code class="docutils literal notranslate"><span class="pre">&lt;Enter&gt;</span></code>: Pressing Enter without typing anything also accepts the default value for skippable parameters.</p>
+</div>
+<p>For example, the process for specifying the Organometallic compound Febpy3 will look like this:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
+<span class="go">Solute #1: structure file path (.xyz/.pdb)</span>
+<span class="go">&gt; Febpy3.xyz</span>
+<span class="go">Solute #1: short name (default: Febpy3)</span>
+<span class="go">&gt; Febpy3</span>
+<span class="go">Detected metal centers in solute #1: Fe</span>
+<span class="go">Classify this solute (choose 1/2/3):</span>
+<span class="go">1) Regular molecule (typical organic/ionic molecule)</span>
+<span class="go">2) Transition metal complex (requires MCPB + QM settings)</span>
+<span class="go">3) Multi-fragment / ion-pair complex (one file containing multiple fragments)</span>
+
+<span class="go">Tip: press Enter to accept the auto-detected suggestion shown in parentheses.</span>
+<span class="gp gp-VirtualEnv">(auto: transition metal complex)</span>
+<span class="go">&gt;</span>
+<span class="go">Solute #1: total charge (integer, default 0)</span>
+<span class="go">&gt; 2</span>
+<span class="go">Solute #1: spin multiplicity (integer, default 1)</span>
+<span class="go">&gt; 1</span>
+<span class="go">Solute #1: number of copies (integer &gt;=1, default 1)</span>
+<span class="go">&gt; 1</span>
+<span class="go">Metal center charge (integer, e.g., 2 for Cu(II) or 3 for Fe(III))</span>
+<span class="go">&gt; 2</span>
+<span class="go">Optional: ligand charge file path for MCPB (Amber MCPB charge file).</span>
+
+<span class="go">- Press Enter / type &quot;skip&quot; if you do not have one; AutoSolvate will try to determine ligand charges automatically.</span>
+<span class="go">- Otherwise, provide a file path.</span>
+
+<span class="go">&gt; skip</span>
+<span class="go">Cutoff distance for coordinating ligands (Angstrom, default 2.8)</span>
+<span class="go">&gt; 2.8</span>
+<span class="go">Center this solute in the box? (yes/no)</span>
+<span class="go">&gt; yes</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>After all parameters are specified, the final JSON input file will be printed to the terminal for your review. You can choose to save it to a file for future reference or modification.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Current configuration:</span>
+<span class="go">{</span>
+<span class="go">   &quot;cube_size&quot;: 50.0,</span>
+<span class="go">   &quot;system_type&quot;: &quot;solute_solvent&quot;,</span>
+<span class="go">   &quot;charge_method&quot;: &quot;bcc&quot;,</span>
+<span class="go">   &quot;solutes&quot;: [</span>
+<span class="go">      ...</span>
+<span class="go">   ],</span>
+<span class="go">   &quot;solvents&quot;: [</span>
+<span class="go">      ...</span>
+<span class="go">   ],</span>
+<span class="go">   &quot;qmexe&quot;: &quot;orca&quot;,</span>
+<span class="go">   &quot;qmdir&quot;: &quot;/path/to/orca/executable&quot;,</span>
+<span class="go">   &quot;maxcore&quot;: 4096,</span>
+<span class="go">   &quot;nprocs&quot;: 16,</span>
+<span class="go">   &quot;basisset&quot;: &quot;def2-tzvp&quot;,</span>
+<span class="go">   &quot;method&quot;: &quot;b3lyp&quot;</span>
+<span class="go">}</span>
+<span class="go">Type &#39;yes&#39; to proceed with this configuration, &#39;edit&#39; to modify, &#39;write_only&#39; to save the JSON without execution, or &#39;exit&#39; to abort.</span>
+<span class="go">&gt;</span>
+</pre></div>
+</div>
+<p>Here, you can either type ‘yes’ to generate the solvent box immediately, ‘edit’ to modify any parameters, ‘write_only’ to save the JSON file without execution, or ‘exit’ to abort the process.</p>
 </section>
 </section>
 

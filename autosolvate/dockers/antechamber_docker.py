@@ -135,9 +135,26 @@ class AntechamberDocker(GeneralDocker):
         if not success:
             raise RuntimeError
         
+    def _fix_charge_rounding_issue(self, mol:System):
+        try:
+            import parmed as pmd 
+        except ImportError:
+            self.logger.warning("ParmEd is not installed. Pay attention to the summation of atomic charges in the mol2 file.")
+            return
+        if not mol.check_exist("mol2"):
+            self.logger.warning("Mol2 file does not exist: {}. Skip fixing charge rounding issue.".format(mol.mol2))
+            return
+        mol2obj = pmd.load_file(mol.mol2)
+        mol2obj:pmd.Structure
+        mol2obj.fix_charges()
+        mol2obj.save(mol.mol2, overwrite=True)
+        self.logger.info("Fixed charge rounding issue in mol2 file: {}".format(mol.mol2))
+
+        
     def process_output(self, mol: System):
         mol2file = self.outfile
         setattr(mol, self.out_format, mol2file)
+        self._fix_charge_rounding_issue(mol)
         mol.update()
 
     def run(self, mol:System):

@@ -17,6 +17,7 @@
       ~MixtureBuilder.add_complex_solute
       ~MixtureBuilder.add_solute
       ~MixtureBuilder.add_solvent
+      ~MixtureBuilder.add_transition_metal_complex_solute
       ~MixtureBuilder.build
       ~MixtureBuilder.get_solvent_type
    

@@ -160,9 +160,11 @@ class InputParser(object):
             for key, value in d.items():
                 if isinstance(value, dict):
                     value = correct_dict(value)
+                elif isinstance(value, list):
+                    value = [correct_dict(item) if isinstance(item, dict) else item for item in value]
                 if key in keyword_dict:
                     newdata[keyword_dict[key]] = value
-                    self.logger.debug(f"Correcting keyword {key} to {keyword_dict[key]}")
+                    self.logger.info(f"Correcting keyword {key} to {keyword_dict[key]}")
                 else:
                     newdata[key] = value
             return newdata
@@ -363,16 +365,28 @@ class InputParser(object):
         if len(self.data['solvents']) == 1:
             solvent = self.data['solvents'][0]
             solventname = solvent.get('name')
-            if solventname in AMBER_SOLVENT_NAMES:
+            if solventname in AMBER_SOLVENT_NAMES and "xyzfile" not in solvent:
                 return  # Use amber prebuilt solvent box.
-            density = solvent.get("density")
-            if density is None and solventname in SOLVENT_DENSITY:
-                density = SOLVENT_DENSITY[solventname] / 1000.0
-            mw = solvent.get("molecular_weight")
-            if mw is None and solventname in SOLVENT_MW:
-                mw = SOLVENT_MW[solventname]
-            if mw is None and "xyzfile" in solvent:
-                mw = determine_mw_from_xyz(solvent["xyzfile"])
+            
+            # check density
+            if "density" not in solvent:
+                if solventname in SOLVENT_DENSITY:
+                    density = SOLVENT_DENSITY[solventname] / 1000.0
+                else:
+                    density = None
+            else:
+                density = solvent.get("density")
+
+            # check molecular weight
+            if "molecular_weight" not in solvent:
+                if solventname in SOLVENT_MW:
+                    mw = SOLVENT_MW[solventname]
+                elif "xyzfile" in solvent:
+                    mw = determine_mw_from_xyz(solvent["xyzfile"])
+                else:
+                    mw = None
+            else:
+                mw = solvent.get("molecular_weight")
             if density is not None and mw is not None:
                 density_g_cm3 = density if density < 50 else density / 1000.0
                 number = calculate_solvent_number_from_density(mw, density_g_cm3, volume_in_m3)
@@ -386,7 +400,7 @@ class InputParser(object):
                 solvent['density'] = solvent.get("density", SOLVENT_DENSITY[solventname] / 1000.0)
                 solvent['molecular_weight'] = solvent.get("molecular_weight", SOLVENT_MW[solventname])
                 return 
-            raise ValueError(f"Cannot determine the number of the solvent. Please provide the 'number' parameter or density/molecular_weight.")
+            raise ValueError(f"Cannot auto determine the number of the solvent. Please provide the 'number' parameter or density + molecular_weight.")
         # if there are multiple solvents, the number of each solvent must be provided
         if not all_vratio_exist and not all_wratio_exist and not all_mratio_exist:
             raise ValueError("Please provide the 'volume_ratio' or 'weight_ratio' or 'molar_ratio' parameter for all solvents to determine the number of solvent molecules.")
@@ -406,7 +420,13 @@ class InputParser(object):
             else:
                 raise ValueError(f"The molecular weight of the solvent {solvent['name']} is not provided.")
         # determine the number of solvent molecules
+        def check_sum_to_one(ratios:Iterable[float]) -> bool:
+            total = sum(ratios)
+            return abs(total - 1.0) < 1e-6
+
         if all_vratio_exist:
+            if not check_sum_to_one([s["volume_ratio"] for s in self.data["solvents"]]):
+                raise ValueError("The sum of volume_ratio for all solvents must be 1.0")
             numbers = calculate_solvent_numbers_from_volume_portions(
                     [s["molecular_weight"] for s in self.data["solvents"]],
                     [s["density"] for s in self.data["solvents"]],
@@ -414,6 +434,8 @@ class InputParser(object):
                     volume_in_m3
                 )
         elif all_wratio_exist:
+            if not check_sum_to_one([s["weight_ratio"] for s in self.data["solvents"]]):
+                raise ValueError("The sum of weight_ratio for all solvents must be 1.0")
             numbers = calculate_solvent_numbers_from_weight_portions(
                     [s["molecular_weight"] for s in self.data["solvents"]],
                     [s["density"] for s in self.data["solvents"]],
@@ -421,6 +443,8 @@ class InputParser(object):
                     volume_in_m3
                 )
         elif all_mratio_exist:
+            if not check_sum_to_one([s["molar_ratio"] for s in self.data["solvents"]]):
+                raise ValueError("The sum of molar_ratio for all solvents must be 1.0")
             numbers = calculate_solvent_numbers_from_molar_portions(
                     [s["molecular_weight"] for s in self.data["solvents"]],
                     [s["density"] for s in self.data["solvents"]],
@@ -428,7 +452,10 @@ class InputParser(object):
                     volume_in_m3
                 )
         else:
-            raise ValueError("Please provide the 'volume_ratio' or 'weight_ratio' or 'molar_ratio' parameter for all solvents if the 'number' parameter is not provided.")
+            raise ValueError(
+            "Cannot determine solvent numbers: provide 'number' for all solvents, or provide one ratio type "
+            "for all solvents ('volume_ratio' or 'weight_ratio' or 'molar_ratio')."
+            )
         for i, solvent in enumerate(self.data['solvents']):
             solvent['number'] = numbers[i]
 

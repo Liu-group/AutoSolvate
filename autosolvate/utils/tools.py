@@ -17,6 +17,8 @@ from ..Common import N_A, SOLVENT_DENSITY, SOLVENT_MW, USE_SRUN, DRY_RUN, ATOMIC
 
 def determine_mw_from_xyz(xyzfile: str) -> float:
     """Determine molecular weight from an XYZ file."""
+    if xyzfile.endswith(".pdb"):
+        return determine_mw_from_pdb(xyzfile)   # use pdb method for pdb files
     with open(xyzfile, "r") as f:
         lines = f.readlines()
     mw = 0.0
