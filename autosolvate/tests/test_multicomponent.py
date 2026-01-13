@@ -44,6 +44,38 @@ def test_ionpair_solvation(tmpdir):
         path_main_exist *= os.path.exists(f"{name}.{suffix}")
     assert path_main_exist
 
+def test_ionpair_solvation_autodetect(tmpdir):
+    """Same as test_ionpair_solvation but rely on auto charge detection."""
+    testName = "test_ionpair_solvation_autodetect"
+    solutexyz = hp.get_input_dir("ionpair.pdb")
+    name = "ionpair"
+    inst = MulticomponentSolventBoxBuilder(
+        xyzfile=solutexyz,
+        solvent="water",
+        cube_size=20,
+        charge_method="bcc",
+        folder=os.getcwd(),
+    )
+    inst.build()
+    path_fragment_exist = True
+    for res in ("TPA", "SUF"):
+        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.pdb")
+        path_fragment_exist *= os.path.exists(f"{name}-{res.lower()}.lib")
+    assert path_fragment_exist
+    path_main_exist = True
+    for suffix in ("lib", "pdb"):
+        path_main_exist *= os.path.exists(f"{name}.{suffix}")
+    assert path_main_exist
+
+    # check the prmtop to see whether we have only one Na+
+    try:
+        from parmed import load_file
+    except ImportError:
+        pytest.skip("parmed not installed, skipping prmtop check.")
+    prmtop = load_file(f"water_solvated.prmtop")
+    na_count = sum(1 for atom in prmtop.atoms if atom.name.lower() in ("na", "na+"))
+    assert na_count == 1, f"Expected 1 Na+ ion, found {na_count}."
+
 def test_multicomponent(tmpdir):
     testName = "test_multicomponent"
     inpfname = "PAHs"

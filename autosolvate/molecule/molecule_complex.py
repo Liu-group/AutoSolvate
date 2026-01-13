@@ -20,6 +20,7 @@ from ..utils.tools import (
     reorderPDB,
     updatePDB,
 )
+from ..utils.charge_utils import infer_charge_from_xyz
 from .molecule import Molecule, System
 
 class MoleculeComplex(System):
@@ -72,6 +73,8 @@ class MoleculeComplex(System):
         self.spinmults      = multiplicities
         self.residue_name   = "SYS" if not residue_name else residue_name
         self.number         = 0
+        self._charges_from_zero_int = isinstance(charges, int) and charges == 0
+        self._spinmults_from_one_int = isinstance(multiplicities, int) and multiplicities == 1
         self.read_coordinate(xyzfile)
 
         self.mol_obmol          = pybel.readfile("pdb", self.pdb).__next__().OBMol
@@ -289,16 +292,36 @@ class MoleculeComplex(System):
                         self.logger.info(f"{frname} corresponds to a new fragment with auto-generated name.")
                     else:
                         self.logger.info(f"{frname} corresponds to a new fragment.")
-                    if frname not in self.charges:
-                        self.logger.warning(f"charge for {frname} not defined! Set it to 0 by default.")
-                        self.charges[frname] = 0
-                    else:
-                        self.logger.info(f"Set charge for {frname} to {self.charges[frname]}")
                     if frname not in self.spinmults:
                         self.logger.warning(f"multiplicity for {frname} not defined! Set it to 1 by default.")
                         self.spinmults[frname] = 1
                     else:
                         self.logger.info(f"Set multiplicity for {frname} to {self.spinmults[frname]}")
+                    charge_defined = frname in self.charges and not self._charges_from_zero_int
+                    if not charge_defined:
+                        spinmult = self.spinmults.get(frname, 1)
+                        if spinmult != 1:
+                            self.logger.warning(
+                                f"multiplicity for {frname} is {spinmult} but charge is undefined; set to 0 by default."
+                            )
+                            self.charges[frname] = 0
+                        else:
+                            try:
+                                frag_idx = self.newresiduenames.index(frname)
+                                frag_xyz = os.path.join(self.folder, f"{frname}.xyz")
+                                pybel.Molecule(ob.OBMol(self.newfragmols[frag_idx])).write(
+                                    "xyz", frag_xyz, overwrite=True
+                                )
+                                inferred_charge = infer_charge_from_xyz(frag_xyz, logger=self.logger)
+                                self.charges[frname] = inferred_charge
+                                self.logger.info(f"Auto-detected charge for {frname}: {inferred_charge}")
+                            except ValueError:
+                                self.logger.warning(
+                                    f"Could not locate fragment {frname} for auto charge detection. Set it to 0 by default."
+                                )
+                                self.charges[frname] = 0
+                    else:
+                        self.logger.info(f"Set charge for {frname} to {self.charges[frname]}")
                 else:
                     self.logger.info(f"{frname} is a known fragment.")
         else:
