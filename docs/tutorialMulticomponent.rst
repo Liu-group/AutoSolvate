@@ -309,7 +309,13 @@ Optionally, you can set:
 
 - ``name`` for labeling. Default is the structure file name without extension.
 - ``chargefile``: path to the ligand charge file used by AutoMCPB.
-   <EXPLANATION_NEEDED_CHARGEFILE_FORMAT>
+   an example of `chargefile.txt` 
+.. code-block:: text
+
+    LG0 0
+    LG1 0
+    LG2 0
+
 - ``total_charge``: total charge of the complex. If omitted, AutoSolvate may attempt to determine it automatically. Will be overriden if ``chargefile`` is provided.
 
 Add the following JSON blob to the ``solutes`` list
