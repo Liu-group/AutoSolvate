@@ -93,6 +93,9 @@ class TleapDocker(GeneralDocker):
     def _resolve_custom_tleap_path(self, mol:TransitionMetalComplex):
         # 1. try to get from mol
         if getattr(mol, "custom_tleap_path", None) is not None:
+            if not os.path.exists(mol.custom_tleap_path):
+                self.logger.critical("Custom tleap path set in TransitionMetalComplex object does not exist: {}".format(mol.custom_tleap_path))
+                raise RuntimeError("Custom tleap path set in TransitionMetalComplex object does not exist: {}".format(mol.custom_tleap_path))
             self.custom_tleap_path = mol.custom_tleap_path
             self.logger.info("Using custom tleap executable at: {}".format(self.custom_tleap_path))
             self.use_custom_tleap = True
@@ -100,6 +103,9 @@ class TleapDocker(GeneralDocker):
         # 2. try to get from environment variable
         env_tleap_path = os.getenv("CUSTOM_TLEAP_PATH", None)
         if env_tleap_path is not None:
+            if not os.path.exists(env_tleap_path):
+                self.logger.critical("Custom tleap path set in environment variable does not exist: {}".format(env_tleap_path))
+                raise RuntimeError("Custom tleap path set in environment variable does not exist: {}".format(env_tleap_path))
             self.custom_tleap_path = env_tleap_path
             self.logger.info("Using custom tleap executable at: {}".format(self.custom_tleap_path))
             self.use_custom_tleap = True
@@ -370,6 +376,7 @@ class TleapDocker(GeneralDocker):
         if not self.use_custom_tleap:
             cmd = 'tleap -s -f {} > {}'.format(self.leapinp, self.leapout)
         else:
+            self.logger.warning(f"Using custom tleap executable at: {self.custom_tleap_path}")
             if self.custom_tleap_path is None:
                 self.logger.critical("Found custom tleap is necessary but custom tleap path is not set!")
                 raise RuntimeError("Found custom tleap is necessary but custom tleap path is not set!")

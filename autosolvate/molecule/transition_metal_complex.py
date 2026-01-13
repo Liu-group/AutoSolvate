@@ -44,7 +44,7 @@ class TransitionMetalComplex(System):
             residue_name    = "MOL",
             folder          = WORKING_DIR,
             centered        = False,
-            custom_tleap_path = "",
+            custom_tleap_path = None,
             ) -> None:
         """
         This data class is only responsible for holding the transition metal complex data.
