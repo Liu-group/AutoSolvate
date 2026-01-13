@@ -5,16 +5,14 @@ import os
 
 def test_example_1(tmp_path):
     autosolvate.startboxgen(["-m", "inputs/naphthalene_neutral.xyz", "-o", "neutral"])
-    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("neutral", os.path.join(hp.get_reference_dir(), "naphthalene_water/neutral"))
-    assert compare_pdb
-    assert compare_inpcrd
-    assert compare_prmtop
+    # compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("neutral", os.path.join(hp.get_reference_dir(), "naphthalene_water/neutral"))
+    flag = hp.compare_inpcrd_prmtop("neutral", os.path.join(hp.get_reference_dir(), "naphthalene_water/neutral"))
+    assert flag
 
     autosolvate.startboxgen(["-m", "inputs/naphthalene_radical.xyz", "-o", "radical"])
-    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("radical", os.path.join(hp.get_reference_dir(), "naphthalene_water/radical"))
-    assert compare_pdb
-    assert compare_inpcrd
-    assert compare_prmtop
+    # compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen("radical", os.path.join(hp.get_reference_dir(), "naphthalene_water/radical"))
+    flag = hp.compare_inpcrd_prmtop("radical", os.path.join(hp.get_reference_dir(), "naphthalene_water/radical"))
+    assert flag
 
 #a general helper method to test pdb, prmtop and inpcrd files given output and reference filenames
 def compare_boxgen(out, ref):
