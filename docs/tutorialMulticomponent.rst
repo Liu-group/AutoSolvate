@@ -133,6 +133,7 @@ The ``solute`` section specifies the **xyz** or **pdb** file of the solute. The 
 The ``solvents`` section is a list of json objects. Here we specify 175 acetonitrile and 397 water molecule to create a mixed solution with equal mass fractions. 
 
 .. warning::
+
    The calculations here assume that the density of the mixture is equal to the average of the two components, which is generally NOT true. When the actual density of the mixture is unknown, the mixed solvent box need to be fully equilibrated under the NPT ensemble before the production run. 
 
 When defining the first solvent "water", only the name and the number of molecules are required as the TIP3P water model is already defined in AMBER.
