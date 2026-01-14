@@ -149,7 +149,7 @@ class genFF():
         if check_charge == False:
            self.totalcharge  = 'default'
         if check_charge == 'default':
-           self.metal_charge == '2'
+           self.metal_charge = '2'
                 
         if self.solvent_frcmod != '':
              if self.solvent_off == '':
