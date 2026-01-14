@@ -15,7 +15,6 @@ def check_the_charge(metalcharge, totalcharge):
     if metalcharge == None and totalcharge.upper() in ['DEFAULT']:
         raise TypeError('Error: can not find metal charge or total charge!')
         sys.exit()
-        return True
         
     elif metalcharge != None and totalcharge.upper() in ['DEFAULT']:
         print('Will use the metal_charge set by user')
@@ -38,7 +37,7 @@ def check_the_charge(metalcharge, totalcharge):
         return False
     
     elif metalcharge == None and totalcharge.upper() not in ['DEFAULT']:
-        print('Will use the totalcharge set by user')
+        print('Will use the totalcharge set by user instead to assign metal charge in QM calculatio for force field generation')
         try:
             int(totalcharge)
             print('The charge of metal is assigned as', totalcharge)
@@ -149,6 +148,8 @@ class genFF():
         check_charge = check_the_charge(metalcharge = self.metalcharge, totalcharge = self.totalcharge)
         if check_charge == False:
            self.totalcharge  = 'default'
+        if check_charge == 'default':
+           self.metal_charge == '2'
                 
         if self.solvent_frcmod != '':
              if self.solvent_off == '':
@@ -490,8 +491,8 @@ class genFF():
         check_charge = check_the_charge(metalcharge = self.metal_charge, totalcharge = self.totalcharge)
         if check_charge == False:
            self.totalcharge  = 'default'
-        if check_charge == 'default':
-           self.metal_charge == 'default'
+        if check_charge in ['default']:
+           self.metal_charge = '2'
         print (self.folder)
         os.makedirs(self.folder, exist_ok=True)
         os.system('cp ' + self.xyzfile + ' ' + self.folder)
@@ -502,6 +503,7 @@ class genFF():
         
 
         print('******************** start to generate inputs for MCPB.py -s 1 ********************')
+        #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@',check_charge,self.metal_charge)
         step1 = autoMCPB.AutoMCPB(filename=self.filename,metal_charge=self.metal_charge, spinmult=self.spinmult,amberhome=self.amberhome,
                        mode=self.mode,chargefile=self.chargefile,round='1',software=self.software,cutoff=self.cutoff,fakecharge = self.fakecharge)
         step1.build()
