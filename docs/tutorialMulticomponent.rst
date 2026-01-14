@@ -89,11 +89,12 @@ Now that you have the structures, make a directory for the tutorial and move the
 
 .. note::
 
-   You can download all files you need to proceed with the tutorial here. 
+   You can download all files you need to proceed with the tutorial here.
 
    - :download:`naphthalene_neutral.xyz <_data/multicomponent_tutorial/naphthalene_neutral.xyz>`
    - :download:`acetonitrile.prep <_data/multicomponent_tutorial/acetonitrile.prep>`
-   - :download:`acetonitrile.frcmod <_data/multicomponent_tutorial/acetonitrile.frcmod>`  
+   - :download:`acetonitrile.frcmod <_data/multicomponent_tutorial/acetonitrile.frcmod>`
+
 
 Step 1: Generate the mixed solvent box with JSON input
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
