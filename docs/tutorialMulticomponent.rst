@@ -407,6 +407,7 @@ Here we want a **three-solvent mixture** composed of ethylene carbonate (EC), pr
    ]
 
 .. warning::
+
    AutoSolvate assumes ideal mixing when calculating solvent molecule numbers. This may not reflect real densities for some solvent mixtures and excessive number of solute molecules. Therefore, the system should be equilibrated under NPT before production runs.
 
 
