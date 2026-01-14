@@ -301,9 +301,11 @@ For an organometallic compound, you should provide:
 - ``xyzfile``: the structure file.
 - ``metal_charge``: the oxidation/valence used by AutoMCPB.
 - ``spinmultiplicity`` or ``spinmult``: spin multiplicity of the metal atom. all legands are assumed closed-shell.
-- ``total_charge``: total charge of the complex.
+- ``total_charge``: The net charge of the complex used in QM calculations for force-field parameterization. 
 - ``number``: how many solutes to add (for a centered solute, this should be 1).
 - ``centered: true`` to place this solute at the box center (only one solute can be centered).
+
+If both metal_charge and total_charge are specified by the user, AutoSolvate will prioritize metal_charge and automatically determine the charges of the remaining ligands such that the resulting total charge matches the system charge in QM calculations for force-field parameterization. 
 
 Optionally, you can set:
 
