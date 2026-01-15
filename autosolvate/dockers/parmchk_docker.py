@@ -11,9 +11,10 @@ class ParmchkDocker(GeneralDocker):
                  out_format:            str = 'frcmod',
                  workfolder:            str = WORKING_DIR,
                  exeoutfile:            str = None,
+                 amberhome:             str = None,
     ) -> None:
         super().__init__(
-            executable = '$AMBERHOME/bin/parmchk2',
+            executable = GeneralDocker.resolve_executable("parmchk2", amberhome),
             workfolder = workfolder,
             exeoutfile = exeoutfile)
         self.out_format     = out_format
@@ -25,7 +26,7 @@ class ParmchkDocker(GeneralDocker):
         return frcmod
 
     def set_executable(self) -> str:
-        return '$AMBERHOME/bin/parmchk2'
+        return self.executable
 
     def set_input(self, mol: System) -> str:    
         if mol.mol2 is not None:

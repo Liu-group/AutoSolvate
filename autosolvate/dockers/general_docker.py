@@ -42,6 +42,18 @@ class GeneralDocker(ABC):
         self.output_files = []
         os.makedirs(self.workfolder, exist_ok=True)
 
+    @staticmethod
+    def resolve_executable(executable: str, amberhome: str = None) -> str:
+        """Return executable, preferring an AMBERHOME/bin override when provided."""
+        if not amberhome:
+            return executable
+        expanded = os.path.expandvars(amberhome).rstrip("/")
+        if os.path.basename(expanded) == "bin":
+            base = expanded
+        else:
+            base = os.path.join(expanded, "bin")
+        return os.path.join(base, executable)
+
     @abstractmethod
     def check_system(self):
         raise NotImplementedError

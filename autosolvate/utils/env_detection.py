@@ -8,6 +8,24 @@ from typing import Dict, List, Optional
 from ..Common import ANTECHAMBER, PACKMOL, TLEAP, PARMCHK, OBABEL
 
 
+def resolve_amber_paths(amberhome: Optional[str] = None) -> Dict[str, Optional[str]]:
+    """Normalize amberhome and return paths for root, bin, and lib."""
+    if not amberhome:
+        amberhome = detect_amberhome()
+    if not amberhome:
+        return {"amberhome": None, "amber_bin": None, "amber_lib": None}
+
+    root = os.path.expanduser(os.path.expandvars(amberhome)).rstrip("/")
+    if os.path.basename(root) == "bin":
+        amber_bin = root
+        amber_root = os.path.dirname(root)
+    else:
+        amber_root = root
+        amber_bin = os.path.join(root, "bin")
+    amber_lib = os.path.join(amber_root, "lib")
+    return {"amberhome": amber_root, "amber_bin": amber_bin, "amber_lib": amber_lib}
+
+
 def detect_amberhome() -> Optional[str]:
     amberhome = os.getenv("AMBERHOME")
     if amberhome:

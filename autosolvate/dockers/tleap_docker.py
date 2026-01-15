@@ -19,9 +19,10 @@ class TleapDocker(GeneralDocker):
                  workfolder:            str = WORKING_DIR,
                  exeoutfile:            str = None,
                  boxsize:               float = None,
+                 amberhome:             str = None,
     ) -> None:
         super().__init__(
-            executable = 'tleap',
+            executable = GeneralDocker.resolve_executable('tleap', amberhome),
             workfolder = workfolder,
             exeoutfile = sys.stdout)
         self.logger.name    = self.__class__.__name__
@@ -374,7 +375,7 @@ class TleapDocker(GeneralDocker):
     @srun()
     def generate_cmd(self, mol:System) -> str:
         if not self.use_custom_tleap:
-            cmd = 'tleap -s -f {} > {}'.format(self.leapinp, self.leapout)
+            cmd = f"{self.executable} -s -f {self.leapinp} > {self.leapout}"
         else:
             self.logger.warning(f"Using custom tleap executable at: {self.custom_tleap_path}")
             if self.custom_tleap_path is None:

@@ -24,6 +24,7 @@ import logging
 import inspect
 import argparse
 from autosolvate.utils.resources import autosolvate_resource
+from autosolvate.utils.env_detection import resolve_amber_paths
 
 from .molecule import *
 from .dockers import (
@@ -261,21 +262,32 @@ class MixtureBuilder():
     prefix : str, Optional, default: None
         prefix of the output file names. Default will be <solute_name>_<solvent_name_1>_...-<solvent_name_n>
     """
-    def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc", prefix = None):
+    def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc", prefix = None, amberhome: str = None):
         self.solutes = []
         self.solvents = []
         self.folder = folder
         self.boxsize = [cube_size, cube_size, cube_size]
         self.closeness = closeness
         self.charge_method = charge_method
+
+        # Respect user-provided AMBERHOME for executable resolution and libraries.
+        self.amberhome = amberhome
+        amber_paths = resolve_amber_paths(self.amberhome)
+        amber_bin = amber_paths.get("amber_bin")
+        amber_lib = amber_paths.get("amber_lib")
+        if amber_lib:
+            current_ld = os.environ.get("LD_LIBRARY_PATH", "")
+            ld_prefix = f"{amber_lib}:"
+            os.environ["LD_LIBRARY_PATH"] = f"{ld_prefix}{current_ld}".rstrip(":")
+
         self.single_molecule_pipeline = [
-            AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
-            ParmchkDocker(workfolder=self.folder),
-            TleapDocker(workfolder = self.folder)
+            AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder, amberhome=amber_bin),
+            ParmchkDocker(workfolder=self.folder, amberhome=amber_bin),
+            TleapDocker(workfolder = self.folder, amberhome=amber_bin)
         ]
         self.custom_solvation = [
             PackmolDocker(workfolder = self.folder),
-            TleapDocker(workfolder = self.folder)
+            TleapDocker(workfolder = self.folder, amberhome=amber_bin)
         ]
         self.logger = logging.getLogger(name = self.__class__.__name__)
         self.output_handler             = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")

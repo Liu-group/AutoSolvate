@@ -27,11 +27,12 @@ class AntechamberDocker(GeneralDocker):
                  exeoutfile:            str = "antechamber.log",
                  eq:                    int = 2,
                  pl:                    int = -1,
+                 amberhome:             str = None,
                  
     ) -> None:      
         #setting
         super(AntechamberDocker, self).__init__(
-            executable = "antechamber",
+            executable = GeneralDocker.resolve_executable("antechamber", amberhome),
             workfolder = workfolder,
             exeoutfile = exeoutfile)
         self.out_format                 = out_format
