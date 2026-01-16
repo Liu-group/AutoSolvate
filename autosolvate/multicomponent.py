@@ -171,7 +171,7 @@ class MulticomponentSolventBoxBuilder():
         ]
         self.complex_pipeline = [TleapDocker(workfolder=self.folder)]
         self.solvent_pipeline = [
-            AntechamberDocker("bcc", "mol2", workfolder = self.folder),
+            AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
             ParmchkDocker("frcmod", workfolder = self.folder),
             TleapDocker(workfolder = self.folder)
         ]
@@ -262,7 +262,18 @@ class MixtureBuilder():
     prefix : str, Optional, default: None
         prefix of the output file names. Default will be <solute_name>_<solvent_name_1>_...-<solvent_name_n>
     """
-    def __init__(self, folder = WORKING_DIR, cube_size = 54, closeness = 2.0, charge_method = "bcc", prefix = None, amberhome: str = None):
+    def __init__(
+            self, 
+            folder = WORKING_DIR, 
+            cube_size = 54, 
+            closeness = 2.0, 
+            charge_method = "bcc", 
+            prefix = None, 
+            amberhome: str = None,
+            qm_program: str = "gaussian",
+            qm_exe: str = None,
+            qm_dir: str = None
+        ):
         self.solutes = []
         self.solvents = []
         self.folder = folder
@@ -281,7 +292,13 @@ class MixtureBuilder():
             os.environ["LD_LIBRARY_PATH"] = f"{ld_prefix}{current_ld}".rstrip(":")
 
         self.single_molecule_pipeline = [
-            AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder, amberhome=amber_bin),
+            AntechamberDocker(
+                charge_method = charge_method, 
+                workfolder = self.folder, 
+                qm_program = qm_program,
+                qm_exe = qm_exe,
+                qm_dir = qm_dir
+            ),
             ParmchkDocker(workfolder=self.folder, amberhome=amber_bin),
             TleapDocker(workfolder = self.folder, amberhome=amber_bin)
         ]

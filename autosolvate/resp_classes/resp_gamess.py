@@ -1,52 +1,44 @@
-'''
-Perform RESP charge fitting using GAMESS with Python3 and openbabel in AutoSolvate
-'''
+"""
+Perform RESP charge fitting using GAMESS with Python 3 and Open Babel in AutoSolvate.
+"""
 
-from openbabel import openbabel as ob
-from openbabel import pybel
-import os, re, subprocess, shutil, glob, sys
-from abc import ABC, abstractmethod
+import os
+import re
+import shutil
+import glob
+import sys
+
 from autosolvate.resp_classes.resp_abstract import RespABC
 
 class RespGAMESS(RespABC):
     def __init__(self, **kwargs):
-        print("*"*40)
-        print("Run GAMESS to generate RESP charge and mol2 file".center(40," ") )
-        print("*"*40)
-        self.srun_use = kwargs["srun_use"] if "srun_use" in kwargs else True # GAMESS script usually requires srun_use
-        self.nnodes = kwargs["nnodes"] if "nnodes" in kwargs else 1 # Gamess need
-        self.ncpus = kwargs["ncpus"] if "ncpus" in kwargs else 1
-        RespABC.__init__(self, **kwargs)
+        super().__init__(**kwargs)
+        self.logger.info("Running GAMESS to generate RESP charges and a mol2 file")
+        self.srun_use = kwargs.get("srun_use", True)  # GAMESS script usually requires srun_use
+        self.nnodes = kwargs.get("nnodes", 1)  # GAMESS needs the node count
+        self.ncpus = kwargs.get("ncpus", 1)
         self.potential = None
 
         if self.qm_exe == None:
-           print("WARNING: Gamess executable name is not specified for RESP charge fitting!")
-           print("WARNING: Using rungms by default. If failed later,\
-                  please rerun with the option -e specified!")
+           self.logger.warning("GAMESS executable not specified; defaulting to rungms")
            self.qm_exe = 'rungms'
         
         if self.qm_dir == None:
-           print("WARNING: GAMESS executable directory is not specified for RESP charge fitting!")
-           print("WARNING: Setting to default path: ")
-           print("WARNING: If failed later, please rerun with the option -d specified!")
+           self.logger.warning("GAMESS directory not specified; default path will be used")
            self.qm_dir = '/opt/gamess/'
            gamess_path = os.path.join(self.qm_dir, self.qm_exe)
            if not os.path.exists(gamess_path):
-               print("Error! Gamess executable path",gamess_path)
-               print("Does not exist! Exiting...")
-               exit()
+               raise FileNotFoundError(f"GAMESS executable path missing: {gamess_path}")
         gmsexe_fnames = glob.glob(os.path.join(self.qm_dir,'gamess.*.x'))
         gmsexe_versions = []
         if len(gmsexe_fnames) > 0:
             gmsexe_versions = [ fname[-4:-2] for fname in gmsexe_fnames]
         else:
-            print("Error! No GAMESS executable file with name gamess.XX.x found under")
-            print("the given path: ", self.qm_dir, " Exiting...")
-            exit()
+            raise FileNotFoundError(f"No GAMESS executable named gamess.XX.x under {self.qm_dir}")
             
         self.version = kwargs["gamessversion"] if "gamessversion" in kwargs else gmsexe_versions[-1]
-        print("gms_versions: ", gmsexe_versions)
-        # By default, use the latest version of gamess under the directory.
+        self.logger.debug("Available GAMESS versions: %s", gmsexe_versions)
+        # By default, use the latest version of GAMESS under the directory.
             
 
     def findLineStartWith(self, lines, string):
@@ -66,7 +58,6 @@ class RespGAMESS(RespABC):
         for line in lines:
             if line.startswith(string):
                 return index
-            index += 1
     
         raise Exception("Line not found.")   
 
@@ -119,16 +110,14 @@ class RespGAMESS(RespABC):
           calculation - one of 'optimize' (hours), or 'singlepoint' (minutes) (defaults to 'singlepoint')
      
         """
-        print("-"*40)
-        print("Preparing GAMESS input files...".center(40," "))
-        print("-"*40)
+        self.logger.info("Preparing GAMESS input files")
 
         charge = self.molecule.GetTotalCharge()
         multiplicity = self.molecule.GetTotalSpinMultiplicity()
         scf = "RHF" if multiplicity==1 else "UHF"
      
         # GAMESS header blocks.
-        # GAMESS is instructed to carry out a RHF or UHF claculation with a 6-31G* basis set, after which
+        # GAMESS is instructed to carry out a RHF or UHF calculation with a 6-31G* basis set, after which
         # the electrostatic potential on concentric Connolly surfaces is evaluated.
         gamess_header = { }
         
@@ -162,7 +151,7 @@ class RespGAMESS(RespABC):
      
         # Check calculation option.
         if calculation not in gamess_header.keys():
-            raise ParameterError("Optional argument 'calculation' must be one of: " + gamess_header.keys())
+            raise ValueError("Optional argument 'calculation' must be one of: " + str(list(gamess_header.keys())))
         
         # Construct the GAMESS input file.
         # Select header for appropriate calculation.
@@ -181,9 +170,9 @@ class RespGAMESS(RespABC):
      
         # Write input file to work directory.
         gamess_input_path = self.molname + "_gamess.inp"
-        finput = open(gamess_input_path,'w')
-        finput.write(gamess_input)
-        finput.close()
+        with open(gamess_input_path,'w') as finput:
+            finput.write(gamess_input)
+        self.logger.debug("GAMESS input written to %s", gamess_input_path)
 
     def readGAMESSOutput(self):
         """\
@@ -191,7 +180,7 @@ class RespGAMESS(RespABC):
     
         """
     
-        print("Reading GAMESS output from %s..." % self.resp_scr_dir)
+        self.logger.info("Reading GAMESS output from %s", self.resp_scr_dir)
         
         # Read in file contents.
         log_lines = self.readFile(os.path.join(os.path.abspath(self.resp_scr_dir), self.molname + '_gamess.log'))
@@ -262,42 +251,30 @@ class RespGAMESS(RespABC):
         
 
     def writeESPFile(self, esp_filename):
-        
-        # Write potential in RESP format.
-        espfile = open(esp_filename, 'w')
-        
-        print("Reading optimized geometries and electrostatic potentials from GAMESS output and writing potential file...")
-        # Read GAMESS output files to obtain final optimized geometry and electrostatic potential.
+        self.logger.info("Writing optimized geometry and ESP data to %s", esp_filename)
         self.readGAMESSOutput()
-        # Write to ESP file.
         npoints = len(self.potential.keys())
-        espfile.write('%5d%5d\n' % (self.molecule.NumAtoms(), npoints))
-        # Write atom coordinates in Fortran (17x,3e16.7) format (in bohrs).
-        for i in range(1,self.molecule.NumAtoms()+1):
-            atom = self.molecule.GetAtom(i)
-            # Convert from Angstroms to Bohr
-            angstroms_per_bohr = 0.52917725            
-            point = ()
-            point += ( atom.GetX() / angstroms_per_bohr, )
-            point += ( atom.GetY() / angstroms_per_bohr, )
-            point += ( atom.GetZ() / angstroms_per_bohr, )
-            # Write
-            espfile.write('%17s%16.7e%16.7e%16.7e\n' % (('',) + point) )
-        # Write potential in Fortran (qpot,x,y,z) in (1x,4e16.7) format
-        for point in self.potential.keys():
-            espfile.write(' %16.7e%16.7e%16.7e%16.7e\n' % ((self.potential[point],) + point) )
-        espfile.close()
+        with open(esp_filename, 'w') as espfile:
+            espfile.write('%5d%5d\n' % (self.molecule.NumAtoms(), npoints))
+            for i in range(1,self.molecule.NumAtoms()+1):
+                atom = self.molecule.GetAtom(i)
+                angstroms_per_bohr = 0.52917725
+                point = ()
+                point += ( atom.GetX() / angstroms_per_bohr, )
+                point += ( atom.GetY() / angstroms_per_bohr, )
+                point += ( atom.GetZ() / angstroms_per_bohr, )
+                espfile.write('%17s%16.7e%16.7e%16.7e\n' % (('',) + point) )
+            for point in self.potential.keys():
+                espfile.write(' %16.7e%16.7e%16.7e%16.7e\n' % ((self.potential[point],) + point) )
 
     def executeGAMESS(self):
-        print("-"*40)
-        print("Running GAMESS. This may take a while...".center(40," "))
-        print("-"*40)
+        self.logger.info("Running GAMESS to generate ESP data")
 
-        gamess_inp = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.inp"))
-        gamess_log = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir),self.molname + "_gamess.log"))
-        gamess_dat = os.path.join(self.molname + "_gamess.dat")
-        
-        
+        gamess_inp = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir), self.molname + "_gamess.inp"))
+        gamess_log = os.path.abspath(os.path.join(os.path.abspath(self.resp_scr_dir), self.molname + "_gamess.log"))
+        gamess_dat = self.molname + "_gamess.dat"
+        local_dat = os.path.abspath(os.path.join(self.resp_scr_dir, gamess_dat))
+
         cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
             + gamess_inp + " " \
             + self.version + " " \
@@ -311,34 +288,44 @@ class RespGAMESS(RespABC):
             + " > " + gamess_log
 
         if self.srun_use:
-            cmd='srun -n 1 '+cmd
+            cmd = 'srun -n 1 ' + cmd
 
-        print(cmd)
-        subprocess.call(cmd, shell=True)
+        self.run_shell_command(
+            cmd,
+            "Executing GAMESS ESP job",
+            produced_file=gamess_log,
+            purpose="GAMESS output log",
+        )
         if not os.path.isfile(gamess_log):
-            print("GAMESS failed to generate log file")
-            sys.stdout.flush()
-            sys.exit()
+            raise FileNotFoundError("GAMESS log file not found: %s" % gamess_log)
 
-
-        print("Copy back GAMESS .dat file from SCR")
+        self.logger.info("Copying GAMESS .dat file from scratch directory")
         gamess_log_content = self.readFile(gamess_log)
-        
+
         try:
-             lineid = self.findLineStartWith(gamess_log_content, " ddikick.x: exited gracefully.")
-        except:
-             raise Exception("GAMESS ESP calcualtion failed."
-                             + f" Please check the log file: {gamess_log}"
-                             + " for details")
+            lineid = self.findLineStartWith(gamess_log_content, " ddikick.x: exited gracefully.")
+        except Exception as exc:
+            raise RuntimeError(
+                "GAMESS ESP calculation failed. Check log file %s for details" % gamess_log
+            ) from exc
         line_dat = lineid + self.findLineContains(gamess_log_content[lineid:], gamess_dat)
         dat_path = gamess_log_content[line_dat].split(" ")[-1].strip('\n')
-       
+
         line_node = self.findLineStartWith(gamess_log_content, "This job is running on host")
         node_name = gamess_log_content[line_node].split(" ")[-1].strip('\n')
         if self.srun_use:
             cmd = "scp " + node_name + ":" + dat_path + " " + os.path.abspath(self.resp_scr_dir)
-            print(cmd)
-            subprocess.call(cmd, shell=True)
+            self.run_shell_command(
+                cmd,
+                "Copying GAMESS .dat back from compute host",
+                produced_file=local_dat,
+                purpose="GAMESS electrostatic potential data",
+            )
+        else:
+            self.logger.info(
+                "The GAMESS electrostatic potential data is generated at %s",
+                os.path.abspath(dat_path),
+            )
         
         
 
@@ -357,37 +344,47 @@ class RespGAMESS(RespABC):
           net_charge - integral net charge of the molecule
     
         """
-        print("-"*40)
-        print("Start RESP fitting with ESP generaged by GAMESS".center(40," ") )
-        print("-"*40)
-        
+        self.logger.info("Starting RESP fitting with GAMESS-generated ESP data")
     
         # Create an Antechamber file from the pdb file without assigning charges (all zeros)
         ac_filename = self.molname + ".ac"
-        print("Generating Antechamber file: " + ac_filename)
-
-        cmd = "antechamber -i {pdbfile} -fi pdb -o {ac} -fo ac -c dc -nc {charge}".format(pdbfile=self.pdbfile, ac=ac_filename, charge=self.charge)
-        print(cmd)
-        subprocess.call(cmd,shell=True)
-        # TODO handle exceptions
+        cmd = (
+            "antechamber -i {pdbfile} -fi pdb -o {ac} -fo ac -c dc -nc {charge} -rn {resname}".format(
+                pdbfile=self.pdbfile,
+                ac=ac_filename,
+                charge=self.charge,
+                resname=self.residue_name,
+            )
+        )
+        self.run_shell_command(
+            cmd,
+            f"Generating Antechamber file {ac_filename}",
+            produced_file=os.path.abspath(ac_filename),
+            purpose="Antechamber intermediate",
+        )
         
         # Use Antechamber's 'respgen' to generate RESP input files for stage 1 and stage 2 fitting.
         # Stage 1
         resp1_filename = self.molname + '.resp1'
-        print("Using respgen to generate stage 1 RESP fitting input file: " + resp1_filename)
 
         cmd = "respgen -i {ac} -o {resp1} -f resp1".format(ac=ac_filename, resp1=resp1_filename)
-        print(cmd)
-        subprocess.call(cmd,shell=True)
+        self.run_shell_command(
+            cmd,
+            f"Generating stage 1 RESP input {resp1_filename}",
+            produced_file=os.path.abspath(resp1_filename),
+            purpose="Stage 1 RESP input deck",
+        )
         resp1_contents = self.readFile(resp1_filename)
         
         # Stage 2
         resp2_filename = self.molname + '.resp2'
-        print("Using respgen to generate stage 2 RESP fitting input file: " + resp2_filename)
-
         cmd = "respgen -i {ac} -o {resp2} -f resp2".format(ac=ac_filename, resp2=resp2_filename)
-        print(cmd)
-        subprocess.call(cmd,shell=True)
+        self.run_shell_command(
+            cmd,
+            f"Generating stage 2 RESP input {resp2_filename}",
+            produced_file=os.path.abspath(resp2_filename),
+            purpose="Stage 2 RESP input deck",
+        )
         resp2_contents = self.readFile(resp2_filename)
     
     
@@ -396,56 +393,69 @@ class RespGAMESS(RespABC):
         self.writeESPFile(esp_filename)
     
         # Perform RESP fit.
-        #Stage 1
+        # Stage 1
         qout1_filename = self.molname + '.qout_stage1'
         respout1_filename = self.molname + '.respout1'
-        print("Using resp to perform stage 1 RESP fitting to generate: " + qout1_filename)
-
         cmd = "resp -O -i {resp1} -o {respout1} -e {esp} -t {qout1}".format(
-              resp1=resp1_filename, respout1=respout1_filename,
-              esp=esp_filename, qout1=qout1_filename)
-        print(cmd)
-        subprocess.call(cmd,shell=True)
+        resp1=resp1_filename, respout1=respout1_filename,
+        esp=esp_filename, qout1=qout1_filename)
+        self.run_shell_command(
+            cmd,
+            f"Running stage 1 RESP fit to create {qout1_filename}",
+            produced_file=os.path.abspath(qout1_filename),
+            purpose="Stage 1 RESP charges",
+        )
 
-        #Stage 2
+        # Stage 2
         qout2_filename = self.molname + '.qout_stage2'
         respout2_filename = self.molname + '.respout2'
-        print("Using resp to perform stage 2 RESP fitting to generate: " + qout2_filename)
-
         cmd = "resp -O -i {resp2} -o {respout2} -e {esp} -q {qout1} -t {qout2}".format(
-              resp2=resp2_filename, respout2=respout2_filename, esp=esp_filename,
-              qout1=qout1_filename, qout2=qout2_filename)
-        print(cmd)
-        subprocess.call(cmd,shell=True)
+        resp2=resp2_filename, respout2=respout2_filename, esp=esp_filename,
+        qout1=qout1_filename, qout2=qout2_filename)
+        self.run_shell_command(
+            cmd,
+            f"Running stage 2 RESP fit to create {qout2_filename}",
+            produced_file=os.path.abspath(qout2_filename),
+            purpose="Stage 2 RESP charges",
+        )
         
         # Write molecule with updated charges to mol2 file.
         mol2_filename = self.molname + ".mol2"
-        print("Writing out the mol2 file with resp charge: " + mol2_filename)
-        cmd = "antechamber -i {ac} -fi ac -o {mol2} -fo mol2 -c rc -cf {qout2}".format(
-               ac=ac_filename, mol2=mol2_filename, qout2=qout2_filename)
-        print(cmd)
-        subprocess.call(cmd,shell=True)
+        cmd = (
+            "antechamber -i {ac} -fi ac -o {mol2} -fo mol2 -c rc -cf {qout2} -rn {resname}".format(
+                ac=ac_filename,
+                mol2=mol2_filename,
+                qout2=qout2_filename,
+                resname=self.residue_name,
+            )
+        )
+        self.run_shell_command(
+            cmd,
+            f"Writing RESP charges to {mol2_filename}",
+            produced_file=os.path.abspath(mol2_filename),
+            purpose="RESP mol2 file",
+        )
 
     def run(self):    
         # Run GAMESS to calculate ESP potential
         if not os.path.isdir(self.resp_scr_dir):
-            print("Creating the scratch folder for RESP fitting: ", self.resp_scr_dir)
+            self.logger.info("Creating scratch folder for RESP fitting at %s", self.resp_scr_dir)
             os.mkdir(self.resp_scr_dir)
 
-        print("Copying over the pdb file", self.pdbfile, " to ", self.resp_scr_dir)
+        self.logger.info("Copying PDB file %s to %s", self.pdbfile, self.resp_scr_dir)
         shutil.copy(os.path.join(self.rundir,self.pdbfile), self.resp_scr_dir)
 
-        print("Navigating to the scratch folder for RESP fitting: ", self.resp_scr_dir)
+        self.logger.info("Switching to RESP scratch directory %s", self.resp_scr_dir)
         os.chdir(self.resp_scr_dir)
 
         self.runGAMESS()
         self.respFit()
 
-        print("Navigating back to the folder for AutoSolvate run: ", self.rundir)
+        self.logger.info("Returning to AutoSolvate run directory %s", self.rundir)
         os.chdir(self.rundir)
         
         mol2_filename = self.molname + ".mol2"
-        print("Copying the generated mol2 file ", mol2_filename, " to rundir", self.rundir)
+        self.logger.info("Copying RESP-charged mol2 %s back to %s", mol2_filename, self.rundir)
         shutil.copy(os.path.join(self.resp_scr_dir, mol2_filename), self.rundir)
 
 

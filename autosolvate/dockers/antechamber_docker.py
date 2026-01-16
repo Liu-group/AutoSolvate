@@ -1,42 +1,39 @@
-# @TODO: 
-# 1. do we want output format to be .prep? 
-# 2. add parmchk command (maybe a class)
+import os
+import re
+import shutil
+from typing import Dict, Optional
 
-# @NOTE: 
-# 1. check if 'mol: object' usage is valid 
-#    - yes, I think it is valid 
-# 2. this does not need to be a class 
-#    - yes it is a functional oriented class 
-import getopt, sys, os, subprocess
-
+from openbabel import pybel
 
 from .general_docker import GeneralDocker
-from ..molecule import *
+from ..Common import WORKING_DIR
+from ..molecule import Molecule, System
 from ..utils import srun
+from autosolvate.resp_classes.resp_factory import resp_factory
+from autosolvate.utils.env_detection import resolve_amber_paths
 
 
-class AntechamberDocker(GeneralDocker):
+class AntechamberBCCDocker(GeneralDocker):
 
     _SUPPORT_INPUT_FORMATS           = ['pdb']
     _SUPPORT_CHARGE_FITTING_METHODS  = ['bcc']
 
     def __init__(self, 
-                 charge_method:         str = 'bcc', 
                  out_format:            str = 'mol2',
                  workfolder:            str = WORKING_DIR,
                  exeoutfile:            str = "antechamber.log",
                  eq:                    int = 2,
                  pl:                    int = -1,
                  amberhome:             str = None,
-                 
+                 **kwargs
     ) -> None:      
         #setting
-        super(AntechamberDocker, self).__init__(
+        super(AntechamberBCCDocker, self).__init__(
             executable = GeneralDocker.resolve_executable("antechamber", amberhome),
             workfolder = workfolder,
             exeoutfile = exeoutfile)
         self.out_format                 = out_format
-        self.charge_method              = charge_method
+        self.charge_method              = "bcc"
         self.eq = eq
         self.pl = pl
         self.logger.name = self.__class__.__name__
@@ -170,6 +167,261 @@ class AntechamberDocker(GeneralDocker):
         self.process_output(mol)
         
 
+class AntechamberRESPDocker(GeneralDocker):
+    """Wrapper docker that generates RESP charges with Gaussian, ORCA, or GAMESS."""
+
+    _SUPPORTED_BACKENDS = {"gaussian", "orca", "gamess"}
+    _RESIDUE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9]{1,4}$")
+
+    def __init__(
+        self,
+        qm_program: str = "gaussian",
+        qm_exe: Optional[str] = None,
+        qm_dir: Optional[str] = None,
+        workfolder: str = WORKING_DIR,
+        exeoutfile: Optional[str] = None,
+        amberhome: Optional[str] = None,
+        nprocs: int = 1,
+        nnodes: int = 1,
+        ncpus: int = 1,
+        srun_use: bool = False,
+        dry_run: bool = False,
+    ) -> None:
+        super().__init__(
+            executable=f"resp_{qm_program}",
+            workfolder=workfolder,
+            exeoutfile=exeoutfile,
+        )
+        self.qm_program = qm_program.lower()
+        if self.qm_program not in self._SUPPORTED_BACKENDS:
+            raise ValueError(f"Unsupported qm_program: {qm_program}")
+        self.dry_run = dry_run
+        self.nprocs = nprocs
+        self.nnodes = nnodes
+        self.ncpus = ncpus
+        self.srun_use = srun_use
+
+        self._configure_qm_paths(qm_exe, qm_dir)
+        self._configure_amber_env(amberhome)
+
+        self.plan_kwargs: Optional[Dict] = None
+        self.generated_mol2: Optional[str] = None
+        self.local_xyz: Optional[str] = None
+        self._xyz_from_conversion = False
+
+    def _configure_qm_paths(self, qm_exe: Optional[str], qm_dir: Optional[str]) -> None:
+        defaults = {"gaussian": "g16", "orca": "orca", "gamess": "rungms"}
+        exe = qm_exe or defaults[self.qm_program]
+        if os.path.sep in exe:
+            exe = os.path.abspath(exe)
+            self.qm_dir = os.path.dirname(exe)
+            self.qm_exe = os.path.basename(exe)
+        else:
+            self.qm_exe = exe
+            self.qm_dir = qm_dir
+        if self.qm_dir:
+            self.qm_dir = os.path.abspath(self.qm_dir)
+
+    def _configure_amber_env(self, amberhome: Optional[str]) -> None:
+        amber_paths = resolve_amber_paths(amberhome)
+        if amber_paths.get("amberhome"):
+            os.environ["AMBERHOME"] = amber_paths["amberhome"]
+        if amber_paths.get("amber_bin"):
+            self._prepend_env_path("PATH", amber_paths["amber_bin"], os.pathsep)
+        if amber_paths.get("amber_lib"):
+            self._prepend_env_path("LD_LIBRARY_PATH", amber_paths["amber_lib"], ":")
+
+    def _prepend_env_path(self, key: str, value: str, separator: str) -> None:
+        current = os.environ.get(key, "")
+        parts = current.split(separator) if current else []
+        if value not in parts:
+            os.environ[key] = value + (separator + current if current else "")
+
+    def check_system(self, mol: Molecule):
+        if not isinstance(mol, Molecule):
+            raise TypeError("AntechamberRESPDocker only accepts Molecule instances")
+        if not mol.check_exist("pdb"):
+            raise FileNotFoundError("RESP fitting requires a PDB file")
+        if mol.charge is None or mol.multiplicity is None:
+            raise ValueError("Molecule must have charge and multiplicity defined")
+        residue = self._ensure_residue_name(mol)
+        self.logger.info("RESP residue name validated as %s", residue)
+
+    def predict_output(self, mol: Molecule):
+        self.output_mol2 = os.path.join(self.workfolder, f"{mol.name}.mol2")
+        self.output_files = [self.output_mol2]
+        self.logger.info("The mol2 file will be generated at %s", os.path.abspath(self.output_mol2))
+
+    def _ensure_xyz(self, mol: Molecule) -> str:
+        if mol.check_exist("xyz"):
+            return mol.xyz
+        target = os.path.join(self.workfolder, f"{mol.name}.xyz")
+        molecule = next(pybel.readfile("pdb", mol.pdb))
+        molecule.write("xyz", target, overwrite=True)
+        self._xyz_from_conversion = True
+        return target
+
+    def generate_input(self, mol: Molecule):
+        xyz_path = self._ensure_xyz(mol)
+        self.local_xyz = os.path.abspath(xyz_path)
+        molname = mol.name or os.path.splitext(os.path.basename(mol.pdb))[0]
+        residue = self._ensure_residue_name(mol)
+        self.plan_kwargs = {
+            "pdbfile": os.path.abspath(mol.pdb),
+            "xyzfile": self.local_xyz,
+            "molname": molname,
+            "qm_program": self.qm_program,
+            "qm_exe": self.qm_exe,
+            "qm_dir": self.qm_dir,
+            "nprocs": self.nprocs,
+            "nnodes": self.nnodes,
+            "ncpus": self.ncpus,
+            "srun_use": self.srun_use,
+            "charge": mol.charge,
+            "spinmult": mol.multiplicity,
+            "rundir": self.workfolder,
+            "residue_name": residue,
+            "logger_name": self.logger.name,
+            "logger": self.logger,
+        }
+
+    def generate_cmd(self, mol: Molecule):
+        if not self.plan_kwargs:
+            raise RuntimeError("generate_input must be called before generate_cmd")
+        return self.plan_kwargs
+
+    def execute(self, plan: Dict):
+        if self.dry_run:
+            self.logger.info("Dry run enabled; skipping RESP execution.")
+            return
+        prev_cwd = os.getcwd()
+        os.makedirs(self.workfolder, exist_ok=True)
+        os.chdir(self.workfolder)
+        try:
+            self.logger.info(
+                "Executing RESP backend '%s' with executable %s inside %s",
+                plan.get("qm_program"),
+                plan.get("qm_exe"),
+                self.workfolder,
+            )
+            runner = resp_factory(**plan)
+            runner.run()
+        finally:
+            os.chdir(prev_cwd)
+
+    def check_output(self, mol: Molecule):
+        if self.dry_run:
+            return
+        if not os.path.exists(self.output_mol2):
+            raise FileNotFoundError(f"Expected mol2 not generated: {self.output_mol2}")
+        self.generated_mol2 = self.output_mol2
+        self.logger.info("Successfully generated mol2 file at %s", os.path.abspath(self.generated_mol2))
+        expected_residue = self._ensure_residue_name(mol)
+
+    def process_output(self, mol: Molecule):
+        if self.dry_run:
+            return
+        target = mol.reference_name + ".mol2"
+        target_dir = os.path.dirname(target)
+        if target_dir:
+            os.makedirs(target_dir, exist_ok=True)
+        shutil.copy2(self.generated_mol2, target)
+        self.logger.info("Copied RESP mol2 to %s", os.path.abspath(target))
+        mol.mol2 = target
+        mol.update()
+
+    def run(self, mol: Molecule):
+        self.logger.name = self.__class__.__name__
+        self.check_system(mol)
+        self.predict_output(mol)
+        self.generate_input(mol)
+        plan = self.generate_cmd(mol)
+        self.execute(plan)
+        self.check_output(mol)
+        self.process_output(mol)
+        if self._xyz_from_conversion and self.local_xyz and os.path.exists(self.local_xyz):
+            try:
+                os.remove(self.local_xyz)
+            except OSError:
+                pass
+
+class AntechamberDocker(GeneralDocker):
+    """
+    Factory class for creating Antechamber docker instances based on charge_method.
+    """
+    def __init__(
+        self,
+        workfolder: str = WORKING_DIR,
+        exeoutfile: str = "antechamber.log",
+        amberhome: Optional[str] = None,
+        charge_method: str = "bcc",
+        eq: int = 2,
+        pl: int = -1,
+
+        qm_program: str = "gaussian",
+        qm_exe: Optional[str] = None,
+        qm_dir: Optional[str] = None,
+        nprocs: int = 1,
+        nnodes: int = 1,
+        ncpus: int = 1,
+        srun_use: bool = False,
+        dry_run: bool = False,
+        **kwargs
+    ):
+        charge_method = charge_method.lower()
+        self.actual_docker = None
+        if charge_method == "bcc":
+            self.actual_docker = AntechamberBCCDocker(
+                out_format='mol2',
+                workfolder=workfolder,
+                exeoutfile=exeoutfile,
+                eq=eq,
+                pl=pl,
+                amberhome=amberhome,
+            )
+        elif charge_method == "resp":
+            self.actual_docker = AntechamberRESPDocker(
+                qm_program=qm_program,
+                qm_exe=qm_exe,
+                qm_dir=qm_dir,
+                workfolder=workfolder,
+                exeoutfile=exeoutfile,
+                amberhome=amberhome,
+                nprocs=nprocs,
+                nnodes=nnodes,
+                ncpus=ncpus,
+                srun_use=srun_use,
+                dry_run=dry_run,
+            )
+        else:
+            raise ValueError(f"Unsupported charge_method: {charge_method}")
+
+    def run(self, mol: Molecule):
+        if not self.actual_docker:
+            raise RuntimeError("AntechamberDocker not properly initialized.")
+        self.actual_docker.run(mol)
+
+    def check_system(self):
+        return self.actual_docker.check_system()
+    
+    def predict_output(self):
+        return self.actual_docker.predict_output()
+
+    def generate_cmd(self, mol: Molecule):
+        return self.actual_docker.generate_cmd(mol)
+    
+    def generate_input(self, mol: Molecule):
+        return self.actual_docker.generate_input(mol)
+    
+    def execute(self, cmd):
+        return self.actual_docker.execute(cmd)
+    
+    def check_output(self, mol: Molecule):
+        return self.actual_docker.check_output(mol)
+
+    def process_output(self, mol: Molecule):
+        return self.actual_docker.process_output(mol)
+
 
 
 if __name__ == '__main__': 
@@ -180,3 +432,4 @@ if __name__ == '__main__':
 
     doctest.testmod() 
     
+

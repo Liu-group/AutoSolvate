@@ -69,13 +69,22 @@ class AmberParamsBuilder(object):
         self.mol = Molecule(xyzfile, charge, spinmult, name = name, residue_name=resname, folder = self.folder)
         self.charge_method = charge_method
 
-        self.bcc_pipeline = [
-            AntechamberDocker("bcc", "mol2", workfolder = self.folder),
+        if "gaussianexe" in kwargs and "gaussiandir" in kwargs:
+            qm_program = "gaussian"
+            qm_exe = kwargs.get("gaussianexe")
+            qm_dir = kwargs.get("gaussiandir")
+
+        self.molecule_pipeline = [
+            AntechamberDocker(
+                charge_method = charge_method, 
+                workfolder = self.folder, 
+                qm_program = qm_program,
+                qm_exe = qm_exe,
+                qm_dir = qm_dir
+            ),
             ParmchkDocker("frcmod", workfolder = self.folder),
             TleapDocker(workfolder = self.folder)
         ]
-
-        self.resp_pipeline = [] # 还没整
 
     
     def build_resp_gaussian(self):
@@ -135,13 +144,31 @@ class solventBoxBuilder(object):
                                      cubesize=cube_size, closeness=closeness, solute_number=slu_count, solvent_number=slv_count,
                                      folder = self.folder)
         self.system.set_closeness(closeness=closeness)
+
+        if "gaussianexe" in kwargs and "gaussiandir" in kwargs:
+            qm_program = "gaussian"
+            qm_exe = kwargs.get("gaussianexe")
+            qm_dir = kwargs.get("gaussiandir")
+
         self.solute_bcc_pipeline = [
-            AntechamberDocker("bcc", "mol2", workfolder = self.folder),
+            AntechamberDocker(
+                charge_method = charge_method, 
+                workfolder = self.folder, 
+                qm_program = qm_program,
+                qm_exe = qm_exe,
+                qm_dir = qm_dir
+            ),
             ParmchkDocker("frcmod", workfolder = self.folder),
             TleapDocker(workfolder = self.folder)
         ]
         self.solvent_pipeline = [
-            AntechamberDocker("bcc", "mol2", workfolder = self.folder),
+            AntechamberDocker(
+                charge_method = charge_method, 
+                workfolder = self.folder, 
+                qm_program = qm_program,
+                qm_exe = qm_exe,
+                qm_dir = qm_dir
+            ),
             ParmchkDocker("frcmod", workfolder = self.folder),
             TleapDocker(workfolder = self.folder)
         ]

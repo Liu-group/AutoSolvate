@@ -167,6 +167,11 @@ class InputParser(object):
                     self.logger.info(f"Correcting keyword {key} to {keyword_dict[key]}")
                 else:
                     newdata[key] = value
+            if "QMexe" in newdata:
+                newdata["qm_dir"] = newdata["QMexe"]
+                newdata["qm_exe"] = os.path.basename(newdata["QMexe"])
+            if "software" in newdata:
+                newdata["qm_program"] = newdata["software"]
             return newdata
 
         keyword_dict = {
