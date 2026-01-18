@@ -244,7 +244,7 @@ class AntechamberRESPDocker(GeneralDocker):
             raise FileNotFoundError("RESP fitting requires a PDB file")
         if mol.charge is None or mol.multiplicity is None:
             raise ValueError("Molecule must have charge and multiplicity defined")
-        residue = self._ensure_residue_name(mol)
+        residue = mol.residue_name or "MOL"
         self.logger.info("RESP residue name validated as %s", residue)
 
     def predict_output(self, mol: Molecule):
@@ -261,11 +261,17 @@ class AntechamberRESPDocker(GeneralDocker):
         self._xyz_from_conversion = True
         return target
 
+    def preprocess_pdb(self, mol: Molecule) -> None:
+        from autosolvate.utils.tools import removeConectFromPDB
+        removeConectFromPDB(mol.pdb)
+        self.logger.info("Preprocessed PDB file to remove CONECT records: %s", mol.pdb)
+
     def generate_input(self, mol: Molecule):
         xyz_path = self._ensure_xyz(mol)
         self.local_xyz = os.path.abspath(xyz_path)
         molname = mol.name or os.path.splitext(os.path.basename(mol.pdb))[0]
-        residue = self._ensure_residue_name(mol)
+        residue = mol.residue_name or "MOL"
+        self.preprocess_pdb(mol)
         self.plan_kwargs = {
             "pdbfile": os.path.abspath(mol.pdb),
             "xyzfile": self.local_xyz,
@@ -316,7 +322,6 @@ class AntechamberRESPDocker(GeneralDocker):
             raise FileNotFoundError(f"Expected mol2 not generated: {self.output_mol2}")
         self.generated_mol2 = self.output_mol2
         self.logger.info("Successfully generated mol2 file at %s", os.path.abspath(self.generated_mol2))
-        expected_residue = self._ensure_residue_name(mol)
 
     def process_output(self, mol: Molecule):
         if self.dry_run:
@@ -325,8 +330,12 @@ class AntechamberRESPDocker(GeneralDocker):
         target_dir = os.path.dirname(target)
         if target_dir:
             os.makedirs(target_dir, exist_ok=True)
-        shutil.copy2(self.generated_mol2, target)
-        self.logger.info("Copied RESP mol2 to %s", os.path.abspath(target))
+        if not os.path.exists(self.generated_mol2):
+            self.logger.error("Generated mol2 file not found: %s", self.generated_mol2)
+            raise FileNotFoundError(f"Generated mol2 file not found: {self.generated_mol2}")
+        if not os.path.exists(target) or os.path.abspath(self.generated_mol2) != os.path.abspath(target):
+            shutil.copy2(self.generated_mol2, target)
+            self.logger.info("Copied RESP mol2 to %s", os.path.abspath(target))
         mol.mol2 = target
         mol.update()
 

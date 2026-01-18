@@ -279,7 +279,7 @@ class Molecule(System):
         else:
             raise ValueError(f"Unsupported input format for the molecule: {xyzfile}")
 
-    def generate_pdb(self):
+    def generate_pdb(self, amberhome:str = None) -> None:
         """
         Convert the input structure file to pdb file if the provided coordinate file is not in pdb format.
         If the pdb file for the same molecule already exists, it will be ignored.
@@ -291,9 +291,23 @@ class Molecule(System):
             self.logger.info(f"Write the reference pdb file for {self.name} to {self.pdb}")
             self.logger.info(f"Water model used: TIP3P")
         elif self.amber_solvent:
-            prep2pdb(self)
             self.logger.info(f"Predefined solvent {self.name} is used.")
-            self.logger.info(f"Converted the predefined prep file {self.prep} to pdb file {self.pdb}")
+            if not amberhome:
+                amberhome = os.getenv("AMBERHOME", None)
+                if not amberhome:
+                    raise RuntimeError("AMBERHOME environment variable is not set. Please provide the amberhome argument.")
+            if not self.check_exist("prep"):
+                self.logger.info(f"Setting the solvent's prep file to {os.path.join(amberhome, 'dat', 'leap', 'prep', self.prep)}")
+                self.prep = os.path.join(amberhome, 'dat', 'leap', 'prep', self.prep)
+                if not self.check_exist("prep"):
+                    raise RuntimeError(f"Cannot find the prep file for solvent {self.name} at {self.prep}")
+            if not self.check_exist("frcmod"):
+                self.logger.info(f"Setting the solvent's frcmod file to {os.path.join(amberhome, 'dat', 'leap', 'parm', self.frcmod)}")
+                self.frcmod = os.path.join(amberhome, 'dat', 'leap', 'parm', self.frcmod)
+                if not self.check_exist("frcmod"):
+                    raise RuntimeError(f"Cannot find the frcmod file for solvent {self.name} at {self.frcmod}")
+            self.logger.info(f"Converting the predefined prep file {self.prep} to pdb file {self.pdb}")
+            prep2pdb(self)
         elif self.check_exist("prep"):
             newpath = self.reference_name + ".pdb"
             if self.check_exist("pdb"):

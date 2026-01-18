@@ -1,0 +1,17 @@
+{
+    "cube_size": 40,
+    "charge_method": "bcc",
+    "water_model": "spce",
+    "solute": {},
+    "solvents":[
+        {
+            "name": "acetonitrile", 
+            "weight_ratio": 0.3
+
+        },
+        {
+            "name": "water",
+            "weight_ratio": 0.7
+        }
+    ]
+}

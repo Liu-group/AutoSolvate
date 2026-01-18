@@ -388,6 +388,14 @@ def write_xyz(fname, element, data, energy = ""):
 
 
 # processing PDB
+def removeConectFromPDB(pdbpath:str):
+    pdb1 = open(pdbpath).readlines()
+    pdb2 = open(pdbpath,'w')
+    for line in pdb1:
+        if 'CONECT' not in line:
+            pdb2.write(line)
+    pdb2.close()
+
 def getHeadTail(mol2):
     r"""
     Detect start and end of coordinates

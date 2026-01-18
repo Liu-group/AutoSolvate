@@ -234,7 +234,8 @@ class InputParser(object):
             return shutil.which(qm_software_name)
         else:
             self.logger.error(f"Cannot find the executable of {qm_software_name}. Please provide the path of the executable.")
-            raise FileNotFoundError(f"Cannot find the executable of {qm_software_name}")
+            self.logger.warning(f"This will report an error once you run the QM calculation.")
+            # raise FileNotFoundError(f"Cannot find the executable of {qm_software_name}")
         
     def add_qm_kwargs(self):
         default_qm_kwargs = {
@@ -354,9 +355,19 @@ class InputParser(object):
                 else:
                     raise ValueError("Both 'name' and 'xyzfile' is missing for a solvent.")
 
+        # Treat non-positive or missing provided numbers as effectively missing.
+        # This avoids writing out autosolvate_input_full.json with number=0 and then failing later
+        # in SolvatedSystem.check_solvent().
+        any_invalid_number = any(
+            ("number" not in s)
+            or (not isinstance(s.get("number"), (int, float)))
+            or (s.get("number") <= 0)
+            for s in self.data['solvents']
+        )
+
         if not all_number_exist and not all_number_missing:
             raise ValueError("Some solvents have the 'number' parameter while others do not. Please provide the 'number' parameter for all solvents.")
-        if all_number_exist:
+        if all_number_exist and not any_invalid_number:
             return
         # all solvent numbers are missing. compute from the weight ratio
         if "cube_size" not in self.data:
@@ -370,13 +381,11 @@ class InputParser(object):
         if len(self.data['solvents']) == 1:
             solvent = self.data['solvents'][0]
             solventname = solvent.get('name')
-            if solventname in AMBER_SOLVENT_NAMES and "xyzfile" not in solvent:
-                return  # Use amber prebuilt solvent box.
             
             # check density
             if "density" not in solvent:
                 if solventname in SOLVENT_DENSITY:
-                    density = SOLVENT_DENSITY[solventname] / 1000.0
+                    density = SOLVENT_DENSITY[solventname]
                 else:
                     density = None
             else:
@@ -402,7 +411,7 @@ class InputParser(object):
             if solventname in SOLVENT_DENSITY:
                 number  = calculate_solvent_number(solventname, volume_in_m3)
                 solvent['number'] = number
-                solvent['density'] = solvent.get("density", SOLVENT_DENSITY[solventname] / 1000.0)
+                solvent['density'] = solvent.get("density", SOLVENT_DENSITY[solventname])
                 solvent['molecular_weight'] = solvent.get("molecular_weight", SOLVENT_MW[solventname])
                 return 
             raise ValueError(f"Cannot auto determine the number of the solvent. Please provide the 'number' parameter or density + molecular_weight.")
@@ -462,7 +471,13 @@ class InputParser(object):
             "for all solvents ('volume_ratio' or 'weight_ratio' or 'molar_ratio')."
             )
         for i, solvent in enumerate(self.data['solvents']):
-            solvent['number'] = numbers[i]
+            # Guard against rounding down to zero for small boxes / extreme ratios.
+            # If a solvent has a non-zero ratio, ensure at least 1 molecule.
+            n = int(numbers[i])
+            ratio = solvent.get("volume_ratio") or solvent.get("weight_ratio") or solvent.get("molar_ratio")
+            if ratio is not None and ratio > 0 and n <= 0:
+                n = 1
+            solvent['number'] = n
 
     def parse(self):
         # step 1: correct the keyword

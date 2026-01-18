@@ -36,7 +36,7 @@ FORCEBALANCE    = "ForceBalance"
 
 SOLVENT_MW ={'water': 18.01528 ,'acetonitrile': 41.05, 'methanol':32.04, 'chloroform':119.38, 'nma':107.156 } ##g/mol
 
-SOLVENT_DENSITY = {'water' : 997,'acetonitrile': 786, 'methanol':792, 'chloroform': 1490,'nma':990} ##kg/m3
+SOLVENT_DENSITY = {'water' : 0.997,'acetonitrile': 0.786, 'methanol':0.792, 'chloroform': 1.490,'nma':0.990} ##g/cm3
 
 SOLVENT_CLOSENESS = {'water': 0.5, 'acetonitrile':1.80, 'methanol':0.6, 'nma': 0.58 ,'chloroform':0.58}
 

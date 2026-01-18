@@ -76,19 +76,20 @@ class MulticomponentParamsBuilder():
     """
     def __init__(self, 
                  xyzfile: str, name="", residue_name="SLU", charge=0, spinmult=1, 
-                 charge_method="resp", folder = WORKING_DIR, **kwargs): 
+                 charge_method="resp", folder = WORKING_DIR, water_model: str = "tip3p", **kwargs): 
 
         
         self.folder = folder
         self.mol = MoleculeComplex(xyzfile, name=name, residue_name=residue_name, charges=charge, multiplicities=spinmult, folder = self.folder)
         self.charge_method = charge_method
+        self.water_model = (water_model or "tip3p").lower()
 
         self.single_molecule_pipeline = [
             AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
             ParmchkDocker(workfolder=self.folder),
-            TleapDocker(workfolder = self.folder)
+            TleapDocker(workfolder = self.folder, water_model=self.water_model)
         ]
-        self.complex_pipeline = [TleapDocker(workfolder=self.folder)]
+        self.complex_pipeline = [TleapDocker(workfolder=self.folder, water_model=self.water_model)]
 
     def build(self):
         for m in self.mol.newmolecules:
@@ -147,13 +148,14 @@ class MulticomponentSolventBoxBuilder():
                  solvent = "water", solvent_frcmod = "", solvent_off = "", solvent_box_name = "SLVBOX",
                  slv_generate = False, slv_xyz = "", slv_count = 210*8,
                  cube_size = 54, closeness = 0.8, folder = WORKING_DIR, outputFile = "",
-                 **kwargs):
+                 water_model: str = "tip3p", **kwargs):
 
         self.kwargs = kwargs
 
         if not outputFile:
             outputFile = solvent + "_solvated"
         self.folder = folder
+        self.water_model = (water_model or "tip3p").lower()
         if "slu_netcharge" in kwargs and isinstance(kwargs["slu_netcharge"], dict) and slu_charge == 0:
             slu_charge = kwargs["slu_netcharge"]
         self.solute = MoleculeComplex(xyzfile, slu_charge, slu_spinmult, folder = self.folder)
@@ -167,20 +169,20 @@ class MulticomponentSolventBoxBuilder():
         self.single_molecule_pipeline = [
             AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
             ParmchkDocker(workfolder=self.folder),
-            TleapDocker(workfolder = self.folder)
+            TleapDocker(workfolder = self.folder, water_model=self.water_model)
         ]
-        self.complex_pipeline = [TleapDocker(workfolder=self.folder)]
+        self.complex_pipeline = [TleapDocker(workfolder=self.folder, water_model=self.water_model)]
         self.solvent_pipeline = [
             AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
             ParmchkDocker("frcmod", workfolder = self.folder),
-            TleapDocker(workfolder = self.folder)
+            TleapDocker(workfolder = self.folder, water_model=self.water_model)
         ]
         self.prebuilt_solvation = [
-            TleapDocker(workfolder = self.folder)
+            TleapDocker(workfolder = self.folder, water_model=self.water_model)
         ]
         self.custom_solvation = [
             PackmolDocker(workfolder = self.folder),
-            TleapDocker(workfolder = self.folder)
+            TleapDocker(workfolder = self.folder, water_model=self.water_model)
         ]
     
     def get_solvent(self, solvent:str, slv_xyz:str = "", solvent_frcmod:str = "", solvent_off:str = "", slv_generate:bool = False, slv_count:int = 210*8, solvent_box_name:str = "SLVBOX"):
@@ -270,6 +272,7 @@ class MixtureBuilder():
             charge_method = "bcc", 
             prefix = None, 
             amberhome: str = None,
+            water_model: str = "tip3p",
             qm_program: str = "gaussian",
             qm_exe: str = None,
             qm_dir: str = None
@@ -280,12 +283,14 @@ class MixtureBuilder():
         self.boxsize = [cube_size, cube_size, cube_size]
         self.closeness = closeness
         self.charge_method = charge_method
+        self.water_model = (water_model or "tip3p").lower()
 
         # Respect user-provided AMBERHOME for executable resolution and libraries.
         self.amberhome = amberhome
         amber_paths = resolve_amber_paths(self.amberhome)
         amber_bin = amber_paths.get("amber_bin")
         amber_lib = amber_paths.get("amber_lib")
+        self.amber_bin = amber_bin
         if amber_lib:
             current_ld = os.environ.get("LD_LIBRARY_PATH", "")
             ld_prefix = f"{amber_lib}:"
@@ -300,11 +305,11 @@ class MixtureBuilder():
                 qm_dir = qm_dir
             ),
             ParmchkDocker(workfolder=self.folder, amberhome=amber_bin),
-            TleapDocker(workfolder = self.folder, amberhome=amber_bin)
+            TleapDocker(workfolder = self.folder, amberhome=amber_bin, water_model=self.water_model)
         ]
         self.custom_solvation = [
             PackmolDocker(workfolder = self.folder),
-            TleapDocker(workfolder = self.folder, amberhome=amber_bin)
+            TleapDocker(workfolder = self.folder, amberhome=amber_bin, water_model=self.water_model)
         ]
         self.logger = logging.getLogger(name = self.__class__.__name__)
         self.output_handler             = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")
@@ -396,7 +401,11 @@ class MixtureBuilder():
         for fragment in molecule.newmolecules:
             for docker in self.single_molecule_pipeline:
                 docker.run(fragment)
-        TleapDocker(workfolder = self.folder).run(molecule)
+        TleapDocker(
+            workfolder = self.folder,
+            amberhome = self.amber_bin,
+            water_model = self.water_model,
+        ).run(molecule)
         molecule.number = number
         self.solutes.append(molecule)
         
@@ -506,7 +515,7 @@ class MixtureBuilder():
             self.logger.info(f"Adding predefined solvent {name}")
             self_solvent = AMBER_SOLVENT_DICT[name]
             self_solvent.folder = self.folder
-            self_solvent.generate_pdb()
+            self_solvent.generate_pdb(amberhome=self.amberhome)
         elif solvent_type == "autosolvate_custom":
             self.logger.info(f"Adding autosolvate custom solvent {name}")
             solvPrefix = custom_solv_dict[name]

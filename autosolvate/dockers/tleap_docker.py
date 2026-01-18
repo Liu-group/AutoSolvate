@@ -12,14 +12,17 @@ class TleapDocker(GeneralDocker):
 
     _ff14SB         = 'leaprc.protein.ff14SB'       # Source leaprc file for ff14SB protein force field
     _gaff           = 'leaprc.gaff'                 # Source leaprc file for gaff force field
-    _water_tip3p    = 'leaprc.water.tip3p'          # Source leaprc file for tip3p water model
-    _ionslm_126_opc = "frcmod.ionslm_126_opc"        #Source frcmod file for ionslm_126_opc force field
+    _ionslm_126_opc = "frcmod.ionslm_126_opc"       # Source frcmod file for ionslm_126_opc force field
+
+    _water_model_prefix = "leaprc.water."
+    _supported_water_models = ["fb3", "fb3mod", "fb4", "opc", "opc3", "opc3pol", "spce", "spceb", "tip3p", "tip4pd", "tip4pd-a99SBdisp", "tip4pew"]
 
     def __init__(self, 
                  workfolder:            str = WORKING_DIR,
                  exeoutfile:            str = None,
                  boxsize:               float = None,
                  amberhome:             str = None,
+                 water_model:           str = "tip3p"   # we only provides water model since autosolvate is not designed for protein-ligand systems
     ) -> None:
         super().__init__(
             executable = GeneralDocker.resolve_executable('tleap', amberhome),
@@ -40,6 +43,7 @@ class TleapDocker(GeneralDocker):
 
         self.use_custom_tleap = False 
         self.custom_tleap_path = None
+        self.water_model = water_model.lower()
 
     ##### check_system method for different systems
     def check_system_molecule(self, mol:Molecule):
@@ -208,11 +212,22 @@ class TleapDocker(GeneralDocker):
             self.leapout,
         ]
     
+    def load_water_model(self, doc: TextIO) -> None:
+        """
+        Write the leaprc command to load the selected water model.
+        """
+        if self.water_model in self._supported_water_models:
+            doc.write('{:<20}  {:<20}\n'.format('source', self._water_model_prefix + self.water_model))
+        else:
+            self.logger.warning(f"Unsupported water model '{self.water_model}', defaulting to tip3p.")
+            doc.write('{:<20}  {:<20}\n'.format('source', self._water_model_prefix + "tip3p"))
+
     ##### generate_input method for different systems
     def load_forcefield(self, doc: TextIO) -> None:
-        doc.write('{:<20}  {:<20}       \n'.format('source', self._ff14SB)) 
-        doc.write('{:<20}  {:<20}       \n'.format('source', self._gaff))
-        doc.write('{:<20}  {:<20}       \n'.format('source', self._water_tip3p))
+        doc.write('{:<20}  {:<20}\n'.format('source', self._ff14SB)) 
+        doc.write('{:<20}  {:<20}\n'.format('source', self._gaff))
+        doc.write('{:<20}  {:<20}\n'.format('loadamberparams', self._ionslm_126_opc))
+        self.load_water_model(doc)
 
     def load_mol(self,  
                  doc:           TextIO, 

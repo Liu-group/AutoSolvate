@@ -1,0 +1,27 @@
+{
+  "cube_size": 40,
+  "charge_method": "resp",
+  "prefix": "naphthalene-chcl3-resp",
+  "solutes": [
+    {
+      "name": "naphthalene_radical",
+      "xyzfile": "./naphthalene_radical.xyz",
+      "residue_name": "NAP",
+      "charge": 1,
+      "spinmultiplicity": 2,
+      "number": 1,
+      "centered": true
+    }
+  ],
+  "solvents": [
+    {
+      "name": "chloroform"
+    }
+  ],
+  "qm_program": "orca",
+  "qm_dir": "/pscratch/sd/f/fren5/orca_6_1_0",
+  "method": "hf",
+  "basisset": "6-31G*",
+  "nprocs": 1,
+  "maxcore": 2048
+}
