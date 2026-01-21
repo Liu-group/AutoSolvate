@@ -256,6 +256,12 @@ class TleapDocker(GeneralDocker):
                 m:Molecule
                 if m.check_exist("frcmod"): 
                     doc.write('{:<20}  {}       \n'.format('loadamberparams', m.frcmod))
+                if m.check_exist("mol2"):  
+                    doc.write('{:<5} {:<15} {}  \n'.format(m.residue_name, '= loadmol2', m.mol2))
+                if m.check_exist("off"): 
+                    doc.write('{:<20}  {}       \n'.format('loadoff', m.off))
+                if m.check_exist("prep"): 
+                    doc.write('{:<20}  {}       \n'.format('loadamberprep', m.prep))
                 if m.check_exist("lib"): 
                     doc.write('{:<20}  {}       \n'.format('loadoff', m.lib))
             doc.write('{:<5} {:<15} {}          \n'.format(mol.residue_name, '= loadpdb', mol.pdb))

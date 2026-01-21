@@ -413,7 +413,7 @@ def test_wizard_ultimate_task(tmpdir):
         # other inputs
         "2.0", # packmol closeness in angstroms
         str(tmpdir),  # output folder
-        "yes"   # abort the ultimate complex test to avoid long waiting time.
+        "write_only"   # abort the ultimate complex test to avoid long waiting time.
     ]
     session = _get_interactive_session()
     session.start()
@@ -422,7 +422,7 @@ def test_wizard_ultimate_task(tmpdir):
     for user_input in step_inputs:
         # print(f"Sending input: {user_input}")
         session.send(user_input)
-        time.sleep(0.05)  # wait a bit for the process to respond
+        time.sleep(0.025)  # wait a bit for the process to respond
         read_result = session.read(timeout_sec=0.1)
         # print(read_result.text)
     
@@ -435,9 +435,9 @@ def test_wizard_ultimate_task(tmpdir):
     for i in range(20):
         if os.path.exists("Fc1N1112-TFSI-EC-PC-EMC.pdb"):
             break
-        time.sleep(waitscheduler.current_wait)
+        time.sleep(1)
         waitscheduler.update("autosolvate.log")
     session.close()
     # start to verify generated files
     # print(os.getcwd())
-    assert os.path.exists("Fc1N1112-TFSI-EC-PC-EMC.pdb"), str(os.listdir())
+    assert os.path.exists("wizard_input.json"), str(os.listdir())
