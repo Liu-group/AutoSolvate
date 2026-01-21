@@ -274,3 +274,108 @@ def test_mixture_builder_cmd_input():
         "-t", "0.8",
     ])
     assert os.path.exists("mybox.prmtop")
+
+
+def test_prebuilt_solvent_box_dmso(tmpdir):
+    """Prebuilt solvent box should be consumed directly for single solute/solvent."""
+    cwd = os.getcwd()
+    os.chdir(tmpdir)
+    try:
+        solute_xyz = hp.get_input_dir("naphthalene_neutral.xyz")
+        data = {
+            "solutes": [
+                {
+                    "__TYPE__": "molecule",
+                    "xyzfile": solute_xyz,
+                    "charge": 0,
+                    "spinmult": 1,
+                    "number": 1,
+                }
+            ],
+            "solvents": [
+                {
+                    "name": "dmso",
+                    "solventbox": hp.get_input_dir("dmso.off"),
+                    "frcmod": hp.get_input_dir("dmso.frcmod"),
+                    "solvent_box_name": "DMSOBOX",
+                }
+            ],
+            "charge_method": "bcc",
+            "cube_size": 30,
+            "closeness": 0.8,
+            "folder": str(tmpdir),
+        }
+        startmulticomponent_fromdata(data)
+        assert os.path.exists("dmso_solvated.prmtop")
+        assert os.path.exists("dmso_solvated.inpcrd")
+        assert os.path.exists("dmso_solvated.pdb")
+
+        try:
+            from parmed import load_file
+        except ImportError:
+            pytest.skip("parmed not installed, skipping residue check.")
+        prmtop = load_file("dmso_solvated.prmtop")
+        residue_names = {res.name for res in prmtop.residues}
+        assert "DMS" in residue_names or "DMSO" in residue_names or "DMSOBOX" in residue_names
+    finally:
+        os.chdir(cwd)
+
+
+def test_prebuilt_solvent_box_dmso_resp(tmpdir):
+    """Prebuilt solvent box should be consumed directly for single solute/solvent. Use RESP charge method."""
+    resp_folder = hp.get_input_dir("resp_classes")
+    # copy all stuffs in the resp_folder to tmp_path (current working directory)
+    for item in os.listdir(resp_folder):
+        s = os.path.join(resp_folder, item)
+        d = os.path.join(tmpdir, item)
+        if not os.path.isfile(s):
+            continue 
+        with open(s, 'rb') as fsrc, open(d, 'wb') as fdst:
+            fdst.write(fsrc.read())
+    cwd = os.getcwd()
+    os.chdir(tmpdir)
+    try:
+        solute_xyz = hp.get_input_dir("naphthalene_radical.xyz")
+        data = {
+            "solutes": [
+                {
+                    "__TYPE__": "molecule",
+                    "xyzfile": solute_xyz,
+                    "charge": 0,
+                    "spinmult": 1,
+                    "number": 1,
+                }
+            ],
+            "solvents": [
+                {
+                    "name": "dmso",
+                    "solventbox": hp.get_input_dir("dmso.off"),
+                    "frcmod": hp.get_input_dir("dmso.frcmod"),
+                    "solvent_box_name": "DMSOBOX",
+                }
+            ],
+            "charge_method": "resp",
+            "cube_size": 30,
+            "closeness": 0.8,
+            "folder": str(tmpdir),
+            "qm_program": "orca",
+            "qm_dir": "/pscratch/sd/f/fren5/orca_6_1_0",
+            "method": "hf",
+            "basisset": "6-31G*",
+            "nprocs": 1,
+            "maxcore": 2048
+        }
+        startmulticomponent_fromdata(data)
+        assert os.path.exists("dmso_solvated.prmtop")
+        assert os.path.exists("dmso_solvated.inpcrd")
+        assert os.path.exists("dmso_solvated.pdb")
+
+        try:
+            from parmed import load_file
+        except ImportError:
+            pytest.skip("parmed not installed, skipping residue check.")
+        prmtop = load_file("dmso_solvated.prmtop")
+        residue_names = {res.name for res in prmtop.residues}
+        assert "DMS" in residue_names or "DMSO" in residue_names or "DMSOBOX" in residue_names
+    finally:
+        os.chdir(cwd)

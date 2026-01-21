@@ -18,7 +18,7 @@
 #--------------------------------------------------------------------------------------------------#
 import getopt, sys, os
 import subprocess
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, Dict, Any, Optional
 import json
 import logging
 import inspect
@@ -27,6 +27,8 @@ from autosolvate.utils.resources import autosolvate_resource
 from autosolvate.utils.env_detection import resolve_amber_paths
 
 from .molecule import *
+from .molecule import TransitionMetalComplex
+from .dockers.automcpb_docker import AutoMCPBDocker
 from .dockers import (
     AntechamberDocker,
     ParmchkDocker,
@@ -148,7 +150,22 @@ class MulticomponentSolventBoxBuilder():
                  solvent = "water", solvent_frcmod = "", solvent_off = "", solvent_box_name = "SLVBOX",
                  slv_generate = False, slv_xyz = "", slv_count = 210*8,
                  cube_size = 54, closeness = 0.8, folder = WORKING_DIR, outputFile = "",
-                 water_model: str = "tip3p", **kwargs):
+                 water_model: str = "tip3p",
+                 solute_type: str = "complex",
+                 metal_charge: int = 0,
+                 total_charge: Any = "default",
+                 chargefile: str = "",
+                 qm_kwargs: Optional[Dict[str, Any]] = None,
+                 mcpb_kwargs: Optional[Dict[str, Any]] = None,
+                 qm_program: str = "gaussian",
+                 qm_exe: Optional[str] = None,
+                 qm_dir: Optional[str] = None,
+                 nprocs: int = 1,
+                 nnodes: int = 1,
+                 ncpus: int = 1,
+                 srun_use: bool = False,
+                 dry_run: bool = False,
+                 **kwargs):
 
         self.kwargs = kwargs
 
@@ -158,8 +175,38 @@ class MulticomponentSolventBoxBuilder():
         self.water_model = (water_model or "tip3p").lower()
         if "slu_netcharge" in kwargs and isinstance(kwargs["slu_netcharge"], dict) and slu_charge == 0:
             slu_charge = kwargs["slu_netcharge"]
-        self.solute = MoleculeComplex(xyzfile, slu_charge, slu_spinmult, folder = self.folder)
         self.charge_method = charge_method
+
+        self.logger = logging.getLogger(name = self.__class__.__name__)
+        self.output_handler             = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")
+        self.output_formater            = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
+        self.output_handler.setFormatter(self.output_formater)
+        if len(self.logger.handlers) == 0:
+            self.logger.addHandler(self.output_handler)
+
+        # prepare solute
+        self.solute: System
+        if solute_type == "transition_metal_complex":
+            tm_kwargs = qm_kwargs.copy() if qm_kwargs else {}
+            tm_kwargs.update(mcpb_kwargs or {})
+            tm_kwargs["workfolder"] = self.folder
+            self.solute = TransitionMetalComplex(
+                xyzfile,
+                folder=self.folder,
+                metal_charge=metal_charge,
+                multiplicity=slu_spinmult,
+                totalcharge=total_charge,
+                legand_charge_file=chargefile,
+                centered=kwargs.get("centered", False),
+            )
+            self.logger.info(tm_kwargs)
+            mcpb_docker = AutoMCPBDocker(**tm_kwargs)
+            mcpb_docker.run(self.solute)
+        elif solute_type == "molecule":
+            self.solute = Molecule(xyzfile, charge=slu_charge, multiplicity=slu_spinmult, folder=self.folder)
+        else:
+            self.solute = MoleculeComplex(xyzfile, slu_charge, slu_spinmult, folder = self.folder)
+        self.solute.number = slu_count
 
         self.solvent = self.get_solvent(solvent, slv_xyz, solvent_frcmod, solvent_off, slv_generate, slv_count, solvent_box_name)
         self.system = SolvatedSystem(solvent + "_solvated", solute = self.solute, solvent=self.solvent,
@@ -167,13 +214,35 @@ class MulticomponentSolventBoxBuilder():
                                      folder = self.folder)
 
         self.single_molecule_pipeline = [
-            AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
+            AntechamberDocker(
+                charge_method=self.charge_method,
+                workfolder=self.folder,
+                qm_program=qm_program,
+                qm_exe=qm_exe,
+                qm_dir=qm_dir,
+                nprocs=nprocs,
+                nnodes=nnodes,
+                ncpus=ncpus,
+                srun_use=srun_use,
+                dry_run=dry_run,
+            ),
             ParmchkDocker(workfolder=self.folder),
             TleapDocker(workfolder = self.folder, water_model=self.water_model)
         ]
         self.complex_pipeline = [TleapDocker(workfolder=self.folder, water_model=self.water_model)]
         self.solvent_pipeline = [
-            AntechamberDocker(charge_method = self.charge_method, workfolder = self.folder),
+            AntechamberDocker(
+                charge_method=self.charge_method,
+                workfolder=self.folder,
+                qm_program=qm_program,
+                qm_exe=qm_exe,
+                qm_dir=qm_dir,
+                nprocs=nprocs,
+                nnodes=nnodes,
+                ncpus=ncpus,
+                srun_use=srun_use,
+                dry_run=dry_run,
+            ),
             ParmchkDocker("frcmod", workfolder = self.folder),
             TleapDocker(workfolder = self.folder, water_model=self.water_model)
         ]
@@ -205,6 +274,10 @@ class MulticomponentSolventBoxBuilder():
             self_solvent.frcmod = solvent_frcmod_path
             self_solvent.prep   = solvent_prep_path
             self_solvent.number = slv_count
+        elif os.path.exists(solvent_frcmod) and os.path.exists(solvent_off):
+            # using prebuilt solvent box from user-provided off/lib and frcmod
+            self.logger.info(f"Using prebuilt solvent box: off/lib={solvent_off}, frcmod={solvent_frcmod}")
+            self_solvent = SolventBox(solvent_off, solvent_frcmod, name = solvent, folder = self.folder, box_name=solvent_box_name)
         elif os.path.exists(slv_xyz) and slv_generate:
             # generate solvent box
             self_solvent = Molecule(slv_xyz, folder = self.folder)
@@ -226,14 +299,18 @@ class MulticomponentSolventBoxBuilder():
         None
         
         """
-        for m in self.solute.newmolecules:
-            if self.charge_method == "resp":
-                build_resp_terachem(m, folder = self.folder)
-            else:
+        if isinstance(self.solute, TransitionMetalComplex):
+            # Already parameterized by AutoMCPBDocker above.
+            pass
+        elif isinstance(self.solute, MoleculeComplex):
+            for m in self.solute.newmolecules:
                 for docker in self.single_molecule_pipeline:
                     docker.run(m)
-        for docker in self.complex_pipeline:
-            docker.run(self.solute)
+            for docker in self.complex_pipeline:
+                docker.run(self.solute)
+        elif isinstance(self.solute, Molecule):
+            for docker in self.single_molecule_pipeline:
+                docker.run(self.solute)
 
         if isinstance(self.solvent, Molecule):
             for docker in self.solvent_pipeline:
@@ -277,6 +354,14 @@ class MixtureBuilder():
             qm_exe: str = None,
             qm_dir: str = None
         ):
+        # basic logger setup
+        self.logger = logging.getLogger(name=self.__class__.__name__)
+        if not self.logger.handlers:
+            handler = logging.FileHandler(filename="autosolvate.log", mode="a", encoding="utf-8")
+            formatter = logging.Formatter(fmt='%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+
         self.solutes = []
         self.solvents = []
         self.folder = folder
@@ -311,12 +396,6 @@ class MixtureBuilder():
             PackmolDocker(workfolder = self.folder),
             TleapDocker(workfolder = self.folder, amberhome=amber_bin, water_model=self.water_model)
         ]
-        self.logger = logging.getLogger(name = self.__class__.__name__)
-        self.output_handler             = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")
-        self.output_formater            = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
-        self.output_handler.setFormatter(self.output_formater)
-        if len(self.logger.handlers) == 0:
-            self.logger.addHandler(self.output_handler)
         self.systemprefix = prefix
 
     def add_transition_metal_complex_solute(self, xyzfile:str, number = 1, 
@@ -601,6 +680,84 @@ def startmulticomponent_fromdata(data:dict):
     data : dict
         dictionary containing the input parameters. Usually generated from a json file.
     """
+
+    def _is_prebuilt_box(solvent: Dict[str, Any]) -> bool:
+        box_file = solvent.get("solventbox") or solvent.get("off") or solvent.get("lib")
+        frcmod_file = solvent.get("frcmod") or solvent.get("solvent_frcmod") or solvent.get("frcmmod")
+        # If user also supplied xyz/mol2/prep/lib to explicitly parameterize, prefer that path and skip box.
+        has_custom_params = any(solvent.get(k) for k in ("xyzfile", "mol2", "prep"))
+        return bool(box_file and frcmod_file and not has_custom_params)
+
+    def _maybe_handle_prebuilt_box(data: Dict[str, Any]) -> bool:
+        solutes = data.get("solutes", [])
+        solvents = data.get("solvents", [])
+        if len(solutes) != 1 or len(solvents) != 1:
+            return False
+        solvent = solvents[0]
+        if not _is_prebuilt_box(solvent):
+            return False
+        solute = solutes[0]
+
+        solvent_box_file = solvent.get("solventbox") or solvent.get("off") or solvent.get("lib")
+        solvent_frcmod = solvent.get("frcmod") or solvent.get("solvent_frcmod") or solvent.get("frcmmod")
+        solvent_box_name = solvent.get("solvent_box_name") or "SLVBOX"
+        output = data.get("output", "")
+        cube_size = data.get("cube_size", 54)
+        closeness = data.get("closeness", 0.8)
+        water_model = data.get("water_model", "tip3p")
+        solute_number = solute.get("number", 1)
+
+        solute_type = solute.get("__TYPE__", "molecule")
+        workfolder = data.get("folder", WORKING_DIR)
+        solute_kwargs = {
+            "xyzfile": solute.get("xyzfile"),
+            "slu_charge": solute.get("charge", 0) if solute_type != "transition_metal_complex" else solute.get("total_charge", solute.get("charge", 0)),
+            "slu_spinmult": solute.get("spinmult", 1),
+            "charge_method": solute.get("charge_method", data.get("charge_method", "resp")),
+            "slu_count": solute_number,
+            "solvent": solvent.get("name", "solvent"),
+            "solvent_frcmod": solvent_frcmod,
+            "solvent_off": solvent_box_file,
+            "solvent_box_name": solvent_box_name,
+            "cube_size": cube_size,
+            "closeness": closeness,
+            "folder": workfolder,
+            "outputFile": output,
+            "water_model": water_model,
+            "qm_program": data.get("qm_program"),
+            "qm_exe": data.get("qm_exe"),
+            "qm_dir": data.get("qm_dir"),
+            "nprocs": data.get("nprocs", 1),
+            "nnodes": data.get("nnodes", 1),
+            "ncpus": data.get("ncpus", 1),
+            "srun_use": data.get("srun_use", False),
+            "dry_run": data.get("dry_run", False),
+        }
+
+        if solute_type == "complex":
+            solute_kwargs["solute_type"] = "complex"
+            if "fragment_charge" in solute:
+                solute_kwargs["slu_charge"] = solute.get("fragment_charge")
+            if "fragment_spinmult" in solute:
+                solute_kwargs["slu_spinmult"] = solute.get("fragment_spinmult")
+        elif solute_type == "transition_metal_complex":
+            solute_kwargs.update({
+                "solute_type": "transition_metal_complex",
+                "metal_charge": solute.get("metal_charge", 0),
+                "total_charge": solute.get("total_charge", solute_kwargs["slu_charge"]),
+                "chargefile": solute.get("chargefile", ""),
+                "qm_kwargs": data.get("qm_kwargs", solute.get("qm_kwargs")),
+                "mcpb_kwargs": data.get("mcpb_kwargs", solute.get("mcpb_kwargs")),
+            })
+        else:
+            solute_kwargs["solute_type"] = "molecule"
+
+        builder = MulticomponentSolventBoxBuilder(**solute_kwargs)
+        builder.build()
+        return True
+
+    if _maybe_handle_prebuilt_box(data):
+        return
 
     parser = InputParser()
     parser.read_dict(data)

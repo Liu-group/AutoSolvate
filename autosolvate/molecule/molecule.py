@@ -269,6 +269,9 @@ class Molecule(System):
                 self.name = process_system_name(name, xyzfile, support_input_format=Molecule._SUPPORT_INPUT_FORMATS, check_exist=False)  
             self.process_input_xyz(xyzfile)
             self.generate_pdb()
+            # Ensure residue_name is set before downstream tools (e.g., antechamber) are invoked.
+            if not self.residue_name:
+                self.get_residue_name()
 
     def process_input_xyz(self, xyzfile:str) -> None:
         for e in Molecule._SUPPORT_INPUT_FORMATS:
