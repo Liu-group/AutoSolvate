@@ -3,6 +3,7 @@ import sys
 import os
 import shutil
 import subprocess
+import shlex
 from autosolvate.utils.resources import autosolvate_resource
 import glob
 import logging
@@ -22,6 +23,30 @@ from ..utils.tools import (
 )
 from ..utils.charge_utils import infer_charge_from_xyz
 from .molecule import Molecule, System
+
+
+def _convert_to_pdb(ext: str, infile: str, outfile: str, logger: logging.Logger = None):
+    try:
+        mol = next(pybel.readfile(ext, infile))
+        mol.write("pdb", outfile, overwrite=True)
+    except Exception as e:
+        if logger is not None:
+            logger.warning(
+                "pybel conversion failed for %s -> %s (%s). Falling back to obabel CLI.",
+                infile,
+                outfile,
+                e,
+            )
+        cmd = "obabel -i {} {} -o pdb -O {} ---errorlevel 0".format(
+            ext,
+            shlex.quote(infile),
+            shlex.quote(outfile),
+        )
+        subprocess.run(cmd, shell=True)
+    if not os.path.isfile(outfile):
+        raise RuntimeError(
+            "Failed to convert '{}' ({}) to PDB '{}'".format(infile, ext, outfile)
+        )
 
 class MoleculeComplex(System):
 
@@ -102,9 +127,7 @@ class MoleculeComplex(System):
         ext = os.path.splitext(fname)[-1][1:]
         setattr(self, ext, fname)
         if ext != "pdb":
-            subprocess.run(f"obabel -i {ext} {fname} -o pdb -O {self.reference_name}.pdb ---errorlevel 0", shell = True)
-            # subprocess.run(f"obabel -i {ext} {fname} -o pdb -O {self.reference_name}.pdb", shell = True)
-            # os.system(f"obabel -i {ext} {fname} -o pdb -O {self.reference_name}.pdb")
+            _convert_to_pdb(ext, fname, f"{self.reference_name}.pdb", self.logger)
             self.pdb = f"{self.reference_name}.pdb"
 
     def check_protein_fragment(self, fragment_obmol:ob.OBMol, fragment_index = 0):

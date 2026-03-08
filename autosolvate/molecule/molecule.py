@@ -3,6 +3,7 @@ import sys
 import os
 import shutil
 import subprocess
+import shlex
 from autosolvate.utils.resources import autosolvate_resource
 import glob
 import logging
@@ -15,6 +16,40 @@ from ..utils import *
 import logging
 
 OBABEL = "obabel"
+
+
+def _convert_structure(in_fmt: str, in_file: str, out_fmt: str, out_file: str, logger: logging.Logger = None):
+    """Convert molecular structure format with pybel first, then obabel CLI fallback."""
+    try:
+        from openbabel import pybel
+        iterator = pybel.readfile(in_fmt, in_file)
+        molecule = next(iterator)
+        molecule.write(out_fmt, out_file, overwrite=True)
+    except Exception as e:
+        if logger is not None:
+            logger.warning(
+                "pybel conversion failed for %s -> %s (%s). Falling back to obabel CLI.",
+                in_file,
+                out_file,
+                e,
+            )
+        cmd = "{} -i {} {} -o {} -O {} ---errorlevel 0".format(
+            OBABEL,
+            in_fmt,
+            shlex.quote(in_file),
+            out_fmt,
+            shlex.quote(out_file),
+        )
+        subprocess.run(cmd, shell=True)
+    if not os.path.isfile(out_file):
+        raise RuntimeError(
+            "Failed to convert '{}' ({}) to '{}' ({})".format(
+                in_file,
+                in_fmt,
+                out_file,
+                out_fmt,
+            )
+        )
 
 @dataclass
 class System(object):
@@ -331,13 +366,13 @@ class Molecule(System):
                 self.logger.warning(f"The existing pdb file {self.pdb} will be ignored as mol2 file is provided.")
                 shutil.move(self.pdb, self.reference_name + "-bak.pdb")
             self.logger.info(f"Converted the mol2 file {self.mol2} to pdb file {self.pdb}")
-            subprocess.run(f"obabel -i mol2 {self.mol2} -o pdb -O {newpath} ---errorlevel 0", shell = True)
+            _convert_structure("mol2", self.mol2, "pdb", newpath, self.logger)
             self.pdb = newpath
         elif self.check_exist("pdb"):
             pass
         elif self.check_exist("xyz"):
             newpath = self.reference_name + ".pdb"
-            subprocess.run(f"obabel -i xyz {self.xyz} -o pdb -O {newpath} ---errorlevel 0", shell = True)
+            _convert_structure("xyz", self.xyz, "pdb", newpath, self.logger)
             self.pdb = newpath
 
     def get_residue_name(self):
@@ -354,7 +389,7 @@ class Molecule(System):
             new_residue_name = extract_residue_name_from_lib(self.lib)
         elif self.check_exist("mol2"):
             newpath = self.reference_name + "-frommol2.pdb"
-            subprocess.run(f"obabel -i mol2 {self.mol2} -o pdb -O {newpath} ---errorlevel 0", shell = True)
+            _convert_structure("mol2", self.mol2, "pdb", newpath, self.logger)
             new_residue_name = get_residue_name_from_pdb(newpath)
         elif self.residue_name:
             new_residue_name = self.residue_name

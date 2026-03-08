@@ -3,10 +3,12 @@ channels:
   - conda-forge
 dependencies:
     # Base depends
-  - python=3.8
+  - python=3.12
   - pip
   - setuptools
-  - cython
+  - cython>=3.0,<4
+  - numpy<2
+  - scipy<1.12
 
     # Testing
   - pytest
@@ -41,6 +43,6 @@ dependencies:
     - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
     - git+https://github.com/Liu-group/pyvdwsurface_moreelements.git
     - git+https://github.com/Liu-group/pymsmt_autosolvate.git
-    - git+https://github.com/hjkgrp/molsimplify.git@v1.7.3
+    - molsimplify==1.8.0
   #  - codecov
 

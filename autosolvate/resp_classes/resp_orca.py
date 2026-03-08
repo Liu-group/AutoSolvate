@@ -30,7 +30,14 @@ class RespORCA(RespABC):
             self.qm_dir = '/opt/orca/5.0.2/'
         
         self.orcapath = os.path.join(self.qm_dir, self.qm_exe)
-
+        if os.path.exists(self.orcapath):
+            self.logger.info(f"Found ORCA executable at {self.orcapath}")
+        elif os.path.exists(self.qm_dir) and os.path.isfile(self.qm_dir) and os.access(self.qm_dir, os.X_OK):
+            self.logger.info(f"Found ORCA executable at {self.qm_dir}")
+            self.orcapath = self.qm_dir
+        else:
+            self.logger.error("ORCA executable not found")
+            raise FileNotFoundError("ORCA executable not found at specified path")
     def writeOrcaInput(self):
         """
         Set up Orca calculation to compute electrostatic potential.

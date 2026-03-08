@@ -10,6 +10,10 @@ from .general_docker import GeneralDocker
 
 class PackmolDocker(GeneralDocker):
 
+    _PACKMOL_NLOOP = 200
+    _PACKMOL_MAX_REMEDY_TRIALS = 10
+    _PACKMOL_BOX_INCREMENT_ANG = 1.0
+
     def __init__(self, 
                  workfolder:            str = WORKING_DIR,
                  exeoutfile:            str = None,
@@ -167,11 +171,38 @@ class PackmolDocker(GeneralDocker):
         '''
         f = open(self.packmolinp, 'w') 
         f.write('{:<15} {:<3.2f}                \n'.format('tolerance', box.closeness))
+        f.write('{:<15} {:<5}                   \n'.format('nloop', self._PACKMOL_NLOOP))
         f.write('{:<15} {:<5}                   \n'.format('filetype', 'pdb'))
         f.write('{:<15} {:<5}                   \n'.format('output', self.outpdb)) 
         self.load_solute(f, box)
         self.load_solvent(f, box)
         f.close()
+
+    def _packmol_output_text(self) -> str:
+        if not os.path.exists(self.packmolout):
+            return ""
+        with open(self.packmolout, 'r') as f:
+            return f.read()
+
+    def _packmol_started(self) -> bool:
+        content = self._packmol_output_text()
+        if not content:
+            return False
+        if "PACKMOL - Packing optimization" in content:
+            return True
+        if "Starting GENCAN loop" in content:
+            return True
+        return False
+
+    def _expand_box(self, mol: SolvatedSystem, delta_ang: float) -> None:
+        mol.cubesize = mol.cubesize + delta_ang
+        self.logger.warning(
+            "Packmol remedy: expanded box by %.2f angstrom. New box size: %.2f %.2f %.2f",
+            delta_ang,
+            mol.cubesize[0],
+            mol.cubesize[1],
+            mol.cubesize[2],
+        )
 
     def generate_input(self, mol: SolvatedSystem) -> None:
         self.write_packmol_inp(mol)
@@ -206,8 +237,9 @@ class PackmolDocker(GeneralDocker):
         with open(self.packmolout, 'r') as f:
             content = f.read()
         if content.find("                   Success!") == -1:
-            self.logger.critical("Packmol failed to generate the system pdb!")
-            self.logger.critical("Please check the packmol output file for details.")
+            # this is for falling back to the generated pdb even if packmol did not fully converge, which is a common issue. The generated pdb may not be perfect, but it is better than nothing.
+            self.logger.warning("Packmol failed to generate the system pdb!")
+            # self.logger.critical("Please check the packmol output file for details.")
             raise RuntimeError("Packmol failed to generate the system pdb!")
         if not os.path.exists(self.outpdb):
             self.logger.critical("The system pdb {} is not found!".format(self.outpdb))
@@ -237,9 +269,46 @@ class PackmolDocker(GeneralDocker):
         self.logger.name = self.__class__.__name__
         self.check_system(mol)
         self.predict_output(mol)
-        self.generate_input(mol)
-        cmd = self.generate_cmd()
-        self.execute(cmd)
-        self.check_output()
+
+        packmol_ok = False
+        for remedy_trial in range(self._PACKMOL_MAX_REMEDY_TRIALS + 1):
+            self.generate_input(mol)
+            cmd = self.generate_cmd()
+            self.execute(cmd)
+
+            try:
+                self.check_output()
+                packmol_ok = True
+                break
+            except RuntimeError as err:
+                if not self._packmol_started():
+                    self.logger.critical(
+                        "Packmol did not start correctly. This is not a packmol convergence failure; no remedy retry is applied."
+                    )
+                    raise err
+
+                if remedy_trial < self._PACKMOL_MAX_REMEDY_TRIALS:
+                    self._expand_box(mol, self._PACKMOL_BOX_INCREMENT_ANG)
+                    self.logger.warning(
+                        "Packmol attempt %d/%d failed after start; retrying with expanded box.",
+                        remedy_trial + 1,
+                        self._PACKMOL_MAX_REMEDY_TRIALS,
+                    )
+                    continue
+
+                if os.path.exists(self.outpdb):
+                    self.logger.warning(
+                        "Packmol failed strict success criteria after %d remedy attempts, but generated pdb exists: %s. "
+                        "Proceeding with this suboptimal structure.",
+                        self._PACKMOL_MAX_REMEDY_TRIALS,
+                        self.outpdb,
+                    )
+                    packmol_ok = True
+                    break
+                raise err
+
+        if not packmol_ok:
+            raise RuntimeError("Packmol failed and no usable pdb was generated.")
+
         self.process_output(mol)
 

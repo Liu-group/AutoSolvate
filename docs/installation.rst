@@ -9,6 +9,12 @@ Dependencies
 
 .. note::
 
+   AutoSolvate currently targets **Python 3.12**, with **Python 3.11/3.10**
+   retained as fallback options for environments where 3.12 dependency solving
+   is not yet stable.
+
+.. note::
+
    **Windows users**: **AmberTools** cannot be installed from conda, and therefore cannot be automatically installed with the following approaches. **AmberTools** is the only dependency for Windows Users and needs separate installation.
 
    **Mac/Linux users**: No dependency as long as you follow the instructions below.
