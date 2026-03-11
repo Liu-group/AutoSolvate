@@ -19,7 +19,7 @@
     }
   ],
   "qm_program": "orca",
-  "qm_dir": "/pscratch/sd/f/fren5/orca_6_1_0",
+  "qm_dir": "/home/shared/orca6.1/orca_6_1_1_linux_x86-64_shared_openmpi418_nodmrg/orca",
   "method": "hf",
   "basisset": "6-31G*",
   "nprocs": 1,

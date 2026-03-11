@@ -1,7 +1,13 @@
 import numpy as np
 import subprocess
 import logging
-from pyvdwsurface import vdwsurface
+
+try:
+    from pyvdwsurface import vdwsurface
+    _VDW_BACKEND = "pyvdwsurface"
+except Exception:
+    from autosolvate.resp_classes.vdwsurface_numpy import vdwsurface
+    _VDW_BACKEND = "numpy-fallback"
 
 esp_logger = logging.getLogger("RespESP")
 if not esp_logger.handlers:
@@ -12,6 +18,9 @@ if not esp_logger.handlers:
     esp_logger.setLevel(logging.INFO)
 
 AtoB = 1/0.52917721092
+ESP_GRID_DENSITY = 3
+
+esp_logger.info("Using VDW surface backend: %s", _VDW_BACKEND)
 
 def read_xyz(xyz):
     crds = []
@@ -33,19 +42,19 @@ def gen_grids(crds,elements,orcapath,gbw,denisty,out):
     gridall = []
     atoms = np.array(crds,dtype=float)
     elements_bytes = [element.encode('utf-8') for element in elements]
-    points_1 = vdwsurface(atoms, elements=elements_bytes, density=1,scale_factor = 2.0)
+    points_1 = vdwsurface(atoms, elements=elements_bytes, density=ESP_GRID_DENSITY,scale_factor = 2.0)
     new_point_1 =  [[x *AtoB for x in sublist] for sublist in points_1]
     gridall.extend(new_point_1)
 
-    points_2 = vdwsurface(atoms, elements=elements_bytes, density=1,scale_factor = 1.4)
+    points_2 = vdwsurface(atoms, elements=elements_bytes, density=ESP_GRID_DENSITY,scale_factor = 1.4)
     new_point_2=  [[x *AtoB for x in sublist] for sublist in points_2]
     gridall.extend(new_point_2)
 
-    points_3 = vdwsurface(atoms, elements=elements_bytes, density=1,scale_factor = 1.6)
+    points_3 = vdwsurface(atoms, elements=elements_bytes, density=ESP_GRID_DENSITY,scale_factor = 1.6)
     new_point_3=  [[x *AtoB for x in sublist] for sublist in points_3]
     gridall.extend(new_point_3)
 
-    points_4 = vdwsurface(atoms, elements=elements_bytes, density=1,scale_factor = 1.8)
+    points_4 = vdwsurface(atoms, elements=elements_bytes, density=ESP_GRID_DENSITY,scale_factor = 1.8)
     new_point_4=  [[x *AtoB for x in sublist] for sublist in points_4]
     gridall.extend(new_point_4)
 

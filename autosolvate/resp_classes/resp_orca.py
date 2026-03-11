@@ -1,6 +1,7 @@
 import autosolvate.resp_classes.gen_esp as gen_esp
 from autosolvate.resp_classes.resp_abstract import RespABC
 import os
+import shutil
 def get_crds_from_xyz(inp):
     crds = []
     with open(inp,'r') as f:
@@ -36,8 +37,24 @@ class RespORCA(RespABC):
             self.logger.info(f"Found ORCA executable at {self.qm_dir}")
             self.orcapath = self.qm_dir
         else:
-            self.logger.error("ORCA executable not found")
-            raise FileNotFoundError("ORCA executable not found at specified path")
+            self.orcapath = self.qm_exe
+            self.logger.warning(
+                "ORCA executable not found at configured path; will defer check until runtime. "
+                "Configured qm_dir=%s qm_exe=%s",
+                self.qm_dir,
+                self.qm_exe,
+            )
+
+    def _require_executable(self, exe_name: str):
+        if os.path.isabs(exe_name):
+            if os.path.exists(exe_name) and os.access(exe_name, os.X_OK):
+                return exe_name
+        else:
+            resolved = shutil.which(exe_name)
+            if resolved is not None:
+                return resolved
+        raise FileNotFoundError(f"Required executable not found at runtime: {exe_name}")
+
     def writeOrcaInput(self):
         """
         Set up Orca calculation to compute electrostatic potential.
@@ -80,6 +97,7 @@ class RespORCA(RespABC):
                     convergence = True
             
         if not convergence:
+            self._require_executable(self.orcapath)
             if self.srun_use:
                 procs = str(self.nprocs or 1)
                 cmd1='srun -n ' + procs + ' ' +cmd1
@@ -98,6 +116,13 @@ class RespORCA(RespABC):
         density = self.molname + '_orca.scfp'
         espf =  self.molname + '_orca.esp'
         out =  self.molname + '_orca.espout'
+
+        if os.path.exists(espf) and os.path.getsize(espf) > 0:
+            self.logger.info("Found existing ESP file %s; skipping ORCA vpot generation", os.path.abspath(espf))
+            return
+
+        self._require_executable(vpotpath)
+
         crds = get_crds_from_xyz(self.xyzfile)
         elements = []
         newcrds = []

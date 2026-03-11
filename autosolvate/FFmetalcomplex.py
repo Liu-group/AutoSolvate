@@ -4,7 +4,7 @@ from . import autoMCPB
 from . import QM_gen
 from . import boxgen_metal
 import getopt
-from . import gen_esp
+from .resp_classes import gen_esp
 import subprocess
 from glob import glob
 

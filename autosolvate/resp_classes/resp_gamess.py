@@ -26,19 +26,44 @@ class RespGAMESS(RespABC):
         if self.qm_dir == None:
            self.logger.warning("GAMESS directory not specified; default path will be used")
            self.qm_dir = '/opt/gamess/'
-           gamess_path = os.path.join(self.qm_dir, self.qm_exe)
-           if not os.path.exists(gamess_path):
-               raise FileNotFoundError(f"GAMESS executable path missing: {gamess_path}")
+
+        gamess_path = os.path.join(self.qm_dir, self.qm_exe)
+        if not os.path.exists(gamess_path):
+            self.logger.warning(
+                "GAMESS executable not found at configured path; will defer check until runtime: %s",
+                gamess_path,
+            )
+
         gmsexe_fnames = glob.glob(os.path.join(self.qm_dir,'gamess.*.x'))
         gmsexe_versions = []
         if len(gmsexe_fnames) > 0:
             gmsexe_versions = [ fname[-4:-2] for fname in gmsexe_fnames]
         else:
-            raise FileNotFoundError(f"No GAMESS executable named gamess.XX.x under {self.qm_dir}")
+            self.logger.warning("No GAMESS executable named gamess.XX.x under %s", self.qm_dir)
             
-        self.version = kwargs["gamessversion"] if "gamessversion" in kwargs else gmsexe_versions[-1]
+        if "gamessversion" in kwargs:
+            self.version = kwargs["gamessversion"]
+        elif len(gmsexe_versions) > 0:
+            self.version = gmsexe_versions[-1]
+        else:
+            self.version = "00"
+            self.logger.warning("GAMESS version not detected; defaulting version token to %s", self.version)
         self.logger.debug("Available GAMESS versions: %s", gmsexe_versions)
         # By default, use the latest version of GAMESS under the directory.
+
+    def _resolve_gamess_executable(self):
+        candidate = os.path.join(self.qm_dir, self.qm_exe)
+        if os.path.exists(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+        from_path = shutil.which(self.qm_exe)
+        if from_path:
+            return from_path
+        raise FileNotFoundError(
+            "GAMESS executable not found at runtime. Checked: {} and PATH for '{}'".format(
+                candidate,
+                self.qm_exe,
+            )
+        )
             
 
     def findLineStartWith(self, lines, string):
@@ -192,7 +217,7 @@ class RespGAMESS(RespABC):
         # Extract electrostatic potential.
         import re
         index = self.findLineStartWith(log_lines, ' NUMBER OF POINTS SELECTED FOR FITTING =')
-        npoints = int(re.match(' NUMBER OF POINTS SELECTED FOR FITTING =\s*(\d+)\n', log_lines[index]).groups()[0])
+        npoints = int(re.match(r' NUMBER OF POINTS SELECTED FOR FITTING =\s*(\d+)\n', log_lines[index]).groups()[0])
         index = self.findLineStartWith(dat_lines, ' ELECTROSTATIC POTENTIAL, IPT,X,Y,Z,ELPOTT')
         self.potential = { } # Electrostatic potential: potential[(x,y,z)] = psi
         for line in dat_lines[index+2:index+npoints+2]:            
@@ -275,7 +300,9 @@ class RespGAMESS(RespABC):
         gamess_dat = self.molname + "_gamess.dat"
         local_dat = os.path.abspath(os.path.join(self.resp_scr_dir, gamess_dat))
 
-        cmd = os.path.join(self.qm_dir, self.qm_exe) + " " \
+        gamess_exe = self._resolve_gamess_executable()
+
+        cmd = gamess_exe + " " \
             + gamess_inp + " " \
             + self.version + " " \
             + str(self.nnodes * self.ncpus) + " " \
