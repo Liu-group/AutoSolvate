@@ -73,7 +73,6 @@ def calculate_solvent_numbers_from_molar_portions(
     mass = total_volume_m3 * estimated_density * 1000 # convert density from g/cm3 to kg/m3
     mass_g = mass * 1000
     numbers = [mass_g * portion / mw * N_A for mw, portion in zip(solvent_mws, weight_portions)]
-    print(mass_g, numbers)
     return list(map(int, numbers))
 
 

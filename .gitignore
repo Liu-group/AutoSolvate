@@ -109,3 +109,4 @@ ENV/
 .github/skills
 .env
 test_*/
+.vscode/

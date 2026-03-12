@@ -12,6 +12,7 @@ mendeleev
 networkx
 pubchempy
 molsimplify==1.8.0
+# fastmcp is optional (MCP server). Install via conda-forge or pip if needed.
 
 # Installed from source repositories used by AutoSolvate
 git+https://github.com/MolSSI-BSE/basis_set_exchange.git

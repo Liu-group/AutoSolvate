@@ -40,7 +40,10 @@ setup(
     package_data={'autosolvate': ['GUI/*/*.*','data/*','data/*/*']},
 
     entry_points={
-        'console_scripts': ['autosolvate = autosolvate.__main__:main']
+        'console_scripts': [
+            'autosolvate = autosolvate.__main__:main',
+            'autosolvate-mcp = autosolvate.fastmcp_server:main',
+        ]
     },
 
     # Optional include package data to ship with your package
@@ -54,6 +57,9 @@ setup(
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     # url='http://www.my_package.com',  # Website
     install_requires=['imolecule'],              # Required packages, pulls from pip if needed; do not use for Conda deployment
+    extras_require={
+        'mcp': ['fastmcp>=3.0,<4'],
+    },
     # platforms=['Linux',
     #            'Mac OS-X',
     #            'Unix',

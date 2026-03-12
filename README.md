@@ -10,6 +10,29 @@
 
 Automated workflow for setting up explicit solvent quantum chemistry calculations for molecules.
 
+### MCP JSON helper
+AutoSolvate can emit a ready-to-use MCP server config (for GitHub Copilot, Claude, etc.).
+
+```bash
+autosolvate mcp_json --full > mcp.json
+```
+
+FastMCP is optional. Install it if you want the MCP server:
+
+```bash
+conda install -c conda-forge fastmcp
+```
+
+Or with pip:
+
+```bash
+pip install fastmcp
+```
+
+Options:
+- `--server-name NAME`: customize the server name (default: `autosolvate-local`).
+- `--indent N`: JSON indentation (default: 2).
+
 ### Online Documentation
 https://autosolvate.readthedocs.io/en/latest/
 

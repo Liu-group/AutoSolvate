@@ -55,7 +55,7 @@ def _detect_amber():
             print(f"Detected {name}: {path}")
     if amberhome and all(v for v in tools.values()):
         print(f"Successfully detected AmberTools installation at {amberhome}")
-    if not amberhome.endswith("/"):
+    if amberhome and not amberhome.endswith("/"):
         amberhome += "/"
     return amberhome, tools
 
@@ -361,7 +361,7 @@ def _ask_qm_settings(has_tmc: bool, config: dict, amberhome_default: Optional[st
 def _preset_solvent_defaults(name: str) -> Dict[str, Any]:
     defaults = {}
     if name in SOLVENT_DENSITY:
-        defaults["density"] = SOLVENT_DENSITY[name] / 1000.0  # convert to g/cm3
+        defaults["density"] = SOLVENT_DENSITY[name]
     if name in SOLVENT_MW:
         defaults["molecular_weight"] = SOLVENT_MW[name]
     defaults["residue_name"] = name[:3].upper()
@@ -442,9 +442,9 @@ def _ask_solvents(cube_size: Any) -> List[dict]:
             if "density" not in comp and comp.get("name") in SOLVENT_DENSITY:
                 default_density = SOLVENT_DENSITY[comp["name"]] / 1000.0
             if not default_density:
-                density_prompt = f"Enter target density g/cm^3 for component #{j} (e.g., {TARGET_DENSITY_G_CM3})\n> "
+                density_prompt = f"Enter target density g/cm^3 for component #{j} (unit: g/cm^3, not kg/m^3; e.g., {TARGET_DENSITY_G_CM3})\n> "
             else:
-                density_prompt = f"Enter target density g/cm^3 for component #{j} (default {default_density:.2f})\n> "
+                density_prompt = f"Enter target density g/cm^3 for component #{j} (unit: g/cm^3, not kg/m^3; default {default_density:.3f})\n> "
             density = ask_value(
                 density_prompt,
                 parser=parse_float,
@@ -488,9 +488,9 @@ def _ask_solvents(cube_size: Any) -> List[dict]:
             else:
                 default_density = None
             if default_density is None:
-                density_prompt = f"Enter the density g/cm^3 for component #{j} (e.g., {TARGET_DENSITY_G_CM3})\n> "
+                density_prompt = f"Enter the density g/cm^3 for component #{j} (unit: g/cm^3, not kg/m^3; e.g., {TARGET_DENSITY_G_CM3})\n> "
             else:
-                density_prompt = f"Enter the density g/cm^3 for component #{j} (default {default_density:.2f})\n> "
+                density_prompt = f"Enter the density g/cm^3 for component #{j} (unit: g/cm^3, not kg/m^3; default {default_density:.3f})\n> "
             density = ask_value(
                 density_prompt,
                 parser=parse_float,
@@ -530,7 +530,7 @@ def _ask_solvents(cube_size: Any) -> List[dict]:
     # compute numbers if ratio-based (only when multiple components use ratios)
     if n > 1 and method in (2, 3, 4):
         volume_m3 = cube_size_to_volume_m3(cube_size)
-        densities = [float(s["density"]) * 1000 for s in solvents]  # to kg/m3
+        densities = [float(s["density"]) for s in solvents]
         mws = [float(s["molecular_weight"]) for s in solvents]
         if method == 2:
             ratios = [float(s["weight_ratio"]) for s in solvents]

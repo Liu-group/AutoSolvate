@@ -764,7 +764,7 @@ def startmulticomponent_fromdata(data:dict):
     parser.parse()
     data = parser.data
 
-    data["folder"] = WORKING_DIR
+    data["folder"] = data.get("folder", WORKING_DIR)
     json.dump(data, open(os.path.join(data["folder"], "autosolvate_input_full.json"), "w"), indent=4)
 
     signature = inspect.signature(MixtureBuilder.__init__)
