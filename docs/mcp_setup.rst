@@ -28,11 +28,19 @@ From the environment where AutoSolvate is installed:
 
    autosolvate mcp_json --full > mcp.json
 
+For a long-running HTTP MCP server (recommended for frameworks that do not want
+the server lifecycle tied to a stdio pipe), generate an HTTP config instead:
+
+.. code-block:: bash
+
+  autosolvate mcp_json --full --transport streamable-http --host 127.0.0.1 --port 8000 > mcp.json
+
 This command:
 
 - Detects the active Python executable and environment prefix.
 - Populates `AMBERHOME`, `PATH`, and `LD_LIBRARY_PATH` when available.
 - Emits warnings to `stderr` if key executables are missing.
+- For HTTP configs, prints the recommended `autosolvate mcp_server ...` startup command to `stderr`.
 
 Use the config in VS Code
 -------------------------
@@ -59,6 +67,34 @@ Paste the generated server block into your VS Code (or other agent) MCP config (
      "inputs": []
    }
 
+HTTP configuration example:
+
+.. code-block:: json
+
+   {
+     "servers": {
+       "autosolvate-local": {
+         "type": "http",
+         "url": "http://127.0.0.1:8000/mcp"
+       }
+     },
+     "inputs": []
+   }
+
+Run the HTTP server separately
+------------------------------
+
+If you choose HTTP transport, start the server in a terminal before connecting
+your MCP client:
+
+.. code-block:: bash
+
+   autosolvate mcp_server --transport streamable-http --host 127.0.0.1 --port 8000
+
+`streamable-http` is usually the best choice for persistent integrations such as
+LangChain adapters, because the AutoSolvate process is no longer tied to a stdio
+pipe owned by the caller.
+
 Notes
 -----
 
@@ -69,3 +105,8 @@ Notes
   .. code-block:: bash
 
      autosolvate mcp_json --full --server-name autosolvate-local
+- You can customize the HTTP endpoint path if needed:
+
+  .. code-block:: bash
+
+     autosolvate mcp_json --full --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp

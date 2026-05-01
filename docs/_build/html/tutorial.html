@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial &mdash; AutoSolvate  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
-      <script src="_static/doctools.js?v=888ff710"></script>
-      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -59,8 +59,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for AutoSolvate Multicomponent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_setup.html">MCP Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
 </ul>
@@ -90,13 +91,14 @@
            <div itemprop="articleBody">
              
   <section id="tutorial">
-<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this heading"></a></h1>
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading"></a></h1>
 <p>The following tutorial illustrates the basic usage of Autosolvate in the command line interface (CLI).</p>
 <p>There will be three example systems: naphthalene in water, naphthalene radical in chloroform, naphthalene in acetonitrile</p>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
 <p>Once you have AutoSolvate and all dependencies installed you will need the solute xyz file and then you are ready to go! Make sure to give each molecule its own directory to avoid the possibility of overwriting the amber files when running two at a time. The naphthalene neutral and radical coordinates are provided below so that you can follow along on your own computer:</p>
-<a class="reference internal image-reference" href="_images/tutorial4_1.jpg"><img alt="_images/tutorial4_1.jpg" src="_images/tutorial4_1.jpg" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/tutorial4_1.jpg"><img alt="_images/tutorial4_1.jpg" src="_images/tutorial4_1.jpg" style="width: 400px;" />
+</a>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">18</span>
 <span class="n">naphthalene</span> <span class="n">neutral</span>
  <span class="n">C</span>     <span class="mf">2.4397703245</span>   <span class="o">-</span><span class="mf">0.7099883961</span>    <span class="mf">0.0000206200</span>
@@ -150,9 +152,9 @@
 <p>Now that you have the structures, make a directory for each example. We will start with the neutral molecule.</p>
 </section>
 <section id="example-1-naphthalene-in-water">
-<h2>Example 1: Naphthalene in Water<a class="headerlink" href="#example-1-naphthalene-in-water" title="Permalink to this heading"></a></h2>
+<h2>Example 1: Naphthalene in Water<a class="headerlink" href="#example-1-naphthalene-in-water" title="Link to this heading"></a></h2>
 <section id="step-1-solvate-system">
-<h3>Step 1: Solvate system<a class="headerlink" href="#step-1-solvate-system" title="Permalink to this heading"></a></h3>
+<h3>Step 1: Solvate system<a class="headerlink" href="#step-1-solvate-system" title="Link to this heading"></a></h3>
 <p>The first step is putting the solute in the solvent box, which uses the boxgen command. The documentation shows all of the options for this command, but the only one that is required is specifying the solute xyz file. It will be listed as -m for main. To run boxgen with all of the default settings, use the following command:</p>
 <p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen</span> <span class="pre">-m</span> <span class="pre">naphthalene_neutral.xyz</span></code></p>
 <p>Autosolvate will use the default values of water as the solvent, solute charge of 0, solute multiplicity of 1, charge fitting method of resp, box size of 54, and output file name of water_solvated.</p>
@@ -243,7 +245,8 @@ The script has finished successfully
 </pre></div>
 </div>
 <p>The fourth column has 18 ‘SLU’ entries, or solvent, and under that there are 6 ‘WAT’ entries, which we can see makes up two water molecules. When you visualize <code class="docutils literal notranslate"><span class="pre">water_solvated.pdb</span></code> you should be able to see the water box containing the solute:</p>
-<a class="reference internal image-reference" href="_images/tutorial4_2.png"><img alt="_images/tutorial4_2.png" src="_images/tutorial4_2.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/tutorial4_2.png"><img alt="_images/tutorial4_2.png" src="_images/tutorial4_2.png" style="width: 400px;" />
+</a>
 <p>With these three files, we are ready to proceed to the next step!</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -253,7 +256,7 @@ The script has finished successfully
 </div>
 </section>
 <section id="step-2-md-simulation">
-<span id="tutstep2"></span><h3>Step 2: MD Simulation<a class="headerlink" href="#step-2-md-simulation" title="Permalink to this heading"></a></h3>
+<span id="tutstep2"></span><h3>Step 2: MD Simulation<a class="headerlink" href="#step-2-md-simulation" title="Link to this heading"></a></h3>
 <p>The second step is running molecular dynamics, which includes equilibration and production time. For this tutorial, we will run a very fast demonstration just to see how the mdrun command works.</p>
 <p>To do a short example run of QM/MM use the following command:</p>
 <p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">mdrun</span> <span class="pre">-f</span> <span class="pre">water_solvated</span> <span class="pre">-q</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-t</span> <span class="pre">300</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-m</span> <span class="pre">10000</span> <span class="pre">-n</span> <span class="pre">10000</span> <span class="pre">-o</span> <span class="pre">100</span> <span class="pre">-s</span> <span class="pre">100</span> <span class="pre">-l</span> <span class="pre">250</span> <span class="pre">-r</span></code></p>
@@ -411,7 +414,7 @@ QMMM NVT Run
 </div>
 </section>
 <section id="step-3-microsolvated-cluster-extraction">
-<h3>Step 3: Microsolvated cluster extraction<a class="headerlink" href="#step-3-microsolvated-cluster-extraction" title="Permalink to this heading"></a></h3>
+<h3>Step 3: Microsolvated cluster extraction<a class="headerlink" href="#step-3-microsolvated-cluster-extraction" title="Link to this heading"></a></h3>
 <p>The last step is extracting a cluster from the previous results that can be used for microsolvation. In the QMMM above, the solute is treated with QM and the explicit solvent molecules are treated with MM. In this step, a cluster will be extracted from the QMMM box so that the cluster can be treated with QM. The explicitly solvated cluster will be surrounded by implicit solvent, and we refer to the implicit + explicit combination as microsolvation.</p>
 <p>To extract the cluster from the final QMMM results, use the following command:</p>
 <p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">water_solvated.prmtop</span> <span class="pre">-t</span> <span class="pre">water_solvated-qmmmnvt.netcdf</span></code></p>
@@ -437,11 +440,12 @@ saving xyz
 </pre></div>
 </div>
 <p>The output of this command will be the cartesian coordinates of the microsolvated clusters in <code class="docutils literal notranslate"><span class="pre">water_solvated-cutoutn-*.xyz</span></code>, with * showing the frame number. When you open one of cut out files, the microsolvated cluster should look like this:</p>
-<a class="reference internal image-reference" href="_images/tutorial4_3.jpg"><img alt="_images/tutorial4_3.jpg" src="_images/tutorial4_3.jpg" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/tutorial4_3.jpg"><img alt="_images/tutorial4_3.jpg" src="_images/tutorial4_3.jpg" style="width: 400px;" />
+</a>
 <p>Running the above command only generates one xyz file because we only did 100 steps of the QMMM NVT in our example mdrun, and we asked for a cluster from every hundred frames. However, if we extract every 10 steps (with option <cite>-i 10</cite>), then we will get 10 coordinate files. We can increase the solvent shell size to 6 Å with <cite>-s 6</cite>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">clustergen</span> <span class="pre">-f</span> <span class="pre">water_solvated.prmtop</span> <span class="pre">-t</span> <span class="pre">water_solvated-qmmmnvt.netcdf</span> <span class="pre">-a</span> <span class="pre">0</span> <span class="pre">-i</span> <span class="pre">10</span> <span class="pre">-s</span> <span class="pre">6</span></code></p>
 <p>As Autosolvate is running, you will notice this line now includes the list of the 10 frames that the clusters will be extracted from:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">extracting</span> <span class="kn">from</span> <span class="nn">frames</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">90</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">extracting</span> <span class="kn">from</span><span class="w"> </span><span class="nn">frames</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">90</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>If you want spherical solvent shells instead of the default aspherical solvent shells add <code class="docutils literal notranslate"><span class="pre">-p</span></code> to the end of the previous command. Then the solvent shell size is measured from the center of mass of the solute.</p>
@@ -457,7 +461,7 @@ saving xyz
 </section>
 </section>
 <section id="example-2-naphthalene-radical-in-chloroform">
-<h2>Example 2: Naphthalene Radical in Chloroform<a class="headerlink" href="#example-2-naphthalene-radical-in-chloroform" title="Permalink to this heading"></a></h2>
+<h2>Example 2: Naphthalene Radical in Chloroform<a class="headerlink" href="#example-2-naphthalene-radical-in-chloroform" title="Link to this heading"></a></h2>
 <p>Now that we have gone through the details of one example, the second example will be the compact version of a production run.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen</span> <span class="pre">-m</span> <span class="pre">naphthalene_radical.xyz</span> <span class="pre">-s</span> <span class="pre">chloroform</span> <span class="pre">-c</span> <span class="pre">1</span> <span class="pre">-u</span> <span class="pre">2</span> <span class="pre">-g</span> <span class="pre">&quot;resp&quot;</span> <span class="pre">-o</span> <span class="pre">nap_radical_chcl3</span></code></dt><dd><ul class="simple">
@@ -476,10 +480,11 @@ saving xyz
 </ul>
 </dd>
 </dl>
-<a class="reference internal image-reference" href="_images/tutorial4_4.jpg"><img alt="_images/tutorial4_4.jpg" src="_images/tutorial4_4.jpg" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/tutorial4_4.jpg"><img alt="_images/tutorial4_4.jpg" src="_images/tutorial4_4.jpg" style="width: 400px;" />
+</a>
 </section>
 <section id="example-3-naphthalene-in-acetonitrile-custom-solvent">
-<h2>Example 3: Naphthalene in Acetonitrile (custom solvent)<a class="headerlink" href="#example-3-naphthalene-in-acetonitrile-custom-solvent" title="Permalink to this heading"></a></h2>
+<h2>Example 3: Naphthalene in Acetonitrile (custom solvent)<a class="headerlink" href="#example-3-naphthalene-in-acetonitrile-custom-solvent" title="Link to this heading"></a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">autosolvate</span> <span class="pre">boxgen</span> <span class="pre">-m</span> <span class="pre">naphthalene_neutral.xyz</span> <span class="pre">-s</span> <span class="pre">acetonitrile</span> <span class="pre">-c</span> <span class="pre">0</span> <span class="pre">-u</span> <span class="pre">1</span> <span class="pre">-g</span> <span class="pre">&quot;bcc&quot;</span> <span class="pre">-o</span> <span class="pre">nap_neutral_MeCN</span></code></dt><dd><ul class="simple">
 <li><p>custom solvent called the same as Amber pre-equilibrated solvent boxes</p></li>
@@ -496,7 +501,8 @@ saving xyz
 </ul>
 </dd>
 </dl>
-<a class="reference internal image-reference" href="_images/tutorial4_5.jpg"><img alt="_images/tutorial4_5.jpg" src="_images/tutorial4_5.jpg" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/tutorial4_5.jpg"><img alt="_images/tutorial4_5.jpg" src="_images/tutorial4_5.jpg" style="width: 400px;" />
+</a>
 </section>
 </section>
 

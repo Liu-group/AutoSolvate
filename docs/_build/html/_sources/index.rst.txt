@@ -41,6 +41,7 @@ Quickstart
    advancedTutorial
    tutorialMulticomponent
    tutorial_for_metalcomplexes
+   mcp_setup
    api
    citation
 

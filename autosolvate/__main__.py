@@ -4,6 +4,7 @@
 # !/usr/bin/env python
 
 import json
+import importlib.util
 import os
 import sys
 
@@ -20,7 +21,24 @@ def _detect_env_prefix() -> str | None:
     return None
 
 
-def _build_mcp_server_config(server_name: str) -> dict:
+def _collect_mcp_warnings(prefix: str | None, amberhome: str | None) -> list[str]:
+    warnings = []
+    if not prefix:
+        warnings.append("Unable to detect environment prefix; PATH/LD_LIBRARY_PATH may be incomplete.")
+    if not amberhome:
+        warnings.append("AMBERHOME not detected; AmberTools-dependent workflows may fail.")
+    if importlib.util.find_spec("fastmcp") is None:
+        warnings.append("fastmcp is not installed; 'autosolvate mcp_server' will not start until fastmcp is installed.")
+    if prefix:
+        bin_dir = os.path.join(prefix, "bin")
+        expected_bins = ["antechamber", "parmchk2", "tleap", "packmol", "obabel"]
+        missing = [b for b in expected_bins if not os.path.exists(os.path.join(bin_dir, b))]
+        if missing:
+            warnings.append(f"Missing executables in {bin_dir}: {', '.join(missing)}")
+    return warnings
+
+
+def _build_stdio_mcp_server_config(server_name: str) -> dict:
     prefix = _detect_env_prefix()
     amberhome = os.environ.get("AMBERHOME")
     if not amberhome and prefix:
@@ -36,18 +54,7 @@ def _build_mcp_server_config(server_name: str) -> dict:
         env["PATH"] = f"{prefix}/bin:${{env:PATH}}"
         env["LD_LIBRARY_PATH"] = f"{prefix}/lib:${{env:LD_LIBRARY_PATH}}"
 
-    warnings = []
-    if not prefix:
-        warnings.append("Unable to detect environment prefix; PATH/LD_LIBRARY_PATH may be incomplete.")
-    if not amberhome:
-        warnings.append("AMBERHOME not detected; AmberTools-dependent workflows may fail.")
-    if prefix:
-        bin_dir = os.path.join(prefix, "bin")
-        expected_bins = ["antechamber", "parmchk2", "tleap", "packmol", "obabel"]
-        missing = [b for b in expected_bins if not os.path.exists(os.path.join(bin_dir, b))]
-        if missing:
-            warnings.append(f"Missing executables in {bin_dir}: {', '.join(missing)}")
-    for message in warnings:
+    for message in _collect_mcp_warnings(prefix, amberhome):
         print(f"Warning: {message}", file=sys.stderr)
 
     return {
@@ -60,14 +67,59 @@ def _build_mcp_server_config(server_name: str) -> dict:
     }
 
 
+def _build_http_mcp_server_config(server_name: str, host: str, port: int, path: str) -> dict:
+    prefix = _detect_env_prefix()
+    amberhome = os.environ.get("AMBERHOME")
+    if not amberhome and prefix:
+        amber_bin = os.path.join(prefix, "bin")
+        if os.path.exists(os.path.join(amber_bin, "antechamber")) or os.path.exists(os.path.join(amber_bin, "tleap")):
+            amberhome = prefix
+
+    normalized_path = path if path.startswith("/") else f"/{path}"
+    for message in _collect_mcp_warnings(prefix, amberhome):
+        print(f"Warning: {message}", file=sys.stderr)
+    print(
+        "Info: Start the HTTP MCP server separately with: "
+        f"{sys.executable} -m autosolvate mcp_server --transport streamable-http --host {host} --port {port}",
+        file=sys.stderr,
+    )
+
+    return {
+        server_name: {
+            "type": "http",
+            "url": f"http://{host}:{port}{normalized_path}",
+        }
+    }
+
+
 def _emit_mcp_json(args: list[str]) -> None:
     server_name = "autosolvate-local"
     emit_full = False
     indent = 2
+    transport = "stdio"
+    host = "127.0.0.1"
+    port = 8000
+    path = "/mcp"
     i = 0
     while i < len(args):
         if args[i] == "--server-name" and i + 1 < len(args):
             server_name = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--transport" and i + 1 < len(args):
+            transport = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--host" and i + 1 < len(args):
+            host = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--port" and i + 1 < len(args):
+            port = int(args[i + 1])
+            i += 2
+            continue
+        if args[i] == "--path" and i + 1 < len(args):
+            path = args[i + 1]
             i += 2
             continue
         if args[i] == "--full":
@@ -79,14 +131,23 @@ def _emit_mcp_json(args: list[str]) -> None:
             i += 2
             continue
         if args[i] in {"-h", "--help"}:
-            print("Usage: autosolvate mcp_json [--full] [--server-name NAME] [--indent N]")
+            print("Usage: autosolvate mcp_json [--full] [--server-name NAME] [--indent N] [--transport stdio|streamable-http] [--host HOST] [--port PORT] [--path PATH]")
             print("  --full              emit a full mcp.json with a servers block")
             print("  --server-name NAME  MCP server name (default: autosolvate-local)")
             print("  --indent N          JSON indentation (default: 2)")
+            print("  --transport MODE    emit stdio or HTTP MCP config (default: stdio)")
+            print("  --host HOST         HTTP host in generated URL (default: 127.0.0.1)")
+            print("  --port PORT         HTTP port in generated URL (default: 8000)")
+            print("  --path PATH         HTTP MCP path (default: /mcp)")
             return
         i += 1
 
-    server_block = _build_mcp_server_config(server_name)
+    if transport == "stdio":
+        server_block = _build_stdio_mcp_server_config(server_name)
+    elif transport in {"http", "streamable-http"}:
+        server_block = _build_http_mcp_server_config(server_name, host=host, port=port, path=path)
+    else:
+        raise ValueError(f"Unsupported transport for mcp_json: {transport}")
     payload = {"servers": server_block, "inputs": []} if emit_full else server_block[server_name]
     print(json.dumps(payload, indent=indent))
 
@@ -146,7 +207,7 @@ def main(args=None):
         startmulticomponent(args[1:]) 
     elif args[0] == 'boxgen_interactive':
         print('AutoSolvate interactive input generator!')
-        from autosolvate.cli.boxgen_interactive import main as interactive_main
+        from autosolvate.boxgen_interactive import main as interactive_main
         interactive_main(args[1:])
     elif args[0] == 'mcp_server':
         from autosolvate.fastmcp_server import main as mcp_main

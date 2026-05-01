@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import argparse
-import copy
-import json
+import io
 import logging
 import os
 import pty
@@ -12,7 +11,7 @@ import sys
 import threading
 import time
 import uuid
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -25,9 +24,8 @@ except Exception as exc:  # pragma: no cover - import guarded for optional depen
 else:
     _FASTMCP_IMPORT_ERROR = None
 
-from autosolvate.multicomponent import startmulticomponent_fromdata
-from autosolvate.utils.env_detection import detect_amber_tools, detect_amberhome
-from autosolvate.utils.inputparser import InputParser
+from autosolvate.clustergen import startclustergen
+from autosolvate.generatetrajs import startmd
 
 
 if FastMCP is not None:
@@ -40,6 +38,15 @@ if FastMCP is not None:
     )
 else:
     mcp = None
+
+
+def _mcp_tool(*args, **kwargs):
+    def decorator(func):
+        if mcp is None:
+            return func
+        return mcp.tool(*args, **kwargs)(func)
+
+    return decorator
 
 _LOGGER = logging.getLogger("autosolvate.mcp")
 if not _LOGGER.handlers:
@@ -195,18 +202,6 @@ def _pushd(path: str):
         os.chdir(original)
 
 
-def _validate_ratio(value: float, key: str) -> None:
-    if value < 0 or value > 1:
-        raise ValueError(f"{key} must be in [0, 1]. Got {value}")
-
-
-def _normalize_with_parser(config: Dict[str, Any]) -> Dict[str, Any]:
-    parser = InputParser()
-    parser.read_dict(copy.deepcopy(config))
-    parser.parse()
-    return parser.data
-
-
 def _get_session(session_id: str) -> _PtySession:
     with _SESSIONS_LOCK:
         if session_id not in _SESSIONS:
@@ -214,25 +209,42 @@ def _get_session(session_id: str) -> _PtySession:
         return _SESSIONS[session_id]
 
 
-@mcp.tool()
-def autosolvate_check_environment() -> Dict[str, Any]:
-    """Check AMBERHOME detection and required AutoSolvate executables.
+def _collect_generated_files(before: set[str], after: set[str], working_dir: str) -> list[str]:
+    return sorted(os.path.abspath(os.path.join(working_dir, name)) for name in (after - before))
 
-    Returns tool paths, missing tools list, and a boolean status.
-    """
-    amberhome = detect_amberhome()
-    tools = detect_amber_tools(amberhome)
-    missing = [name for name, path in tools.items() if not path]
+
+def _run_legacy_cli(entrypoint, argument_list: list[str], working_dir: str) -> Dict[str, Any]:
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+    os.makedirs(working_dir, exist_ok=True)
+    with _pushd(working_dir):
+        before = set(os.listdir("."))
+        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+            entrypoint(argument_list)
+        after = set(os.listdir("."))
     return {
-        "amberhome": amberhome,
-        "tools": tools,
-        "all_tools_found": len(missing) == 0,
-        "missing_tools": missing,
+        "working_dir": os.path.abspath(working_dir),
+        "argument_list": argument_list,
+        "stdout": stdout_buffer.getvalue(),
+        "stderr": stderr_buffer.getvalue(),
+        "generated_files": _collect_generated_files(before, after, working_dir),
     }
 
 
-@mcp.tool()
-def autosolvate_cli_session_start(
+def _collect_reported_xyz_paths(stdout_text: str, working_dir: str) -> list[str]:
+    paths = []
+    for line in stdout_text.splitlines():
+        candidate = line.strip()
+        if not candidate.endswith(".xyz"):
+            continue
+        candidate_path = candidate if os.path.isabs(candidate) else os.path.join(working_dir, candidate)
+        if os.path.exists(candidate_path):
+            paths.append(os.path.abspath(candidate_path))
+    return sorted(set(paths))
+
+
+@_mcp_tool()
+def autosolvate_boxgen_start(
     agent_mode: bool = True,
     working_dir: Optional[str] = None,
     initial_read_timeout_sec: float = 2.0,
@@ -262,8 +274,8 @@ def autosolvate_cli_session_start(
     }
 
 
-@mcp.tool()
-def autosolvate_cli_session_send(
+@_mcp_tool()
+def autosolvate_boxgen_send(
     session_id: str,
     user_input: str,
     read_timeout_sec: float = 1.5,
@@ -281,25 +293,8 @@ def autosolvate_cli_session_send(
     }
 
 
-@mcp.tool()
-def autosolvate_cli_session_read(
-    session_id: str,
-    timeout_sec: float = 1.0,
-    max_bytes: int = 64000,
-) -> Dict[str, Any]:
-    """Read pending output from the wizard without sending input."""
-    session = _get_session(session_id)
-    output = session.read(timeout_sec=timeout_sec, max_bytes=max_bytes)
-    return {
-        "session_id": session_id,
-        "output": output.text,
-        "timed_out": output.timed_out,
-        "alive": session.is_alive(),
-    }
-
-
-@mcp.tool()
-def autosolvate_cli_session_close(session_id: str) -> Dict[str, Any]:
+@_mcp_tool()
+def autosolvate_boxgen_close(session_id: str) -> Dict[str, Any]:
     """Terminate a wizard session and release its PTY resources."""
     with _SESSIONS_LOCK:
         if session_id not in _SESSIONS:
@@ -316,104 +311,136 @@ def autosolvate_cli_session_close(session_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
-def autosolvate_draft_water_acn_molar_mixture(
-    cube_size: float = 30.0,
-    acetonitrile_molar_ratio: float = 0.3,
-    water_molar_ratio: float = 0.7,
-    charge_method: str = "bcc",
-    include_empty_solute: bool = True,
+def _build_mdrun_argument_list(
+    filename: str,
+    temperature: float,
+    pressure: float,
+    stepsmmmin: int,
+    stepsmmheat: int,
+    stepsmmnve: int,
+    stepsmmnpt: int,
+    stepsqmmmmin: int,
+    stepsqmmmheat: int,
+    stepsqmmmnve: int,
+    stepsqmmmnvt: int,
+    charge: int,
+    spinmultiplicity: int,
+    functional: str,
+    srun_use: bool,
+    pmemduse: bool,
+    dryrun: bool,
+    freeze_solute: bool,
+) -> list[str]:
+    argument_list = [
+        "-f", filename,
+        "-t", str(temperature),
+        "-p", str(pressure),
+        "-i", str(stepsmmmin),
+        "-m", str(stepsmmheat),
+        "-b", str(stepsmmnve),
+        "-n", str(stepsmmnpt),
+        "-l", str(stepsqmmmmin),
+        "-o", str(stepsqmmmheat),
+        "-v", str(stepsqmmmnve),
+        "-s", str(stepsqmmmnvt),
+        "-q", str(charge),
+        "-u", str(spinmultiplicity),
+        "-k", functional,
+    ]
+    if srun_use:
+        argument_list.append("-r")
+    if pmemduse:
+        argument_list.append("-x")
+    if dryrun:
+        argument_list.append("-d")
+    if freeze_solute:
+        argument_list.append("-z")
+    return argument_list
+
+
+@_mcp_tool()
+def autosolvate_mdrun(
+    filename: str,
+    working_dir: str = ".",
+    temperature: float = 300.0,
+    pressure: float = 1.0,
+    stepsmmmin: int = 2000,
+    stepsmmheat: int = 10000,
+    stepsmmnve: int = 0,
+    stepsmmnpt: int = 300000,
+    stepsqmmmmin: int = 250,
+    stepsqmmmheat: int = 1000,
+    stepsqmmmnve: int = 0,
+    stepsqmmmnvt: int = 10000,
+    charge: int = 0,
+    spinmultiplicity: int = 1,
+    functional: str = "b3lyp",
+    srun_use: bool = False,
+    pmemduse: bool = False,
+    dryrun: bool = False,
+    freeze_solute: bool = False,
 ) -> Dict[str, Any]:
-    """Draft and normalize a water/acetonitrile molar-ratio mixture config.
-
-    Uses AutoSolvate defaults for densities and molecular weights.
-    Returns both the draft input and the normalized config.
-    """
-    _validate_ratio(acetonitrile_molar_ratio, "acetonitrile_molar_ratio")
-    _validate_ratio(water_molar_ratio, "water_molar_ratio")
-    ratio_sum = acetonitrile_molar_ratio + water_molar_ratio
-    if abs(ratio_sum - 1.0) > 1e-6:
-        raise ValueError(
-            f"The sum of molar ratios must be 1.0. Got {ratio_sum:.8f}"
-        )
-
-    config: Dict[str, Any] = {
-        "cube_size": cube_size,
-        "charge_method": charge_method,
-        "solvents": [
-            {
-                "name": "acetonitrile",
-                "molar_ratio": acetonitrile_molar_ratio,
-            },
-            {
-                "name": "water",
-                "molar_ratio": water_molar_ratio,
-            },
-        ],
-    }
-    if include_empty_solute:
-        config["solute"] = {}
-
-    normalized = _normalize_with_parser(config)
-    return {
-        "draft_config": config,
-        "normalized_config": normalized,
-        "message": "Draft and normalization completed.",
-    }
+    """Run the AutoSolvate MD driver with structured arguments."""
+    argument_list = _build_mdrun_argument_list(
+        filename=filename,
+        temperature=temperature,
+        pressure=pressure,
+        stepsmmmin=stepsmmmin,
+        stepsmmheat=stepsmmheat,
+        stepsmmnve=stepsmmnve,
+        stepsmmnpt=stepsmmnpt,
+        stepsqmmmmin=stepsqmmmmin,
+        stepsqmmmheat=stepsqmmmheat,
+        stepsqmmmnve=stepsqmmmnve,
+        stepsqmmmnvt=stepsqmmmnvt,
+        charge=charge,
+        spinmultiplicity=spinmultiplicity,
+        functional=functional,
+        srun_use=srun_use,
+        pmemduse=pmemduse,
+        dryrun=dryrun,
+        freeze_solute=freeze_solute,
+    )
+    result = _run_legacy_cli(startmd, argument_list=argument_list, working_dir=working_dir)
+    result.update({
+        "filename": filename,
+        "dryrun": dryrun,
+    })
+    return result
 
 
-@mcp.tool()
-def autosolvate_normalize_config(
-    config: Dict[str, Any],
-    write_full_json: bool = False,
-    output_json: str = "autosolvate_input_full.json",
+@_mcp_tool()
+def autosolvate_clustergen(
+    filename: str,
+    trajname: str,
+    working_dir: str = ".",
+    startframe: int = 0,
+    interval: int = 100,
+    size: float = 4.0,
+    srun_use: bool = False,
+    spherical: bool = False,
 ) -> Dict[str, Any]:
-    """Normalize a config using InputParser and optionally write JSON to disk."""
-    normalized = _normalize_with_parser(config)
-    written_file = None
-    if write_full_json:
-        with open(output_json, "w", encoding="utf-8") as handle:
-            json.dump(normalized, handle, indent=2)
-        written_file = os.path.abspath(output_json)
-    return {
-        "normalized_config": normalized,
-        "written_file": written_file,
-    }
-
-
-@mcp.tool()
-def autosolvate_run_multicomponent(
-    config: Dict[str, Any],
-    output_dir: str = ".",
-    execute: bool = False,
-) -> Dict[str, Any]:
-    """Write draft + normalized JSON, optionally execute multicomponent build.
-
-    If execute=False, only JSON files are written; no external tools are run.
-    """
-    normalized = _normalize_with_parser(config)
-    with _pushd(output_dir):
-        with open("wizard_input.json", "w", encoding="utf-8") as handle:
-            json.dump(config, handle, indent=2)
-        with open("autosolvate_input_full.json", "w", encoding="utf-8") as handle:
-            json.dump(normalized, handle, indent=2)
-        generated_files = [
-            os.path.abspath("wizard_input.json"),
-            os.path.abspath("autosolvate_input_full.json"),
-        ]
-
-        if execute:
-            startmulticomponent_fromdata(config)
-            for name in os.listdir("."):
-                if name.endswith((".prmtop", ".inpcrd", ".pdb", ".mol2", ".frcmod")):
-                    generated_files.append(os.path.abspath(name))
-
-    return {
-        "executed": execute,
-        "output_dir": os.path.abspath(output_dir),
-        "generated_files": sorted(set(generated_files)),
-        "normalized_config": normalized,
-    }
+    """Run the AutoSolvate cluster extraction driver with structured arguments."""
+    argument_list = [
+        "-f", filename,
+        "-t", trajname,
+        "-a", str(startframe),
+        "-i", str(interval),
+        "-s", str(size),
+    ]
+    if srun_use:
+        argument_list.append("-r")
+    if spherical:
+        argument_list.append("-p")
+    result = _run_legacy_cli(startclustergen, argument_list=argument_list, working_dir=working_dir)
+    result["generated_files"] = sorted(
+        set(result["generated_files"]) | set(_collect_reported_xyz_paths(result["stdout"], working_dir))
+    )
+    result.update({
+        "filename": filename,
+        "trajname": trajname,
+    })
+    return result
 
 
 def main(argv: list[str] | None = None) -> None:

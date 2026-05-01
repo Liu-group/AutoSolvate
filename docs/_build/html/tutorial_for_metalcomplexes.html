@@ -1,26 +1,26 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial for Force Field Generation of Organometallic Compounds &mdash; AutoSolvate  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
-      <script src="_static/doctools.js?v=888ff710"></script>
-      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Documentation" href="api.html" />
-    <link rel="prev" title="Tutorial for Mixed Solvent Box Generation" href="tutorialMulticomponent.html" /> 
+    <link rel="next" title="MCP Setup" href="mcp_setup.html" />
+    <link rel="prev" title="Tutorial for AutoSolvate Multicomponent" href="tutorialMulticomponent.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorialGUI.html">GUI Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advancedTutorial.html">Advanced Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorialMulticomponent.html">Tutorial for AutoSolvate Multicomponent</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial for Force Field Generation of Organometallic Compounds</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#example-1-fe-bpy-3-in-water">Example 1: Fe(bpy)3 in Water</a></li>
@@ -57,6 +57,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#example-4-fe-bpy-3-in-water-with-m-mode-to-assign-charges">Example 4: Fe(bpy)3 in water with M mode to assign charges</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_setup.html">MCP Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
 </ul>
@@ -86,17 +87,18 @@
            <div itemprop="articleBody">
              
   <section id="tutorial-for-force-field-generation-of-organometallic-compounds">
-<h1>Tutorial for Force Field Generation of Organometallic Compounds<a class="headerlink" href="#tutorial-for-force-field-generation-of-organometallic-compounds" title="Permalink to this heading"></a></h1>
+<h1>Tutorial for Force Field Generation of Organometallic Compounds<a class="headerlink" href="#tutorial-for-force-field-generation-of-organometallic-compounds" title="Link to this heading"></a></h1>
 <p>This tutorial illustrates how to automate the force field generation for organometallic compounds using AutoSolvate via the command line interface (CLI). We will cover three systems: Fe(bpy)3 in water, Fe(bpy)3 in acetonitrile, and Fe(bpy)3 in DMSO.</p>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
 <p>Before starting, ensure you have AutoSolvate and all necessary dependencies installed. You will also need the organometallic compound’s .xyz file for each molecule. Place each molecule in its own directory to prevent file overwriting. Quantum mechanics software such as Gaussian, Orca, or GAMESS-US is required for quantum mechanical calculations needed for force field parameterization.</p>
-<a class="reference internal image-reference" href="_images/metalTutorial_1.png"><img alt="_images/metalTutorial_1.png" src="_images/metalTutorial_1.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/metalTutorial_1.png"><img alt="_images/metalTutorial_1.png" src="_images/metalTutorial_1.png" style="width: 400px;" />
+</a>
 <p>You can download the necessary xyz file here:
 <a class="reference download internal" download="" href="_downloads/e5b699b7d1029614ef45c58dc2c889d2/Febpy3.xyz"><code class="xref download docutils literal notranslate"><span class="pre">Febpy3.xyz</span></code></a></p>
 </section>
 <section id="example-1-fe-bpy-3-in-water">
-<h2>Example 1: Fe(bpy)3 in Water<a class="headerlink" href="#example-1-fe-bpy-3-in-water" title="Permalink to this heading"></a></h2>
+<h2>Example 1: Fe(bpy)3 in Water<a class="headerlink" href="#example-1-fe-bpy-3-in-water" title="Link to this heading"></a></h2>
 <p><strong>Command Line Execution</strong></p>
 <p>Execute the following command to generate the force field for Fe(bpy)3 in water:
 Autosolvate will use the default values for other options</p>
@@ -211,11 +213,12 @@ Febpy3_MCPB_orca.in                Febpy3_solv.pdb                     LG0_sdf.l
 <p><strong>Checking the Final Output</strong></p>
 <p><cite>Febpy3_dry.prmtop</cite> is the prmtop file of the single compound</p>
 <p>The final step involves checking the generated parameter files, specifically the .pdb file containing the coordinates for the solute in the solvent box. You want to ensure that both the solvent and the solute are correctly placed.</p>
-<a class="reference internal image-reference" href="_images/solventbox.png"><img alt="_images/solventbox.png" src="_images/solventbox.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/solventbox.png"><img alt="_images/solventbox.png" src="_images/solventbox.png" style="width: 400px;" />
+</a>
 <p>Now, with the <cite>Febpy3_solvated.inpcrd</cite>, <cite>Febpy3_solvated.prmtop</cite>, and <cite>Febpy3_solvated.pdb</cite> files, you are fully equipped to proceed to the molecular dynamics simulations.</p>
 </section>
 <section id="example-2-fe-bpy-3-in-acetonitrile">
-<h2>Example 2: Fe(bpy)3 in acetonitrile<a class="headerlink" href="#example-2-fe-bpy-3-in-acetonitrile" title="Permalink to this heading"></a></h2>
+<h2>Example 2: Fe(bpy)3 in acetonitrile<a class="headerlink" href="#example-2-fe-bpy-3-in-acetonitrile" title="Link to this heading"></a></h2>
 <p><strong>Command Line Execution</strong></p>
 <p>Execute the following command to generate the force field for Fe(bpy)3 in acetonitrile:
 Autosolvate will use the default values for other options</p>
@@ -225,7 +228,7 @@ Autosolvate will use the default values for other options</p>
 <p>The rest steps are the same with Example 1.</p>
 </section>
 <section id="example-3-fe-bpy-3-in-dmso">
-<h2>Example 3: Fe(bpy)3 in DMSO<a class="headerlink" href="#example-3-fe-bpy-3-in-dmso" title="Permalink to this heading"></a></h2>
+<h2>Example 3: Fe(bpy)3 in DMSO<a class="headerlink" href="#example-3-fe-bpy-3-in-dmso" title="Link to this heading"></a></h2>
 <p><strong>Command Line Execution</strong></p>
 <p>Execute the following command to generate the force field for Fe(bpy)3 in DMSO:
 Autosolvate will use the default values for other options
@@ -236,7 +239,7 @@ for more details about  generate the force field for Fe(bpy)3 in customized solv
 <p>The rest steps are the same with Example 2.</p>
 </section>
 <section id="example-4-fe-bpy-3-in-water-with-m-mode-to-assign-charges">
-<h2>Example 4: Fe(bpy)3 in water with M mode to assign charges<a class="headerlink" href="#example-4-fe-bpy-3-in-water-with-m-mode-to-assign-charges" title="Permalink to this heading"></a></h2>
+<h2>Example 4: Fe(bpy)3 in water with M mode to assign charges<a class="headerlink" href="#example-4-fe-bpy-3-in-water-with-m-mode-to-assign-charges" title="Link to this heading"></a></h2>
 <p>During the file preparation for MCPB.py step 1, the automatic mode of ligand-charge assignment is applicable only when the organic ligands do not exhibit any spin multiplicity. Autosolvate also provides a manual mode for assigning formal charges</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>autosolvate<span class="w"> </span>boxgen_metal<span class="w"> </span>-m<span class="w"> </span>Febpy3.xyz<span class="w"> </span>-k<span class="w"> </span><span class="m">2</span><span class="w"> </span>-u<span class="w"> </span><span class="m">1</span><span class="w"> </span>-e<span class="w"> </span>orca<span class="w"> </span>-y<span class="w"> </span><span class="m">32</span><span class="w"> </span>-d<span class="w"> </span>/opt/orca/5.0.2/orca<span class="w"> </span>-s<span class="w"> </span>water<span class="w"> </span>-v<span class="w"> </span>M<span class="w"> </span>-f<span class="w"> </span>charge.txt
 </pre></div>
@@ -259,8 +262,8 @@ LG2 0
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="tutorialMulticomponent.html" class="btn btn-neutral float-left" title="Tutorial for Mixed Solvent Box Generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="api.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorialMulticomponent.html" class="btn btn-neutral float-left" title="Tutorial for AutoSolvate Multicomponent" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mcp_setup.html" class="btn btn-neutral float-right" title="MCP Setup" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

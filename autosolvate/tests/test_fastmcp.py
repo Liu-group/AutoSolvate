@@ -9,6 +9,7 @@ fastmcp = pytest.importorskip("fastmcp")
 from fastmcp import Client
 
 from autosolvate.fastmcp_server import mcp
+from autosolvate.tests import helper_functions as hp
 
 
 def _payload(result):
@@ -19,31 +20,11 @@ def _payload(result):
     raise RuntimeError("Unexpected FastMCP call_tool result shape")
 
 
-def test_fastmcp_water_acn_draft_and_cli_session():
+def test_fastmcp_boxgen_session_mdrun_and_clustergen(tmp_path):
     async def _run():
         async with Client(mcp) as client:
-            response = await client.call_tool(
-                "autosolvate_draft_water_acn_molar_mixture",
-                {
-                    "cube_size": 30,
-                    "acetonitrile_molar_ratio": 0.3,
-                    "water_molar_ratio": 0.7,
-                    "charge_method": "bcc",
-                },
-            )
-        payload = json.loads(response.content[0].text)
-        normalized = payload["normalized_config"]
-
-        assert normalized["system_type"] == "mixture"
-        assert normalized["charge_method"] == "bcc"
-        assert normalized["cube_size"] == 30
-        names = [item["name"] for item in normalized["solvents"]]
-        assert "acetonitrile" in names
-        assert "water" in names
-
-        async with Client(mcp) as client:
             started = await client.call_tool(
-                "autosolvate_cli_session_start",
+                "autosolvate_boxgen_start",
                 {
                     "agent_mode": True,
                     "initial_read_timeout_sec": 2.5,
@@ -56,7 +37,7 @@ def test_fastmcp_water_acn_draft_and_cli_session():
             assert "Welcome to the AutoSolvate Interactive Input Generator" in start_payload["initial_output"]
 
             sent = await client.call_tool(
-                "autosolvate_cli_session_send",
+                "autosolvate_boxgen_send",
                 {
                     "session_id": session_id,
                     "user_input": "exit",
@@ -67,12 +48,44 @@ def test_fastmcp_water_acn_draft_and_cli_session():
             assert isinstance(sent_payload["output"], str)
 
             closed = await client.call_tool(
-                "autosolvate_cli_session_close",
+                "autosolvate_boxgen_close",
                 {
                     "session_id": session_id,
                 },
             )
             closed_payload = _payload(closed)
             assert closed_payload["closed"] is True
+
+            mdrun = await client.call_tool(
+                "autosolvate_mdrun",
+                {
+                    "filename": "water_solvated",
+                    "working_dir": str(tmp_path / "mdrun"),
+                    "dryrun": True,
+                    "stepsmmheat": 10,
+                    "stepsmmnpt": 10,
+                    "stepsqmmmheat": 10,
+                    "stepsqmmmnvt": 10,
+                },
+            )
+            mdrun_payload = _payload(mdrun)
+            generated_names = {path.split("/")[-1] for path in mdrun_payload["generated_files"]}
+            assert "runMM.sh" in generated_names
+            assert "runQMMMM.sh" in generated_names
+
+            clustergen = await client.call_tool(
+                "autosolvate_clustergen",
+                {
+                    "filename": hp.get_input_dir("water_solvated.prmtop"),
+                    "trajname": hp.get_input_dir("water_solvated-qmmmnvt.netcdf"),
+                    "working_dir": str(tmp_path / "clustergen"),
+                    "startframe": 0,
+                    "interval": 100,
+                    "size": 4.0,
+                },
+            )
+            clustergen_payload = _payload(clustergen)
+            cluster_files = {path.split("/")[-1] for path in clustergen_payload["generated_files"]}
+            assert "water_solvated-cutoutn-0.xyz" in cluster_files
 
     asyncio.run(_run())

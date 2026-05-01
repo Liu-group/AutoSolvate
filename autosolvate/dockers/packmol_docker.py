@@ -285,6 +285,7 @@ class PackmolDocker(GeneralDocker):
                     self.logger.critical(
                         "Packmol did not start correctly. This is not a packmol convergence failure; no remedy retry is applied."
                     )
+                    self.logger.critical(f"Error string: {str(err)}")
                     raise err
 
                 if remedy_trial < self._PACKMOL_MAX_REMEDY_TRIALS:
