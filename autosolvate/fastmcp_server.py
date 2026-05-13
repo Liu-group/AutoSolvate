@@ -249,7 +249,12 @@ def autosolvate_boxgen_start(
     working_dir: Optional[str] = None,
     initial_read_timeout_sec: float = 2.0,
 ) -> Dict[str, Any]:
-    """Start a PTY-backed interactive AutoSolvate wizard session.
+    """
+    AutoSolvate is a software package that generates the necessary input files (AMBER prmtop & inpcrd) for running a classical MD simulation of a solvated/condensed phase system. It streamlines the process of using multiple tools (such as antechamber/parmchk/packmol/tleap etc.) by providing a single command-line interface. 
+    
+    This "autosolvate_boxgen_start" tool starts an interactive wizard session for generating these input files. This session is managed by the AutoSolvate MCP itself. You only need to answer the questions asked by the wizard, and the tool will handle the rest. 
+
+    The session is stateful and allows you to iteratively provide input and receive output until you complete the process or choose to exit. The tool returns a unique session_id that you can use to send further input to the wizard or to close the session when you're done.
 
     Returns a session_id and the initial output from the wizard.
     """
@@ -281,7 +286,7 @@ def autosolvate_boxgen_send(
     read_timeout_sec: float = 1.5,
     max_bytes: int = 64000,
 ) -> Dict[str, Any]:
-    """Send a single line to the wizard session and return new output."""
+    """Send a single line to the wizard session to answer the question asked by the wizard, and read the response (or next question) from the wizard. You can call this tool iteratively until you complete the process or choose to exit."""
     session = _get_session(session_id)
     session.send(user_input)
     output = session.read(timeout_sec=read_timeout_sec, max_bytes=max_bytes)
