@@ -5,6 +5,7 @@ import subprocess
 import pkg_resources
 from autosolvate.globs import keywords_avail, available_qm_programs, available_charge_methods
 from autosolvate.resp_classes.resp_factory import resp_factory
+from autosolvate.ionsFF import file_prep_for_ion
 from autosolvate.pubchem_api import PubChemAPI
 from autosolvate.solute_info import Solute
 
@@ -206,6 +207,19 @@ class solventBoxBuilder():
                 exit()
             else:
                 self.is_custom_solvent = True
+
+        if os.path.exists(self.xyz):
+            with open(self.xyz) as f:
+                lines = f.readlines()
+                atomnumber = int(lines[0].strip())
+                if atomnumber == 1:
+                    print('Warning this is an ion!')
+                    self.ion = True
+                else:
+                    self.ion = False
+        else:
+            print("Error: solute xyz file does not exist")
+            exit()
 
     def getSolutePDB(self):
         r"""
@@ -626,11 +640,17 @@ class solventBoxBuilder():
 	    Creates files in current directory.
 
         """
-        self.getSolutePDB()
-        self.getFrcmod()
-        self.createLib()
-        self.createAmberParm()
-        print("The script has finished successfully")
+        if self.ion:
+            ionFF = file_prep_for_ion(xyzfile=self.xyz, charge=self.slu_netcharge, solvent=self.solvent, outputFile=self.outputFile,
+                                      cubic_size=self.cube_size, closeness=self.closeness, solvent_frcmod=self.solvent_frcmod, solvent_off=self.solvent_off)
+            ionFF.build()
+            print("The script has finished successfully")
+        else:
+            self.getSolutePDB()
+            self.getFrcmod()
+            self.createLib()
+            self.createAmberParm()
+            print("The script has finished successfully")
 
 def startboxgen(argumentList):
     r"""
@@ -716,20 +736,28 @@ def startboxgen(argumentList):
             print('  -v, --validation           option to run validation step for given solute')
             print('  -h, --help                 short usage description')
             exit()
-        elif currentArgument in ("-n", "--solutename"):
-            print("Solute:", currentValue)
-            solutename=str(currentValue)
-            sol=PubChemAPI(solutename)
-            info=sol.get_info()
-            solutexyz=str(info[3])
-            slu_netcharge = info[2]
-            solS=Solute(info[0], info[1], info[2], info[3])
-            cube_size = solS.get_box_length()
-            slu_spinmult = solS.get_spin_multiplicity()
-            charge_method = solS.get_methods()[0]
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
             solutexyz=str(currentValue)     
+        elif currentArgument in ("-n", "--solutename"):
+            print("Solute:", currentValue)
+            solutename = str(currentValue)
+            if solutexyz == "":
+                sol = PubChemAPI(solutename)
+                info = sol.get_info()
+                solutexyz = str(info[3])
+                slu_netcharge = info[2]
+                solS = Solute(info[0], info[1], info[2], info[3])
+                cube_size = solS.get_box_length()
+                slu_spinmult = solS.get_spin_multiplicity()
+                charge_method = solS.get_methods()[0]
+            else:
+                solS = Solute("", "", slu_netcharge, solutexyz)
+                total_electrons = _get_total_electron_count(solutexyz)
+                slu_spinmult = (total_electrons - slu_netcharge) % 2 + 1
+                if slu_spinmult > 1:
+                    charge_method = "resp"
+                cube_size = solS.get_box_length()
         elif currentArgument in ("-s", "--solvent"):
             print ("Solvent:", currentValue)
             solvent=str(currentValue)
