@@ -1,13 +1,13 @@
 from openbabel import pybel
 import getopt, sys, os
 from openbabel import openbabel as ob
-import subprocess 
+import subprocess
 import pkg_resources
 from autosolvate.globs import keywords_avail, available_qm_programs, available_charge_methods
 from autosolvate.resp_classes.resp_factory import resp_factory
+from autosolvate.ionsFF import file_prep_for_ion
 from autosolvate.pubchem_api import PubChemAPI
 from autosolvate.solute_info import Solute
-from autosolvate.ionsFF import file_prep_for_ion
 
 
 amber_solv_dict = {'water': [' ','TIP3PBOX '],
@@ -16,6 +16,23 @@ amber_solv_dict = {'water': [' ','TIP3PBOX '],
                    'nma': ['loadOff solvents.lib\n loadamberparams frcmod.nma\n', 'NMABOX ']}
 
 custom_solv_dict = {'acetonitrile':'ch3cn'}
+
+
+def _get_total_electron_count(solutexyz):
+    molecule = pybel.readfile('xyz', solutexyz).__next__()
+    return sum(atom.atomicnum for atom in molecule.atoms)
+
+
+def _validate_spin_multiplicity(solutexyz, slu_netcharge, slu_spinmult):
+    if slu_spinmult <= 0:
+        raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
+
+    total_electrons = _get_total_electron_count(solutexyz) - slu_netcharge
+    expected_parity = (total_electrons + 1) % 2
+    given_parity = slu_spinmult % 2
+
+    if expected_parity != given_parity:
+        raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
 
 class solventBoxBuilder():
     r"""
@@ -190,7 +207,7 @@ class solventBoxBuilder():
                 exit()
             else:
                 self.is_custom_solvent = True
-        
+
         if os.path.exists(self.xyz):
             with open(self.xyz) as f:
                 lines = f.readlines()
@@ -202,8 +219,7 @@ class solventBoxBuilder():
                     self.ion = False
         else:
             print("Error: solute xyz file does not exist")
-            exit()       
-                    
+            exit()
 
     def getSolutePDB(self):
         r"""
@@ -626,7 +642,7 @@ class solventBoxBuilder():
         """
         if self.ion:
             ionFF = file_prep_for_ion(xyzfile=self.xyz, charge=self.slu_netcharge, solvent=self.solvent, outputFile=self.outputFile,
-                                      cubic_size=self.cube_size,closeness=self.closeness, solvent_frcmod=self.solvent_frcmod,solvent_off=self.solvent_off)
+                                      cubic_size=self.cube_size, closeness=self.closeness, solvent_frcmod=self.solvent_frcmod, solvent_off=self.solvent_off)
             ionFF.build()
             print("The script has finished successfully")
         else:
@@ -685,8 +701,6 @@ def startboxgen(argumentList):
     cube_size=54
     charge_method="bcc"
     slu_spinmult=1
-    mult_given = 0
-    mult_suggest = 0
     outputFile=""
     srun_use=False
     amberhome=None
@@ -722,8 +736,9 @@ def startboxgen(argumentList):
             exit()
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
-            solutexyz=str(currentValue) 
+            solutexyz=str(currentValue)
         elif currentArgument in ("-n", "--solutename"):
+            print("Solute:", currentValue)
             if solutexyz == "":
                 solutename=str(currentValue)
                 sol=PubChemAPI(solutename)
@@ -736,11 +751,11 @@ def startboxgen(argumentList):
                 charge_method = solS.get_methods()[0]
             else:
                 solS = Solute("", "", slu_netcharge, solutexyz)
-                mol = next(pybel.readfile("xyz", solutexyz))
-                total_electrons = sum(atom.atomicnum for atom in mol.atoms)
+                total_electrons = _get_total_electron_count(solutexyz)
                 slu_spinmult = (total_electrons - slu_netcharge) % 2 + 1
-                if slu_spinmult > 1: charge_method = 'resp'
-                cube_size = solS.get_box_length()    
+                if slu_spinmult > 1:
+                    charge_method = "resp"
+                cube_size = solS.get_box_length()
         elif currentArgument in ("-s", "--solvent"):
             print ("Solvent:", currentValue)
             solvent=str(currentValue)
@@ -785,14 +800,18 @@ def startboxgen(argumentList):
             solvent_frcmod = currentValue
         elif currentArgument in ("-v", "--validation"):
             print('Validating...')
-            solS = Solute("", "", slu_netcharge, solutexyz)
-            mol = next(pybel.readfile("xyz", solutexyz))
-            total_electrons = sum(atom.atomicnum for atom in mol.atoms)
-            mult_suggest = ((total_electrons - slu_netcharge) % 2 + 1) % 2
-            mult_given = slu_spinmult % 2
-            if slu_spinmult == 0 or mult_suggest != mult_given:
-                raise Exception("Incorrect solute spin multiplicity given, please double check your value or use suggestion function enabled by -n or --solutename")
-            if slu_spinmult > 1 and charge_method != 'resp':
+            validation_name = solutename
+            validation_smiles = ""
+
+            if validation_name != "":
+                sol = PubChemAPI(validation_name)
+                info = sol.get_info()
+                validation_name = info[0]
+                validation_smiles = info[1]
+
+            solS = Solute(validation_name, validation_smiles, slu_netcharge, solutexyz)
+            _validate_spin_multiplicity(solutexyz, slu_netcharge, slu_spinmult)
+            if slu_spinmult > 1 and charge_method != "resp":
                 raise Exception("Incorrect charge method given, please double check your value or use suggestion function enabled by -n or --solutename")
             if cube_size < solS.get_box_length():
                 raise Exception("Solvent box is too small, please increase box length.")
