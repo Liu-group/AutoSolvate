@@ -24,7 +24,7 @@ This tutorial contains two examples:
 3. Using the interactive CLI to build complex multicomponent systems.
 
 Example 1: Naphthalene in mixed water/acetonitrile
--------------------------------------------------
+--------------------------------------------------
 
 Prerequisites
 ^^^^^^^^^^^^^
@@ -258,7 +258,7 @@ This will result in the following microsolvated cluster:
 
 
 Example 2: Organometallic Compounds + counterions in mixed carbonate solvents
-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 This example demonstrates a more advanced workflow where:
 
@@ -314,7 +314,7 @@ In this example, the "solute" part contains **two kinds of molecules**:
 2. Two ``TFSI`` counterions.
 
 1) Add the organometallic compound :math:`[\mathrm{Fe(bpy)_3}]^{2+}` (Febpy3)
-""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For an organometallic compound, you should provide:
 
@@ -332,6 +332,7 @@ Optionally, you can set:
 - ``name`` for labeling. Default is the structure file name without extension.
 - ``chargefile``: path to the ligand charge file used by AutoMCPB.
    an example of `chargefile.txt` 
+
 .. code-block:: text
 
     LG0 0
@@ -354,7 +355,7 @@ Add the following JSON blob to the ``solutes`` list
    }
 
 2) Add the counterions bis(trifluoromethylsulfonyl)imide (TFSI)
-""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 For ionic liquids, using existing force field parameters is recommended. Here, we utilized the parameters derived from Sambasivarao and Acevedo (2009) for TFSI (`J. Chem. Theory Comput., 2009, 5, 1038-1050 <https://pubs.acs.org/doi/10.1021/ct900009a>`_).
 
 Provide the following keywords to specify pre-generated GAFF-style parameters:
@@ -384,7 +385,7 @@ Here, we add two TFSI anions to neutralize the +2 charge from the Febpy3 complex
    If the charge is not neutralized, AutoSolvate will add Na+ or Cl- ions to neutralize the system automatically.
 
 Step C: Define the mixed solvent by ratios
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Here we want a **three-solvent mixture** composed of ethylene carbonate (EC), propylene carbonate (PC), and ethyl methyl carbonate (EMC). Instead of manually providing molecule counts, we specify:
 
