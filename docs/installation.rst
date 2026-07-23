@@ -59,6 +59,15 @@ This will automatically create a conda environment called ``autosolvate``. Now a
 
    >>> conda activate autosolvate
 
+Execute the following bash script to perform additional package installations and resolve potential version conflicts related to `molSimplify`::
+
+   >>> bash devtools/scripts/post_autosolvate_env.sh
+
+Then deactivate and activate the environment again to udpate the environment::
+
+   >>> conda deactivate
+   >>> conda activate autosolvate
+
 Stay in the AutoSolvate directory and install it:: 
 
    >>> python setup.py install
@@ -125,6 +134,29 @@ Check your ambertools and packmol installation as well::
 
    >>> which packmol
    >>> which tleap
+
+Check the version of numpy and scipy installed by running the following commands in python::
+
+   import numpy
+   numpy.__version__
+   import scipy
+   scipy.__version__
+
+The version of `numpy` should be no newer than 2.0. The `scipy` version should be no newer than 1.12.
+If the output does not meet expectation, please reinstall with the following commands::
+
+   >>> conda install numpy=1.26.4 scipy=1.11.4
+
+.. _numpyversionwarning:
+
+.. warning::
+  
+    **numpy/scipy version**: Only `numpy<=2.0` and `scipy<=1.12` are compatible at the moment.
+    This is crucial for jobs involving organometallic species.
+    When handling organometallic species, autosolvate uses MCPB.py to calculates
+    force constants of missing bonds/angles. Since MCPB.py was developed years ago, its functions
+    expect `numpy.lingal.eig()` to output eigenvalues in double precision float type. However, newer versions of `numpy`
+    and `scipy` output complex 128 type by default, leading to errors during runtime.
 
 
 Trouble shooting
