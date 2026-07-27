@@ -32,7 +32,7 @@ class PubChemAPI():
         self.ff = 'mmff94'
         self.s = 50
         self.filePath = filePath
-        self.export = os.path.join(self.filePath, 'tempFile')
+        self.export = os.path.join(self.filePath, 'tempFile.xyz')
 
     def set_up_mol(self):
         r"""
@@ -60,6 +60,14 @@ class PubChemAPI():
             print(f'Error, {self.name} corresponding compound ID cannot be obtained from PubChem API.')
             return 0
 
+    def get_prop(self, label, name):
+        """Return a property from the current PubChem record representation."""
+        for prop in (self.mol.record or {}).get("props", []):
+            urn = prop.get("urn", {})
+            if urn.get("label") == label and urn.get("name") == name:
+                value = prop.get("value", {})
+                return value.get("sval") or value.get("fval") or value.get("ival")
+        return None
 
     def set_SMILES(self):
         r"""
@@ -75,7 +83,9 @@ class PubChemAPI():
         
         """
         try:
-            self.sml = self.mol.canonical_smiles
+            self.sml = self.get_prop("SMILES", "Connectivity")
+            if self.sml is None:
+                raise ValueError("PubChem record does not contain a connectivity SMILES")
             return 1
         except:
             print(f'Error, solute molecule is not correctly set up, make sure set_up_mol() is called before.')

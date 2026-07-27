@@ -1,4 +1,7 @@
 from autosolvate.utils.resources import autosolvate_resource
+from .pubchem_api import PubChemAPI
+from .solute_info import Solute
+from .ion_forcefield import IonForceFieldBuilder
 import sys 
 import getopt
 
@@ -23,6 +26,14 @@ amber_solv_dict = {'water':     [' ','TIP3PBOX '],
                    'methanol':  ['loadOff solvents.lib\n loadamberparams frcmod.meoh\n', 'MEOHBOX '],
                    'chloroform':['loadOff solvents.lib\n loadamberparams frcmod.chcl3\n', 'CHCL3BOX '],
                    'nma':       ['loadOff solvents.lib\n loadamberparams frcmod.nma\n', 'NMABOX ']}
+def _get_total_electron_count(solutexyz):
+    molecule = pybel.readfile("xyz", solutexyz).__next__()
+    return sum(atom.atomicnum for atom in molecule.atoms)
+
+def _validate_spin_multiplicity(solutexyz, charge, multiplicity):
+    if multiplicity <= 0 or multiplicity % 2 != (_get_total_electron_count(solutexyz) - charge + 1) % 2:
+        raise ValueError("Incorrect solute spin multiplicity; use -n/--solutename for a suggestion")
+
 
 custom_solv_dict = {'acetonitrile':'ch3cn'}
 custom_solv_residue_name = {'acetonitrile':'C3N'}
@@ -274,9 +285,10 @@ def startboxgen(argumentList):
         Generates the structure files and save as ```.pdb```. Generates the MD parameter-topology and coordinates files and saves as ```.prmtop``` and ```.inpcrd```
     """
     #print(argumentList)
-    options = "hm:s:o:c:b:g:u:re:d:a:t:l:p:"
-    long_options = ["help", "main", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod"]
+    options = "hm:n:s:o:c:b:g:u:re:d:a:t:l:p:v"
+    long_options = ["help", "main", "solutename", "solvent", "output", "charge", "cubesize", "chargemethod", "spinmultiplicity", "srunuse","gaussianexe", "gaussiandir", "amberhome", "closeness","solventoff","solventfrcmod", "validation"]
     arguments, values = getopt.getopt(argumentList, options, long_options)
+    solutename=""
     solutexyz=""
     solvent='water'
     slu_netcharge=0
@@ -297,6 +309,8 @@ def startboxgen(argumentList):
         if  currentArgument in ("-h", "--help"):
             print('Usage: autosolvate boxgen [OPTIONS]')
             print('  -m, --main                 solute xyz file')
+            print('  -n, --solutename           fetch solute from PubChem and infer parameters')
+            print('  -v, --validation           validate inferred or provided parameters')
             print('  -s, --solvent              name of solvent')
             print('  -o, --output               prefix of the output file names')
             print('  -c, --charge               formal charge of solute')
@@ -312,6 +326,16 @@ def startboxgen(argumentList):
             print('  -p, --solventfrcmod        path to the custom solvent .frcmod file')
             print('  -h, --help                 short usage description')
             exit()
+        elif currentArgument in ("-n", "--solutename"):
+            solutename = str(currentValue)
+            info = PubChemAPI(solutename).get_info()
+            if info is None:
+                raise ValueError(f"PubChem could not find molecule: {solutename}")
+            solutexyz, slu_netcharge = info[3], info[2]
+            solute_info = Solute(info[0], info[1], info[2], info[3])
+            cube_size = solute_info.get_box_length()
+            slu_spinmult = solute_info.get_spin_multiplicity()
+            charge_method = solute_info.get_methods()[0]
         elif currentArgument in ("-m", "--main"):
             print ("Main/solutexyz", currentValue)
             solutexyz=str(currentValue)     
@@ -351,6 +375,14 @@ def startboxgen(argumentList):
         elif currentArgument in ("-l", "--solventoff"):
             print("Custom solvent .off library path:", currentValue)
             solvent_off = currentValue
+        elif currentArgument in ("-v", "--validation"):
+            _validate_spin_multiplicity(solutexyz, slu_netcharge, slu_spinmult)
+            solute_info = Solute(solutename, "", slu_netcharge, solutexyz)
+            if cube_size < solute_info.get_box_length():
+                raise ValueError("Solvent box is too small")
+            if slu_spinmult > 1 and charge_method != "resp":
+                raise ValueError("Open-shell solutes require RESP charge fitting")
+            print("Validation passed")
         elif currentArgument in ("-p", "--solventfrcmod"):
             print("Custom solvent .frcmmod file path:", currentValue)
             solvent_frcmod = currentValue
@@ -364,7 +396,7 @@ def startboxgen(argumentList):
 
     try:
         _, ext = os.path.splitext(solutexyz)
-        pybel.readfile(ext[1:], solutexyz).__next__()
+        pybel.readfile(ext[1:] or "xyz", solutexyz).__next__()
     except:
         print("Error! Solute structure file format issue!")
         print(solutexyz," cannot be opened with openbabel.\n Exiting...")
@@ -372,6 +404,11 @@ def startboxgen(argumentList):
 
     global WORKING_DIR
     WORKING_DIR = os.getcwd()
+    with open(solutexyz) as xyz_input:
+        single_atom = os.path.splitext(solutexyz)[1].lower() == ".xyz" and xyz_input.readline().strip() == "1"
+    if single_atom:
+        IonForceFieldBuilder(solutexyz, slu_netcharge, solvent, cube_size, closeness, outputFile or solvent + "_solvated", solvent_off, solvent_frcmod).build()
+        return
     builder = solventBoxBuilder(solutexyz, solvent=solvent, slu_netcharge=slu_netcharge, cube_size=cube_size, charge_method=charge_method, 
                                 slu_spinmult=slu_spinmult, outputFile=outputFile, srun_use=srun_use, 
                                 gaussianexe=gaussianexe, gaussiandir=gaussiandir, amberhome=amberhome, 
