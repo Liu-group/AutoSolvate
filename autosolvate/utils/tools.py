@@ -1,0 +1,781 @@
+r''' 
+    @TODO 
+    1. check '-> callable:' is used correctly 
+'''
+import os   
+import numpy as np
+import subprocess 
+from typing import List, Tuple, Dict, Union, Optional, Any, Callable, Iterable
+
+from openbabel import pybel
+from openbabel import openbabel as ob
+import parmed as pmd
+
+from ..Common import N_A, SOLVENT_DENSITY, SOLVENT_MW, USE_SRUN, DRY_RUN, ATOMIC_MW
+# avoid import anything else from this package to prevent circular imports
+
+
+def determine_mw_from_xyz(xyzfile: str) -> float:
+    """Determine molecular weight from an XYZ file."""
+    if xyzfile.endswith(".pdb"):
+        return determine_mw_from_pdb(xyzfile)   # use pdb method for pdb files
+    with open(xyzfile, "r") as f:
+        lines = f.readlines()
+    mw = 0.0
+    for line in lines[2:]:
+        parts = line.split()
+        if len(parts) == 4:
+            atom_label = parts[0]
+            # replace any possible number in atom label, e.g. C1, H2, O3
+            atom_label = ''.join(filter(str.isalpha, atom_label))
+            if atom_label not in SOLVENT_MW and atom_label not in SOLVENT_DENSITY and atom_label not in []:
+                # fallback to ATOMIC_MW if available via Common import
+                if atom_label not in ATOMIC_MW:
+                    raise ValueError(f"Cannot determine the molecular weight of atom {atom_label}")
+                mw += ATOMIC_MW[atom_label]
+            else:
+                mw += ATOMIC_MW.get(atom_label, 0)
+    return mw
+
+def determine_mw_from_pdb(pdbfile: str) -> float:
+    wt = 0.0
+    for molecule in pybel.readfile("pdb", pdbfile):
+        wt += molecule.molwt
+    return wt
+
+
+# MCPB utilities
+def check_transition_metal_complex(filename:str):
+    """
+    Check if the given file is a transition metal complex
+    e.g. contains both metal and organic ligands
+    criteria: if there is an metal atom that is close to an organic atom
+
+    Parameters
+    ----------
+    filename : str
+        file name
+
+    Returns
+    -------
+    flag : bool
+        True if the file is a transition metal complex, False otherwise
+    """
+    mol = pybel.readfile(os.path.splitext(filename)[-1][1:], filename).__next__()
+    mol_obmol = mol.OBMol
+    natom = mol_obmol.NumAtoms()
+    if natom == 1:
+        return False    # single atom is not a complex
+    for i in range(natom):
+        atom = mol_obmol.GetAtom(i+1)
+        if atom.IsMetal():
+            return True
+    return False
+
+def list_metal_atoms(filename:str) -> List[str]:
+    """
+    List all metal atoms in the given file
+
+    Parameters
+    ----------
+    filename : str
+        file name
+
+    Returns
+    -------
+    metals : List[str]
+        list of metal atom names
+    """
+    mol = pybel.readfile(os.path.splitext(filename)[-1][1:], filename).__next__()
+    mol_obmol = mol.OBMol
+    natom = mol_obmol.NumAtoms()
+    metals = []
+    for i in range(natom):
+        atom = mol_obmol.GetAtom(i+1)
+        if atom.IsMetal():
+            metals.append(atom.GetType())
+    return metals
+
+def compute_total_charge(chargefile:str):
+    with open(chargefile, 'r') as f:
+        data = f.readlines()
+
+    begin, end = 0, len(data) 
+    for sort, line in enumerate(data):
+        if '@charges' in line:
+            begin = sort + 1
+        elif '@connection_infos' in line:
+            end = sort
+    newtotalcharge = 0  
+
+    for line in data[begin:end]:
+        if 'LG' not in line:
+            parts = line.split()
+            if len(parts) == 2:
+                metalcharge = int(parts[1])
+                newtotalcharge += metalcharge
+        else:
+            parts = line.split()
+            if len(parts) == 2:
+                ligandchg = int(parts[1])
+                newtotalcharge += ligandchg
+    return newtotalcharge
+
+# multicomponent utilities
+def check_multicomponent(filename:str):
+    """
+    Check if the given file contains multiple molecules
+
+    Parameters
+    ----------
+    filename : str
+        file name
+
+    Returns
+    -------
+    flag : bool
+        True if the file is a multicomponent file, False otherwise
+    """
+    mol = pybel.readfile(os.path.splitext(filename)[-1][1:], filename).__next__()
+    mol_obmol = mol.OBMol
+    fragments = mol_obmol.Separate()
+    return len(fragments) > 1
+
+
+def summarize_pdb_fragments(pdbname: str):
+    """Return fragment (residue) summary for a PDB: list of (resname, copies, atoms_per_copy)."""
+    mol = pybel.readfile("pdb", pdbname).__next__()
+    residues = {}
+    for res in ob.OBResidueIter(mol.OBMol):
+        name = res.GetName().strip()
+        atoms = res.GetNumAtoms()
+        if name not in residues:
+            residues[name] = {"copies": 0, "atoms_per_copy": atoms}
+        residues[name]["copies"] += 1
+        # keep first atoms_per_copy
+    summary = [(k, v["copies"], v["atoms_per_copy"]) for k, v in residues.items()]
+    summary.sort(key=lambda x: x[0])
+    return summary
+
+def splitpdb(pdbname:str):
+    """
+    Split the given pdb into four components: header, atomlines, bonds, tailer
+
+    Parameters
+    ----------
+    pdbname : str
+        pdb file name
+
+    Returns
+    -------
+    header : str
+        the content before ATOM and HETATM, contains title, author, etc.
+    atomlines : List[str]
+        a list of ATOM and HETATM lines, contains coordinates, atom names, etc.
+    bonds : List[Tuple[int]]
+        a list contains bond information, each element is a tuple of two atom ids
+    tailer : str
+        the content after CONECT, contains end of file
+
+    Notes
+    -----
+    This function description is generated by copilot. 
+    """
+    with open(pdbname, "r") as f:
+        lines = f.readlines()
+    atomstart = 0
+    header = []
+    for i, line in enumerate(lines):
+        if line.startswith("ATOM") or line.startswith("HETATM"):
+            atomstart = i
+            break
+        header.append(line)
+    header = "".join(header)
+    atomlines = []
+    atomend = atomstart
+    for i in range(atomstart, len(lines)):
+        line = lines[i]
+        if line.startswith("TER"):
+            continue
+        if not line.startswith("ATOM") and not line.startswith("HETATM"):
+            atomend = i
+            break
+        atomid = int(line[6:12])-1
+        # print(i, atomid, len(atomlines))
+        assert len(atomlines) == atomid
+        atomlines.append(line)
+    middles = []
+    conectstart = atomend
+    for i in range(atomend, len(lines)):
+        if lines[i].startswith("CONECT"):
+            conectstart = i
+            break
+        middles.append(lines[i])
+    conectend = conectstart
+    bonds = []
+    for i in range(conectstart, len(lines)):
+        if not lines[i].startswith("CONECT"):
+            conectend = i
+            break
+        bondline = tuple(map(int, lines[i].split()[1:]))
+        bonds.append(bondline)
+    tailer = []
+    for i in range(conectend, len(lines)):
+        tailer.append(lines[i])
+    tailer = "".join(tailer)
+    return header, atomlines, bonds, tailer
+
+def reorderPDB(pdbname:str):
+    """
+    Rearrange order of atoms in pdb file. 
+    
+    Atoms in each fragments after reshaping will have consecutive ids, with most of its original information preserved.
+    
+    If this file needs to be rearranged, the original pdb file will be renamed to `pdbname`-not-ordered.pdb
+    
+    Parameters
+    ----------
+    pdbname : str
+        pdb file that need to be reordered
+    """
+    mol = pybel.readfile("pdb", pdbname).__next__()
+    mol:pybel.Molecule
+    mol_obmol = mol.OBMol
+    mol_obmol:ob.OBMol
+    n_atom = mol_obmol.NumAtoms()
+    fragments = mol_obmol.Separate()
+    newlabels = [-1 for i in range(n_atom)]
+    baseindex = 0
+    iscorrectorder = [True for i in range(len(fragments))]
+    for i, fragment in enumerate(fragments):
+        fragment:ob.OBMol
+        n_atom_frag = fragment.NumAtoms()
+        for j in range(n_atom_frag):
+            a = fragment.GetAtom(j+1)
+            newlabels[a.GetIdx()-1 + baseindex] = a.GetId()
+            iscorrectorder[i] = (a.GetId() == a.GetIdx()-1 + baseindex)
+        baseindex += n_atom_frag
+    for flag in iscorrectorder:
+        if not flag:
+            print(f"The atom order in PDB file {pdbname} is shuffled. Reordering...")
+            break
+    else:
+        print("Atoms in each fragments have consecutive ids.")
+    header, atomlines, bonds, tailer = splitpdb(pdbname)
+    newlabelt = [-1 for i in range(len(newlabels))]
+
+    basename = os.path.splitext(pdbname)[0]
+    os.rename(pdbname, basename + "-not-ordered.pdb")
+    with open(pdbname, "w") as f:
+        f.write(header)
+        for i, atomid in enumerate(newlabels):
+            line = atomlines[atomid]
+            f.write(line[0:6] + f"{i+1:>5d}" + line[11:])
+        for i, lb in enumerate(newlabels):
+            newlabelt[lb] = i
+        for i in range(len(bonds)):
+            bond = bonds[newlabels[i]]
+            f.write("CONECT")
+            for I in bond:
+                f.write(f"{newlabelt[I-1]+1:>5d}")
+            f.write("\n")
+        f.write(tailer)
+
+# reading terachem output file
+def read_resp_charge(outfile:str) -> list:
+    with open(outfile, "r") as f:
+        content = f.read()
+    lines = content.splitlines()
+    for i, line in enumerate(lines):
+        if line.find("ESP restraint charges:") != -1:
+            break
+    newlines = []
+    for line in lines[i+3:]:
+        if line.startswith("-----------------"):
+            break
+        newlines.append(line)
+    chgs = []
+    for line in newlines:
+        data = line.split()
+        chg = float(data[4])
+        chgs.append(chg)
+    return np.array(chgs)
+
+def read_gradient(fname:str):
+    gradientdata = []
+    start = False
+    with open(fname, "r") as f:
+        for line in f:
+            if line.startswith("Gradient units are Hartree/Bohr"):
+                start = True
+            if line.startswith("Net gradient:"):
+                start = False
+            if start == True:
+                gradientdata.append(line)
+
+    gradientdata = gradientdata[3:-1]
+    natom = len(gradientdata)
+    gradient = np.zeros((natom, 3), dtype = float)
+    for i in range(natom):
+        # print(gradientdata[i])
+        gradient[i] = list(map(float, gradientdata[i].split()))
+    return np.array(gradient)
+
+def read_energy(fname:str):
+    eline = "FINAL ENERGY: 0.000000000 a.u."
+    with open(fname, "r") as f:
+        for line in f:
+            if line.startswith("FINAL ENERGY:"):
+                eline = line
+    eline = eline.replace("FINAL ENERGY:", "").replace("a.u.", "")
+    return float(eline)
+
+def read_xyz(fname):
+    f = open(fname, "r")
+    lines = f.readlines()
+    f.close()
+    natom = int(lines[0])
+    datastr = lines[2:]
+    data = np.empty((natom, 3), dtype = float)
+    element = []
+    for i, line in enumerate(datastr):
+        temp = line.split()
+        if len(temp) != 4:
+            continue
+        a, x, y, z = temp
+        element.append(a)
+        data[i][0] = float(x)
+        data[i][1] = float(y)
+        data[i][2] = float(z)
+    return element, data
+
+def read_xyz_multiple(fname):
+    f = open(fname, "r")
+    lines = f.readlines()
+    f.close()
+    curlineidx = 0
+    elements, datas = [], []
+    while curlineidx < len(lines) and lines[curlineidx].strip():
+        natom = int(lines[curlineidx])
+        datastr = lines[curlineidx+2:curlineidx+2+natom]
+        data = np.empty((natom, 3), dtype = float)
+        element = []
+        for i, line in enumerate(datastr):
+            temp = line.split()
+            if len(temp) != 4:
+                continue
+            a, x, y, z = temp
+            element.append(a)
+            data[i][0] = float(x)
+            data[i][1] = float(y)
+            data[i][2] = float(z)
+        elements.append(element)
+        datas.append(data)
+        curlineidx = curlineidx+2+natom
+    return elements, datas
+
+def read_optimized_xyz(fname):
+    elements, datas = read_xyz_multiple(fname)
+    return elements[-1], datas[-1]
+
+def write_xyz(fname, element, data, energy = ""):
+    f = open(fname, "w")
+    f.write(str(len(element)) + "\n")
+    f.write(str(energy) + "\n")
+    for i in range(len(element)):
+        f.write(f"{element[i]}    {data[i][0]:>12.8f}    {data[i][1]:>12.8f}    {data[i][2]:>12.8f}\n")
+    f.close()
+
+
+# processing PDB
+def removeConectFromPDB(pdbpath:str):
+    pdb1 = open(pdbpath).readlines()
+    pdb2 = open(pdbpath,'w')
+    for line in pdb1:
+        if 'CONECT' not in line:
+            pdb2.write(line)
+    pdb2.close()
+
+def getHeadTail(mol2):
+    r"""
+    Detect start and end of coordinates
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+    pdb = open(mol2).readlines()
+    start = 0
+    end = 0
+    head, tail = 0, 0
+    for i in range(0,len(pdb)):
+        if "@<TRIPOS>ATOM" in pdb[i]:
+            start = i+1
+        if "@<TRIPOS>BOND" in pdb[i]:
+            end = i
+    for i in range(start, end):
+        atom =  pdb[i].split()[1]
+        if "H" not in atom:
+            head = atom
+            break
+    for i in reversed(range(start,end)):
+        atom =  pdb[i].split()[1]
+        if "H" not in atom:
+            tail = atom
+            break
+    return head, tail
+
+def formatPDB(pdbfile:str):
+    """format the pdb to the standard amber pdb using pdb4amber"""
+    mainname, ext = os.path.splitext(pdbfile)
+    os.rename(pdbfile, mainname + "-original.pdb")
+    subprocess.run(f"pdb4amber -i {mainname}-original.pdb -o {pdbfile} -l {mainname}-format.log", shell = True)
+    os.remove(f"{mainname}-original.pdb")
+
+def updatePDB(obmol:ob.OBMol, pdbpath:str):
+    if os.path.isfile(pdbpath):
+        mainname, ext = os.path.splitext(pdbpath)
+        os.rename(pdbpath, mainname + "-original.pdb")
+    pyobmol = pybel.Molecule(ob.OBMol(obmol))
+    pyobmol.write("pdb", pdbpath, overwrite=True)
+
+def xyz_to_pdb(mol: object) -> None: 
+    r'''
+    Convert xyz file to pdb file using openbabel
+    '''
+    # os.system('ob -ixyz {} -opdb -O {}'.format(mol.xyz, mol.name+'.pdb'))
+    obConversion = ob.OBConversion() 
+    obConversion.SetInAndOutFormats("xyz", "pdb") 
+    OBMOL = ob.OBMol() 
+    obConversion.ReadFile(OBMOL, mol.xyz) 
+    obConversion.WriteFile(OBMOL, mol.name+'/'+mol.name+'.pdb')
+    mol.update()
+    edit_pdb(mol)
+
+def edit_pdb(mol: object) -> None:
+    with open(mol.name+'/'+mol.pdb, 'r') as f: 
+        lines = f.readlines() 
+    with open(mol.name+'/'+mol.pdb, 'w') as f: 
+        for line in lines: 
+            if line.startswith('CONECT'): 
+                continue
+            else: 
+                f.write(line)
+
+def edit_system_pdb(box: object) -> None:
+    with open(box.name+'/'+box.system_pdb, 'r') as f: 
+        lines = f.readlines()
+    with open(box.name+'/'+box.system_pdb, 'w') as f:  
+        this_resid = 1
+        last_resid = 1
+        for line in lines:
+            if 'ATOM' in line:
+                last_resid = int(this_resid)
+                this_resid = int(line[22:26])
+            if last_resid != this_resid:
+                f.write("TER\n")
+            f.write(line)
+        f.close()
+    
+def assign_water_pdb(mol: object) -> None:
+    '''assign a reference pdb file for water'''
+    pdbstr = '''
+ATOM      1  O   WAT     0       2.537  -0.155   0.000  0.00  0.00           O  
+ATOM      2  H1  WAT     0       3.074   0.155   0.000  0.00  0.00           H  
+ATOM      3  H2  WAT     0       2.000   0.155   0.000  0.00  0.00           H  
+CONECT    1    2    3
+CONECT    2    1
+CONECT    3    1
+END
+'''.strip("\n")
+    outputfolder = mol.folder
+    if not os.path.exists(outputfolder):
+        os.makedirs(outputfolder)
+    pdbpath = mol.reference_name + '.pdb'
+    with open(pdbpath, 'w') as f:
+        f.write(pdbstr)
+    mol.pdb = pdbpath
+
+def get_residue_name_from_pdb(file_path:str) -> str:
+    residue_name = ""
+    with open(file_path, 'r') as file:
+        for line in file:
+            if line.startswith('ATOM') or line.startswith('HETATM'):
+                residue_name = line[17:20]  
+                break  
+    return residue_name
+
+
+# process amber prep file
+def extract_residue_name_from_prep(prep_file:str) -> str:
+    # The format of the unique residue name:
+    #   - 5 -      NAMRES , INTX , KFORM
+    with open(prep_file, 'r') as file:
+        lines = file.readlines()
+    for line in lines:
+        if ("INT" in line) or ("XYZ" in line):
+            parts = line.split()
+            return parts[0]
+    return "MOL"
+
+def prep2pdb(mol: object) -> None:
+    r'''
+    Output a pdb file from a prep file using tleap
+    '''
+    outputfolder = mol.folder
+    pdbpath = mol.reference_name + '.pdb'
+    if not os.path.exists(outputfolder):
+        os.makedirs(outputfolder)
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    residue_name = extract_residue_name_from_prep(mol.prep)
+    with open(os.path.join(mol.folder, "leap_convert.cmd"), "w") as f: 
+        f.write(f"loadAmberPrep {mol.prep}\n")
+        f.write(f"savepdb {residue_name} {pdbpath}\n")
+        f.write("quit\n")
+    os.system(f"tleap -s -f {os.path.join(mol.folder, 'leap_convert.cmd')} > {os.path.join(mol.folder, 'leap_convert.log')}")
+    mol.pdb = pdbpath
+
+def prep2pdb_withexactpath(preppath:str, pdbpath:str = "") -> None:
+    r'''
+    Output a pdb file from a prep file using tleap
+    '''
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    if not pdbpath:
+        pdbpath = os.path.splitext(preppath)[0] + ".pdb"
+    residue_name = extract_residue_name_from_prep(preppath)
+    with open("leap_convert.cmd", "w") as f: 
+        f.write(f"loadAmberPrep {preppath}\n")
+        f.write(f"savepdb {residue_name} {pdbpath}\n")
+        f.write("quit\n")
+    os.system("tleap -s -f leap_convert.cmd > leap_convert.log")
+
+def extract_residue_name_from_lib(lib_file:str) -> str:
+    # Read the lib/off file with parmed and extract the residue name
+    lib = pmd.load_file(lib_file)
+    lib:pmd.amber.offlib.AmberOFFLibrary
+    if len(lib.keys()) > 1:
+        raise ValueError(f"The library file {lib_file} contains multiple residues")
+    return list(lib.keys())[0]
+
+def lib2pdb(mol: object) -> None:
+    r'''
+    Output a pdb file from a lib file using tleap
+    '''
+    outputfolder = mol.folder
+    pdbpath = mol.reference_name + '.pdb'
+    if not os.path.exists(outputfolder):
+        os.makedirs(outputfolder)
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    if mol.check_exist("lib"):
+        lib = pmd.load_file(mol.lib)
+        res = list(lib.keys())[0]
+        lib[res].save(pdbpath)
+    elif mol.check_exist("off"):
+        try:
+            lib = pmd.load_file(mol.off)
+            res = list(lib.keys())[0]
+            lib[res].save(pdbpath)
+        except Exception as e:
+            print(f"Error loading .off file using parmed: {e}")
+            try:
+                off2pdb(mol.off, pdbpath, mol.residue_name)
+                print(f"Successfully converted .off file to pdb using tleap")
+            except Exception as e:
+                print(f"Error converting .off file to pdb using tleap: {e}")
+                raise e
+            
+    mol.pdb = pdbpath
+
+def lib2pdb_withexactpath(libpath:str, pdbpath:str = "") -> None:
+    r'''
+    Output a pdb file from a lib file using tleap
+    '''
+    if os.path.exists(pdbpath) and os.path.isfile(pdbpath):
+        os.remove(pdbpath)
+    if not pdbpath:
+        pdbpath = os.path.splitext(libpath)[0] + ".pdb"
+    lib = pmd.load_file(libpath)
+    res = list(lib.keys())[0]
+    lib[res].save(pdbpath)
+
+
+def off2pdb(off_file:str, pdb_file:str, residue_name:str) -> None:
+    r'''
+    Handle solvent .off files when pmd.load_file() fails using tleap
+    '''
+    with open("leap_off2pdb.cmd", "w") as f: 
+        f.write(f"loadoff {off_file}\n")
+        f.write(f"savepdb {residue_name} {pdb_file}\n")
+        f.write("quit\n")
+    os.system("tleap -s -f leap_off2pdb.cmd > leap_off2pdb.log")
+    
+
+def process_system_name(name:str, xyzfile:str, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib"), check_exist = True):
+    if not os.path.isfile(xyzfile) and check_exist:
+        raise ValueError("The input file {:s} does not exist".format(xyzfile))
+    ext = os.path.splitext(xyzfile)[1][1:]
+    if ext not in support_input_format:
+        raise ValueError("The input file {:s} is not supported".format(xyzfile))
+    if name == "":
+        name = os.path.basename(os.path.splitext(xyzfile)[0])  
+    return name
+
+def extract(inputfile: str, info: str) -> str:
+    """
+    @ Examples
+    >>> extract('test.xyz', 'basename')
+    'test.xyz'
+    """
+    basename        = os.path.basename(inputfile) 
+    name , ext      = os.path.splitext(basename)
+    ext             = ext[1:]
+    if info == 'basename': 
+        return basename 
+    elif info == 'name': 
+        return name 
+    elif info == 'extension' or info == 'ext': 
+        return ext 
+    else: 
+        raise Exception('info not supported')
+    
+def count_solvent(*args: object) -> int: 
+    ''' 
+    @Description: 
+        return the number of solvent molecules 
+    '''
+    solvent_num = 0 
+    for mol in args:
+        if mol.mol_type == 'solvent': 
+            solvent_num += 1 
+        else: 
+            raise Warning('mol_type is not set') 
+    return solvent_num 
+
+def count_solute(*args: object) -> int:
+    ''' 
+    @Description: 
+        return the number of solute molecules 
+    '''
+    solute_num = 0 
+    for mol in args:
+        if mol.mol_type == 'solute': 
+            solute_num += 1 
+        else: 
+            raise Warning('mol_type is not set') 
+    return solute_num
+
+def get_list_mol_type(*args: object, mol_type: str) -> list: 
+    r'''
+    @Description: 
+        return a list of solvent molecules 
+    '''
+    solvent_list = [] 
+    for mol in args:
+        if mol.mol_type == mol_type: 
+            solvent_list.append(mol) 
+        else: 
+            raise Warning('mol_type is not set')
+    return solvent_list
+
+def try_ones_best_to_get_residue_name(self, xyzfile:str, name:str):
+    try:
+        assert xyzfile.endswith(".pdb"), "Only pdb file is supported for now"
+        residue_name = get_residue_name_from_pdb(xyzfile)
+        assert len(residue_name) == 3, "Residue name must be three letters long"
+    except:
+        xyzbasename = os.path.splitext(os.path.basename(xyzfile))[0] if not name else name
+        if len(xyzbasename) >= 3:
+            residue_name = xyzbasename[:3].upper()
+        elif len(xyzbasename) < 3:
+            residue_name = "MOL"
+    return residue_name
+
+
+#handle job submission in class 
+def srun() -> callable:
+    r'''
+    @Example:
+    >>> @srun()xyz_to_pdb
+    ... def test():
+    ...     return 'cmd'
+    >>> test()
+    'srun -n 1 cmd'
+    '''
+    def wrap(func): 
+        def wrapped_func(*args, **kwargs): 
+            if USE_SRUN:  
+                value = 'srun -n 1 ' + func(*args, **kwargs) 
+            else:
+                value = func(*args, **kwargs)  
+            return value
+        return wrapped_func 
+    return wrap
+
+def submit(cmd: str) -> None: 
+        if DRY_RUN:
+            print(cmd) 
+            return
+        else:
+            subprocess.call(cmd, shell=True)
+
+
+def calculate_fake_charge(charge, spinmult) -> int:
+    """create a fake charge that can make the spinmult to be 1."""
+    if spinmult <= 1:
+        return charge
+    if spinmult % 2 == 1:
+        return charge
+    if charge <= 0:
+        fakecharge = charge + 1
+    elif charge > 0:
+        fakecharge = charge - 1
+    return fakecharge
+
+def write_mol2_line(res) -> str:
+    newline = ""
+    newline += " {:>3d}"     .format(int(res[0]))
+    newline += " {:<4s}"     .format(res[1])
+    newline += " {:>12.6f} {:>12.6f} {:>12.6f}".format(float(res[2]), float(res[3]), float(res[4]))
+    newline += " {:<6s}"    .format(res[5])
+    newline += " {:>3d}"     .format(int(res[6]))
+    newline += " {:<7s}"    .format(res[7])
+    newline += " {:>9.6f} "  .format(float(res[8]))
+    if len(res) > 9:
+        newline += " ".join(res[9:])
+    newline += "\n"
+    return newline
+
+def modify_mol2(fakemol2, targetmol2, charges:List[float]) -> None:
+    f1 = open(fakemol2, "r")
+    f2 = open(targetmol2, "w")
+    section = ""
+    atomid = 0
+    for line in f1:
+        if line.startswith("@"):
+            section = line.strip("\n").replace("@<TRIPOS>", "")
+        if section.find("ATOM") == -1:
+            f2.write(line)
+        else:
+            res = line.split()
+            if len(res) == 9 or len(res) == 10:
+                res[8] = str(charges[atomid])
+                newline = write_mol2_line(res)
+                f2.write(newline)
+                atomid += 1
+            else:
+                f2.write(line)
+    f1.close()
+    f2.close()
+
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

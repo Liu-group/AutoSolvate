@@ -11,7 +11,7 @@ import os
 import subprocess
 import shutil
 import imolecule
-import pkg_resources
+from autosolvate.utils.resources import autosolvate_resource
 
 this_dir, this_filename = os.path.split(__file__)
 
@@ -50,7 +50,7 @@ class baseGUI():
         self.irow = 0
 
     def display_logo(self):
-        path = pkg_resources.resource_filename('autosolvate', 'GUI/images/logo.png')
+        path = autosolvate_resource('GUI/images/logo.png')
 
         #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object. Scale the image to fix into the current window
         self.master.update()

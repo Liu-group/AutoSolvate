@@ -9,7 +9,7 @@
 Automated workflow for setting up explicit solvent quantum chemistry calculations for molecules.
 
 ### Online Documentation
-https://autosolvate.readthedocs.io/en/latest/
+https://autosolvate.readthedocs.io/en/py312/
 
 ### Copyright
 

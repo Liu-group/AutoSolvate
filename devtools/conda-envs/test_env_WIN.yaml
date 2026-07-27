@@ -3,9 +3,11 @@ channels:
   - conda-forge
 dependencies:
     # Base depends
-  - python=3.8
+  - python=3.12
   - pip
   - setuptools
+  - numpy<2
+  - scipy<1.12
 
     # Testing
   - pytest
@@ -21,9 +23,6 @@ dependencies:
     # MDtraj
   - mdtraj
 
-    # rdkit
-  - rdkit
-
     # Documentation
   - sphinx
   - sphinx_rtd_theme
@@ -32,6 +31,5 @@ dependencies:
   - pip:
     - imolecule
     - pillow
-    - pubchempy
   #  - codecov
 

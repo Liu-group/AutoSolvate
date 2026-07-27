@@ -1,0 +1,104 @@
+flowchart TD
+    Start[Start wizard] --> Header[Print welcome + working dir]
+    Header --> DetectAmber[Detect AMBERHOME & tools]
+    DetectAmber --> CubeSize[Ask cube size 1 or 3 numbers]
+    CubeSize --> SystemType{System type?\n1 solute_solvent\n2 mixture}
+
+    %% Solute branch
+    SystemType -- solute_solvent --> SoluteCount[Ask solute species count]
+    SoluteCount --> SoluteLoop[[For each solute i]]
+    SoluteLoop --> SolutePath[Ask solute file path xyz/pdb, must exist]
+    SolutePath --> SoluteName[Ask solute short name]
+    SoluteName --> AutoDetect[Auto-detect type: molecule / TMC / complex]
+    AutoDetect --> SoluteClass{Classify solute\n1 regular\n2 TMC\n3 complex}
+
+    SoluteClass -- regular --> MolCharge[Ask total charge int, default 0]
+    MolCharge --> MolSpin[Ask spin multiplicity default 1]
+    MolSpin --> SoluteNumber[Ask solute copies]
+    SoluteNumber --> MolParams{Have frcmod/mol2/lib/off/prep?}
+    MolParams -- yes --> MolFrcmod[Ask frcmod path optional] --> MolMainParam[Ask one of mol2/off/lib/prep] --> Centering
+    MolParams -- no --> Centering
+
+    SoluteClass -- TMC --> TmcCharge[Ask total charge default 0]
+    TmcCharge --> TmcSpin[Ask spin multiplicity default 1]
+    TmcSpin --> SoluteNumber
+    SoluteNumber --> TmcMetalCharge[Ask metal charge]
+    TmcMetalCharge --> TmcChargefile[Ask optional ligand charge file]
+    TmcChargefile --> TmcCutoff[Ask cutoff distance default 2.8 Å]
+    TmcCutoff --> Centering
+
+    SoluteClass -- complex --> ComplexFrag{PDB?}
+    ComplexFrag -- yes --> FragSummary[Summarize fragments/copies/atoms]
+    FragSummary --> FragCharges[Ask fragment charges per residue]
+    FragCharges --> SoluteNumber
+    ComplexFrag -- no --> SoluteNumber
+
+    SoluteNumber --> Centering{Center this solute?}
+    Centering --> NextSolute[[Next solute or exit loop]]
+    NextSolute --> SoluteLoop
+    SoluteClass -.-> Centering
+
+    %% QM settings if any TMC
+    SoluteLoop -->|after loop| MaybeQM{Any transition metal complex?}
+    MaybeQM -- yes --> QMSoftware[Detect & list QM software]
+    QMSoftware --> QMChoose[Choose QM software]
+    QMChoose --> QMExe[Path to QM executable optional]
+    QMExe --> QMBasis[Ask basis set default lanl2dz]
+    QMBasis --> QMMethod[Ask method default b3lyp]
+    QMMethod --> QMProcs[Ask nprocs]
+    QMProcs --> QMMaxcore[If ORCA: ask maxcore]
+    QMMaxcore --> QMOpt[Ask run geometry opt?]
+    QMOpt --> AmberHome[Ask/confirm AMBERHOME]
+    MaybeQM -- no --> SolventCount
+    AmberHome --> SolventCount
+
+    %% Solvent branch
+    SystemType -- mixture --> SolventCount
+    SolventCount[Ask solvent/component count] --> Method{If >1: choose composition method\n1 number /2 weight /3 volume /4 molar\nIf single: 1 number or 2 density}
+
+    Method --> SolventLoop[[For each component j]]
+    SolventLoop --> SolventChoice{Preset solvent or custom?}
+    SolventChoice -- preset --> SolventPreset[Set defaults mw, density, residue]
+    SolventChoice -- custom --> CustomPath[Ask structure file must exist]
+    CustomPath --> CustomResidue[Ask residue name]
+    CustomResidue --> CustomParams{Have frcmod?}
+    CustomParams -- yes --> CustomFrcmod[Ask frcmod path]
+    CustomFrcmod --> CustomMainParam[Ask one of mol2/off/lib/prep] --> CompMethod
+    CustomParams -- no --> CompMethod
+
+    SolventPreset --> CompMethod
+    CompMethod{Method?} -- 1 number --> SolvNumber[Ask molecule count]
+    CompMethod -- single+density --> SolvDensity[Ask target density] --> SolvMW[Ask MW or auto] --> SolvCompute[Compute count from density]
+    CompMethod -- ratios 2/3/4 --> SolvDensity2[Ask density] --> SolvMW2[Ask MW] --> SolvRatio[Ask weight/volume/molar ratio]
+
+    SolvNumber --> NextSolvent[[Next component or exit loop]]
+    SolvCompute --> NextSolvent
+    SolvRatio --> NextSolvent
+    SolvMW --> SolvCompute
+    SolvMW2 --> SolvRatio
+    NextSolvent --> SolventLoop
+
+    SolventLoop -->|after loop| RatioCalc{If multi-component + ratios}
+    RatioCalc -- yes --> CalcNumbers[Compute molecule counts from ratios]
+    RatioCalc -- no --> SkipRatio
+    CalcNumbers --> SkipRatio
+    SkipRatio --> DensityCheck
+
+    %% Density sanity
+    DensityCheck[Estimate overall & solvent-only density] --> DensityDev{Deviation check}
+    DensityDev -- ok --> Packmol
+    DensityDev -- adjust --> AdjustChoice{Adjust?\n1 cube size\n2 scale solvent counts\n3 keep}
+    AdjustChoice -- 1 --> PreviewCube[Preview new cube size] --> ApplyCube{Apply?}
+    ApplyCube --> Packmol
+    AdjustChoice -- 2 --> PreviewCounts[Preview scaled solvent counts] --> ApplyCounts{Apply?}
+    ApplyCounts --> Packmol
+    AdjustChoice -- 3 --> Packmol
+
+    %% Packmol + output
+    Packmol[Suggest packmol closeness preset if single known solvent and ask override] --> OutFolder[Ask output folder]
+    OutFolder --> Review[Show config JSON]
+    Review --> WriteNow{Write now?}
+    WriteNow -- yes --> Save[Save generated_input.json]
+    WriteNow -- no --> EditMode[Edit via python expressions]
+    EditMode --> Save
+    Save --> End[End]

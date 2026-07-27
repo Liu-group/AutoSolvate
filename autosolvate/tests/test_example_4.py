@@ -1,7 +1,6 @@
 ######################################################################################################
 # test example 4: Naphthalene Radical in Chloroform: box gen: test pdb, prmtop 
-# author: Patrick Li (2022-10-18) 
-# path: autosolvate/tests/test_case4.py 
+# @Author : Patrick Li (2022-10-18) 
 ######################################################################################################
 # @Date   : May 9th 2024 
 # @Author : Patrick Li

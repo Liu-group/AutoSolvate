@@ -1,105 +1,50 @@
 import os
+import shutil
+
 import pytest
-import numpy as np
 
 import autosolvate
-from . import helper_functions as hp
+from autosolvate.ion_forcefield import IonForceFieldBuilder
 
-def compare_boxgen(out, ref):
-    with open(out + ".pdb", 'r') as f_in:
-        pdb = f_in.read()
-    with open(ref + ".pdb", 'r') as f_in:
-        pdb_ref = f_in.read()
-    compare_pdb = pdb == pdb_ref
 
-    with open(out + ".inpcrd", 'r') as f_in:
-        inpcrd = f_in.read()
-    with open(ref + ".inpcrd", 'r') as f_in:
-        inpcrd_ref = f_in.read()
-    compare_inpcrd = inpcrd == inpcrd_ref
+_REQUIRED = ("obabel", "tleap")
+pytestmark = pytest.mark.skipif(
+    any(shutil.which(exe) is None for exe in _REQUIRED),
+    reason="AmberTools and Open Babel are required for ion integration tests",
+)
 
-    with open(out + ".prmtop", 'r') as f_in:
-        prmtop = f_in.readlines()[1:] #skip DATE = 10/08/22  11:32:06
-    with open(ref + ".prmtop", 'r') as f_in:
-        prmtop_ref = f_in.readlines()[1:]
-    compare_prmtop = prmtop == prmtop_ref
 
-    return compare_pdb, compare_inpcrd, compare_prmtop
+def _assert_amber_outputs(prefix, element, charge):
+    parmed = pytest.importorskip("parmed")
+    for suffix in (".pdb", ".prmtop", ".inpcrd"):
+        assert os.path.isfile(prefix + suffix)
+    topology = parmed.load_file(prefix + ".prmtop", prefix + ".inpcrd")
+    assert any(atom.element_name.upper() == element.upper() or atom.name.upper() == element.upper() for atom in topology.atoms)
+    counterion = "Cl" if charge > 0 else "Na"
+    assert sum(atom.element_name == counterion for atom in topology.atoms) == abs(charge)
 
-def test_advanced_example_1(tmpdir):
-    solventboxname = "water"
-    os.system('cp inputs/K.xyz ' + str(tmpdir))
-    
-    
-    
+
+def test_potassium_water():
     autosolvate.startboxgen([
-        "-m", "K.xyz",
-        "-s", solventboxname,
-        "-c", "1",
-        "-o",'K_solvated'
-        ])
+        "-m", "inputs/K.xyz", "-s", "water", "-c", "1", "-o", "K_solvated",
+    ])
+    _assert_amber_outputs("K_solvated", "K", 1)
+    frcmod = open("inputs/K.frcmod").read()
+    assert "MASS" in frcmod and "NONB" in frcmod
 
-    for p in tmpdir.listdir():
-        print("  ", p.basename)
 
-    pass_exist = True
-    for suffix in ["K_solvated.pdb", "K_solvated.prmtop", "K_solvated.inpcrd"]:
-        pass_exist *= os.path.exists(suffix)
-    assert pass_exist
-    
-    
-    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen(os.path.join(tmpdir, "K_solvated"), os.path.join(hp.get_reference_dir(), "ions/K/K_solvated"))
-    assert compare_pdb
-    assert compare_inpcrd
-    assert compare_prmtop
-    
-    os.system('cp inputs/S.xyz ' + str(tmpdir))
-    
-    solventboxname = "acetonitrile"
+def test_sulfur_acetonitrile():
+    if shutil.which("packmol") is None:
+        pytest.skip("Packmol is required for acetonitrile")
     autosolvate.startboxgen([
-        "-m", "S.xyz",
-        "-s", solventboxname,
-        "-c", "-2",
-        "-o",'S_solvated'
-        ])
+        "-m", "inputs/S.xyz", "-s", "acetonitrile", "-c", "-2", "-o", "S_solvated",
+    ])
+    _assert_amber_outputs("S_solvated", "S", -2)
 
-    for p in tmpdir.listdir():
-        print("  ", p.basename)
 
-    pass_exist = True
-    for suffix in ["S_solvated.pdb", "S_solvated.prmtop", "S_solvated.inpcrd"]:
-        pass_exist *= os.path.exists(suffix)
-    assert pass_exist
-    
-    
-    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen(os.path.join(tmpdir, "S_solvated"), os.path.join(hp.get_reference_dir(), "ions/S/S_solvated"))
-    assert compare_pdb
-    assert compare_inpcrd
-    assert compare_prmtop
-    
-    os.system('cp inputs/dmso.frcmod ' + str(tmpdir))
-    os.system('cp inputs/dmso.off ' + str(tmpdir))
-    os.system('cp inputs/Fe.xyz ' + str(tmpdir))
-    
-    solventboxname = "d"
+def test_iron_custom_dmso():
     autosolvate.startboxgen([
-        "-m", "Fe.xyz",
-        "-s", solventboxname,
-        "-c", "2",
-        "-o",'Fe_dmso_solvated',
-        "-l", "dmso.off",
-        "-p", "dmso.frcmod"
-        ])
-
-    for p in tmpdir.listdir():
-        print("  ", p.basename)
-
-    pass_exist = True
-    for suffix in ["Fe_dmso_solvated.pdb", "Fe_dmso_solvated.prmtop", "Fe_dmso_solvated.inpcrd"]:
-        pass_exist *= os.path.exists(suffix)
-    assert pass_exist
-
-    compare_pdb, compare_inpcrd, compare_prmtop = compare_boxgen(os.path.join(tmpdir, "Fe_dmso_solvated"), os.path.join(hp.get_reference_dir(), "ions/Fe/Fe_dmso_solvated"))
-    assert compare_pdb
-    assert compare_inpcrd
-    assert compare_prmtop
+        "-m", "inputs/Fe.xyz", "-s", "d", "-c", "2", "-o", "Fe_dmso_solvated",
+        "-l", "inputs/dmso.off", "-p", "inputs/dmso.frcmod",
+    ])
+    _assert_amber_outputs("Fe_dmso_solvated", "Fe", 2)

@@ -1,0 +1,22 @@
+PARM94 for DNA, RNA and prot. modified for amidates. Use 1-4 scee 1.2. 14.June,96
+MASS	
+YN 14.01                             N in CN 
+YC 12.01                             C in CN
+
+BOND
+YC-YN  600.0    1.150       in ch3cn
+YC-CT  400.0    1.458       in ch3cn
+
+ANGLE
+YN-YC-CT    80.0      180.00     ch3cn
+YC-CT-HC    35.0      110.00     ch3cn
+
+DIHEDRAL
+X -YC-CT-X    3    0.0           0.0             1.         ch3cn 
+
+NONB      RE
+  YN          1.8240  0.1700             CN 
+  YC          1.9080  0.0860             CN
+
+END
+

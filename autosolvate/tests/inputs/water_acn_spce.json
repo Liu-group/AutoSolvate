@@ -1,0 +1,18 @@
+{
+    "cube_size": 40,
+    "charge_method": "bcc",
+    "water_model": "spce",
+    "prefix": "water-acn-spce",
+    "solute": {},
+    "solvents":[
+        {
+            "name": "acetonitrile", 
+            "molar_ratio": 0.3
+
+        },
+        {
+            "name": "water",
+            "molar_ratio": 0.7
+        }
+    ]
+}

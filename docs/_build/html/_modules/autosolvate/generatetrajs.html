@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autosolvate.generatetrajs &mdash; AutoSolvate  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            AutoSolvate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorialGUI.html">GUI Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../advancedTutorial.html">Advanced Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorialMulticomponent.html">Tutorial for Mixed Solvent Box Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_for_metalcomplexes.html">Tutorial for Force Field Generation of Organometallic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AutoSolvate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">autosolvate.generatetrajs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autosolvate.generatetrajs</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">getopt</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+
+<span class="k">def</span> <span class="nf">writeSoluteConstrain</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">wt</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span><span class="n">ntr</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write the lines to apply constraints to solute</span>
+<span class="sd">   </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f: file, Required, default: None</span>
+<span class="sd">        File of Amber input</span>
+<span class="sd">    ntr: bool, Optional, default: False</span>
+<span class="sd">        Use the ntr restraint or ibelly constrain</span>
+<span class="sd">    wt: float, Optional, default: 500</span>
+<span class="sd">        Weight of restraint if using the Amber ntr restraint</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ntr</span><span class="p">:</span>
+       <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntr=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+       <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;restraintmask=</span><span class="se">\&#39;</span><span class="s2">:1</span><span class="se">\&#39;</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+       <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;restraint_wt=</span><span class="si">{:f}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wt</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ibelly=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+       <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;bellymask = </span><span class="se">\&#39;</span><span class="s2">:2-</span><span class="se">\&#39;</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="writeMMminInput"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.writeMMminInput.html#autosolvate.generatetrajs.writeMMminInput">[docs]</a><span class="k">def</span> <span class="nf">writeMMminInput</span><span class="p">(</span><span class="n">stepsmmmin</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span><span class="n">freeze_solute</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write Amber MM minimization input file </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Result stored as mmmin.in</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mmmin.in&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Minimize</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp;cntrl</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">freeze_solute</span><span class="p">):</span>
+         <span class="n">writeSoluteConstrain</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;imin=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntx=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;maxcyc=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stepsmmmin</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ncyc=1000,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntpr=100,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntwx=0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cut=8.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="writeMMheatInput"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.writeMMheatInput.html#autosolvate.generatetrajs.writeMMheatInput">[docs]</a><span class="k">def</span> <span class="nf">writeMMheatInput</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">stepsmmheat</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write Amber MM heating input file </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float, Optional, default: 300</span>
+<span class="sd">            temperature to heat to</span>
+<span class="sd">        stepsmmheat : int, Optional, default: 10000</span>
+<span class="sd">            MM steps for heating.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Result stored as mmheat.in</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mmheat.in&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Heat</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp;cntrl</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">freeze_solute</span><span class="p">):</span>
+             <span class="n">writeSoluteConstrain</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;imin=0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntx=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;nstlim=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stepsmmheat</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;dt=0.002,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntf=2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntc=2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;tempi=0.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;temp0=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntpr=100,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntwx=100,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cut=8.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntb=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntp=0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntt=3,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;gamma_ln=2.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ig=-1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp;wt type=&#39;TEMP0&#39;, istep1=0, istep2=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stepsmmheat</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;, value1=0.0, value2=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; /</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp;wt type=&#39;END&#39; /</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="writeMMNVEInput"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.writeMMNVEInput.html#autosolvate.generatetrajs.writeMMNVEInput">[docs]</a><span class="k">def</span> <span class="nf">writeMMNVEInput</span><span class="p">(</span><span class="n">stepsmmnve</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write Amber MM NVE input file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stepsmmnve : int, Optional, default: 10000</span>
+<span class="sd">            Number of MM steps for NVE.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Result stored as mmnve.in</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mmnve.in&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;NVE</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp;cntrl</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">freeze_solute</span><span class="p">):</span>
+             <span class="n">writeSoluteConstrain</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;imin=0, irest=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntx=5,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;nstlim=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stepsmmnve</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;dt=0.002,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntf=2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntc=2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntpr=100,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntwx=100,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cut=8.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntb=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntp=0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntt=0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ig=-1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="writeMMNPTInput"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.writeMMNPTInput.html#autosolvate.generatetrajs.writeMMNPTInput">[docs]</a><span class="k">def</span> <span class="nf">writeMMNPTInput</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stepsmmnpt</span><span class="o">=</span><span class="mi">300000</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write Amber MM NPT input file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float, Optional, default: 300</span>
+<span class="sd">            temperature in Kelvin</span>
+<span class="sd">        pressure : float, Optional, default: 1</span>
+<span class="sd">            pressure in bar</span>
+<span class="sd">        stepsmmnpt : int, Optional, default: 10000</span>
+<span class="sd">            MM NPT steps</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Result stored as mmnpt.in</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mmnpt.in&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MM NPT</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp;cntrl</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">freeze_solute</span><span class="p">):</span>
+             <span class="n">writeSoluteConstrain</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;imin=0, irest=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntx=5,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;nstlim=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stepsmmnpt</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;dt=0.002,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntf=2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntc=2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;temp0=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntpr=1000,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntwx=1000,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cut=8.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntb=2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntp=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;taup=1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> 
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;pres0 = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">pressure</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ntt=3,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;gamma_ln=2.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ig=-1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="runMM"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.runMM.html#autosolvate.generatetrajs.runMM">[docs]</a><span class="k">def</span> <span class="nf">runMM</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;water_solvated&#39;</span><span class="p">,</span> <span class="n">stepsmmheat</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">stepsmmnve</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stepsmmnpt</span><span class="o">=</span><span class="mi">300000</span><span class="p">,</span> <span class="n">srun_use</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pmemduse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Equilibrate with MM</span>
+<span class="sd">   </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str, Optional, default: &#39;water_solvated&#39;</span>
+<span class="sd">        Filename prefix for .prmtop and .inpcrd files</span>
+<span class="sd">    stepsmmheat : int, Optional, default: 10000</span>
+<span class="sd">        MM heating steps</span>
+<span class="sd">    stepsmmnve : int, Optional, default: 0</span>
+<span class="sd">        MM NVE steps</span>
+<span class="sd">    stepsmmnpt : int, Optional, default: 300000</span>
+<span class="sd">        MM NPT steps</span>
+<span class="sd">    srun_use : bool, Optional, default: False</span>
+<span class="sd">        Run all commands with a srun prefix.</span>
+<span class="sd">    pmemduse :  bool, Optional, default: False</span>
+<span class="sd">        Use pmemd.CUDA instead of sander</span>
+<span class="sd">    dryrun : bool, Optional, default: False</span>
+<span class="sd">        Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Results stored as .netcdf files and log files</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frun</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+       <span class="n">frun</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;runMM.sh&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MM Energy minimization&#39;</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39; -O -i mmmin.in -o mmmin.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.inpcrd -r mm.ncrst -inf mmmin.info&#39;</span>
+    <span class="k">if</span> <span class="n">freeze_solute</span><span class="p">:</span>
+       <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s1">&#39; -ref &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.inpcrd &#39;</span>
+
+    <span class="k">if</span> <span class="n">pmemduse</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;pmemd.cuda&#39;</span> <span class="o">+</span><span class="n">cmd</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;sander&#39;</span><span class="o">+</span> <span class="n">cmd</span>
+    <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+
+    <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stepsmmheat</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MM Heating&#39;</span><span class="p">)</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39; -O -i mmheat.in -o mmheat.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c mm.ncrst -r mm.ncrst -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-heat.netcdf -inf mmheat.info&#39;</span>
+      <span class="k">if</span> <span class="n">freeze_solute</span><span class="p">:</span>
+         <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s1">&#39; -ref &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.inpcrd &#39;</span>
+      <span class="k">if</span> <span class="n">pmemduse</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;pmemd.cuda&#39;</span> <span class="o">+</span><span class="n">cmd</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;sander&#39;</span><span class="o">+</span> <span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stepsmmnve</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MM NVE equilibration&#39;</span><span class="p">)</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39; -O -i mmnve.in -o mmnve.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c mm.ncrst -r mm.ncrst -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-mmnve.netcdf -inf mmnve.info&#39;</span>
+      <span class="k">if</span> <span class="n">freeze_solute</span><span class="p">:</span>
+         <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s1">&#39; -ref &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.inpcrd &#39;</span>
+      <span class="k">if</span> <span class="n">pmemduse</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;pmemd.cuda&#39;</span> <span class="o">+</span><span class="n">cmd</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;sander&#39;</span><span class="o">+</span> <span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stepsmmnpt</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MM NPT equilibration&#39;</span><span class="p">)</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39; -O -i mmnpt.in -o mmnpt.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c mm.ncrst -r mm.ncrst -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-mmnpt.netcdf -inf mmnpt.info&#39;</span>
+      <span class="k">if</span> <span class="n">freeze_solute</span><span class="p">:</span>
+         <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s1">&#39; -ref &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.inpcrd &#39;</span>
+      <span class="k">if</span> <span class="n">pmemduse</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;pmemd.cuda&#39;</span> <span class="o">+</span><span class="n">cmd</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span> <span class="s1">&#39;sander&#39;</span><span class="o">+</span> <span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+       <span class="n">frun</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="writeQMMMTemplate"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.writeQMMMTemplate.html#autosolvate.generatetrajs.writeQMMMTemplate">[docs]</a><span class="k">def</span> <span class="nf">writeQMMMTemplate</span><span class="p">(</span><span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">functional</span><span class="o">=</span><span class="s2">&quot;b3lyp&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write Terachem file-based interface to Amber</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spinmult : float, default: 1</span>
+<span class="sd">            spin multiplicity of solvated system</span>
+<span class="sd">        charge : int, Optional, default: 0</span>
+<span class="sd">            charge of solvated system</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Result stored as tc_job.tpl</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;tc_job.tpl&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;basis        lacvps_ecp</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spinmult</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;method       &quot;</span><span class="o">+</span><span class="n">functional</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;method       u&quot;</span><span class="o">+</span><span class="n">functional</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;dispersion   yes</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;scf          diis+a</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;threall      1e-13</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;convthre     1e-6</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;xtol         1e-4</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;maxit        200</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;dftgrid      1</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;charge       &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;spinmult     &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">spinmult</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;scrdir       ./scr</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;keep_scr     yes</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;end</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="writeQMMMMinInput"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.writeQMMMMinInput.html#autosolvate.generatetrajs.writeQMMMMinInput">[docs]</a><span class="k">def</span> <span class="nf">writeQMMMMinInput</span><span class="p">(</span><span class="n">stepsqmmmmin</span><span class="o">=</span><span class="mi">250</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write QMMM min input file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stepsqmmmmin : int, Optional, default: 250</span>
+<span class="sd">            QMMM steps for minimization</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Result stored qmmmmin.in</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;qmmmmin.in&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;gpr QMMM Min</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp;cntrl</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  imin   = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  maxcyc = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stepsqmmmmin</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  irest  = 0, ! 0- new simulation 1- restart</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntx    = 1, ! 1-read in coordinates, but not velocity, 5-both</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  cut    = 8.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ig     = -1, !random seed</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntb    = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntpr   = 1, !print detials to log every step</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntwx   = 1, !write coordinates to mdcrd every step</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntwr   = 1, !write restart file every step</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ifqnt  = 1,!turn on QM/MM</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp;qmmm</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmmask    = &#39;:1&#39;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmcut     = 8,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmcharge  = 0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmshake   = 0, !Shake QM H atoms if shake is turned on (NTC&gt;1) (default)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qm_theory = &#39;EXTERN&#39;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qm_ewald  = 0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmgb      = 0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  verbosity = 2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  writepdb  = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; /</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp;tc</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  executable = &#39;terachem&#39;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  use_template = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; /</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="writeQMMMInput"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.writeQMMMInput.html#autosolvate.generatetrajs.writeQMMMInput">[docs]</a><span class="k">def</span> <span class="nf">writeQMMMInput</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stepsqmmm</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">infilename</span><span class="o">=</span><span class="s1">&#39;qmmmheat.in&#39;</span><span class="p">,</span> <span class="n">nve</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write QMMM heating or NPT trajectory input file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float, Optional, default: 300</span>
+<span class="sd">            temperature to heat to</span>
+<span class="sd">        charge : int, Optional, default: 0</span>
+<span class="sd">            Total charge of system</span>
+<span class="sd">        stepsqmmm : int, Optional, default: 250</span>
+<span class="sd">            QMMM steps </span>
+<span class="sd">        infilename : str, Optional, default: &#39;qmmmheat.in&#39;</span>
+<span class="sd">            Filename to save Amber input file</span>
+<span class="sd">        nve : bool, Optional, default: False</span>
+<span class="sd">            Set True if running nve</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Result stored in infilename</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">infilename</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;gpr QMMM &quot;</span><span class="o">+</span><span class="n">infilename</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp;cntrl</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  imin   = 0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">infilename</span><span class="o">==</span><span class="s1">&#39;qmmmheat.in&#39;</span><span class="p">:</span>
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntx    = 1, ! 1-read in coordinates, but not velocity, 5-both</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntx    = 5, ! 1-read in coordinates, but not velocity, 5-both</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  irest  = 1, ! 0- new simulation 1- restart</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  cut    = 8.0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ig     = -1, !random seed</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntc    = 2, ntf    = 2, !Shake is used for solvent</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntb    = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  tempi  = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  temp0  = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nve</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntt    = 0, ! 0=const. E, 1=rescale 3=Langevin dynamics 7-bussi</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntt    = 3, ! 0=const. E, 1=rescale 3=Langevin dynamics 7-bussi</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  vrand  = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  tautp  = 0.01,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nve</span><span class="o">!=</span><span class="kc">True</span><span class="p">:</span>
+          <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  gamma_ln = 5.0, !Langevin dynamics collision frequency</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  nstlim = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stepsqmmm</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,  !num steps</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  dt     = 0.0005,  !in ps</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntpr   = 1, !print details to log every step</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntwx   = 1, !write coordinates to mdcrd every step</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ntwr   = 1, !write restart file every step</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  ifqnt  = 1,!turn on QM/MM</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp;qmmm</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmmask    = &#39;:1&#39;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmcharge  = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmcut     = 8,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmshake   = 0, !Shake QM H atoms if shake is turned on (NTC&gt;1) (default)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qm_theory = &#39;EXTERN&#39;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qm_ewald  = 0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  qmgb      = 0,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  verbosity = 2,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  writepdb  = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; /</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp;tc</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  executable = &#39;terachem&#39;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  use_template = 1,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; /</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="runQMMM"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.runQMMM.html#autosolvate.generatetrajs.runQMMM">[docs]</a><span class="k">def</span> <span class="nf">runQMMM</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;water_solvated&#39;</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">srun_use</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stepsqmmmmin</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">stepsqmmmheat</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">stepsqmmmnve</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stepsqmmmnvt</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run QMMM minimization, heating and NVT trajectory run</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str, Optional, default: &#39;water_solvated&#39;</span>
+<span class="sd">        Filename prefix for .prmtop input file and .netcdf output file</span>
+<span class="sd">    spinmult : int, Required</span>
+<span class="sd">        Spin multiplicity of system</span>
+<span class="sd">    srun_use : bool, Optional, default: False</span>
+<span class="sd">        Run all commands with a srun prefix.</span>
+<span class="sd">    stepsqmmmmin : int, Optional, default: 250</span>
+<span class="sd">        Number of QMMM minimization steps</span>
+<span class="sd">    stepsqmmmheat : int, Optional, default: 1000</span>
+<span class="sd">        Number of QMMM heating steps</span>
+<span class="sd">    stepsqmmmnve : int, Optional, default: 0</span>
+<span class="sd">        Number of QMMM NVE steps</span>
+<span class="sd">    stepsqmmmnvt : int, Optional, default: 10000</span>
+<span class="sd">        Number of QMMM NVT trajectory steps</span>
+<span class="sd">    dryrun : bool, Optional, default: False</span>
+<span class="sd">        Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Results stored in .netcdf files and log files</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frun</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+       <span class="n">frun</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;runQMMMM.sh&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">stepsqmmmmin</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;QMMM Energy minimization&#39;</span><span class="p">)</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;sander -O -i qmmmmin.in -o qmmmmin.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c mm.ncrst -r qmmm.ncrst  -inf qmmmmin.info -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-qmmmmin.netcdf&#39;</span>
+      <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">spinmult</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adjusting terachem input file for higher Spin multiplicity&#39;</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;sed -i &#39;3 a guess        ./scr/ca0 ./scr/cb0&#39; tc_job.tpl&quot;</span>
+        <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+          <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+        <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+          <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;sander -O -i qmmmmin.in -o qmmmmin.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmmin.info -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-qmmmmin.netcdf&#39;</span>
+        <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+          <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+        <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+          <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stepsqmmmheat</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;QMMM Heating&#39;</span><span class="p">)</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;sander -O -i qmmmheat.in -o qmmmheat.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmheat.info -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-qmmmheat.netcdf&#39;</span>
+      <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stepsqmmmnve</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;QMMM NVE Run&#39;</span><span class="p">)</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;sander -O -i qmmmnve.in -o qmmmnve.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmnve.info -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-qmmmnve.netcdf&#39;</span>
+      <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stepsqmmmnvt</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;QMMM NVT Run&#39;</span><span class="p">)</span>
+      <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;sander -O -i qmmmnvt.in -o qmmmnvt.out -p &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.prmtop -c qmmm.ncrst -r qmmm.ncrst  -inf qmmmnvt.info -x &#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;-qmmmnvt.netcdf&#39;</span>
+      <span class="k">if</span> <span class="n">srun_use</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;srun -n 1 &#39;</span><span class="o">+</span><span class="n">cmd</span>
+      <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">frun</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="startmd"><a class="viewcode-back" href="../../autosummary/autosolvate.generatetrajs.startmd.html#autosolvate.generatetrajs.startmd">[docs]</a><span class="k">def</span> <span class="nf">startmd</span><span class="p">(</span><span class="n">argumentList</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrap function that parses command line options for autosolvate clustergen,</span>
+<span class="sd">    generates inputfiles for Amber and TeraChem,</span>
+<span class="sd">    runs MM and QMMM stages. </span>
+
+<span class="sd">     .. warning::</span>
+
+<span class="sd">        Currently, some simulation parameters cannot be set by the user, for example: </span>
+
+<span class="sd">            * simulation time step</span>
+<span class="sd">            * integrator type</span>
+<span class="sd">            * nonbonded cutoff</span>
+<span class="sd">            * thermostat type</span>
+<span class="sd">            * Langevin collision frequency</span>
+<span class="sd">            * barostat type</span>
+<span class="sd">            * pressure relaxation time</span>
+<span class="sd">            * frequency of trajectory writing</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    argumentList: list</span>
+<span class="sd">        The list contains the command line options to specify MM and QMMM stage options.</span>
+
+<span class="sd">        Command line options:</span>
+<span class="sd">          -f, --filename  prefix of .prmtop and .inpcrd files</span>
+<span class="sd">          -t, --temp  temperature in Kelvin to equilibrate</span>
+<span class="sd">          -p, --pressure  pressure in bar to equilibrate during MM NPT step</span>
+<span class="sd">          -i, --stepsmmmin  Number of MM minimization steps</span>
+<span class="sd">          -m, --stepsmmheat  Number of MM heating steps, setting to 0 skips the MM heating step</span>
+<span class="sd">          -b, --stepsmmnve  Number of MM NVE steps, setting to 0 skips the MM NVE step</span>
+<span class="sd">          -n, --stepsmmnpt  Number of MM NPT steps, setting to 0 skips the MM NPT step</span>
+<span class="sd">          -l, --stepsqmmmmin  Number of QMMM minimization steps, setting to 0 skips the QMMM minimization step</span>
+<span class="sd">          -o, --stepsqmmmheat  Number of QMMM heating steps, setting to 0 skips the QMMM heating step</span>
+<span class="sd">          -v, --stepsqmmmnve  Number of QMMM NVE steps, setting to 0 skips the QMMM NVE step</span>
+<span class="sd">          -s, --stepsqmmmnvt  Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step</span>
+<span class="sd">          -q, --charge  Total charge of system</span>
+<span class="sd">          -u, --spinmultiplicity  Spin multiplicity of whole system</span>
+<span class="sd">          -k, --functional  DFT functional to use for the QM part in QM/MM</span>
+<span class="sd">          -r, --srunuse  option to run inside a slurm job</span>
+<span class="sd">          -x, --pmemduse  Speed up MM with pmemd.CUDA instead of sander</span>
+<span class="sd">          -d, --dryrun  Dry run mode: only generate the commands to run MD programs and save them into a file without executing the command</span>
+<span class="sd">          -z, --freezesolute  Freeze the solute structure throughout all MD steps</span>
+<span class="sd">          -h, --help  short usage description  </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Generate MD simulation input files and execute MD programs, or same the MD program execution commands in runMM.sh and runQMMM.sh</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#print(argumentList)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="s2">&quot;hf:t:p:i:m:b:n:l:o:v:s:q:u:k:rxdz&quot;</span>
+    <span class="n">long_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsmmmin&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsmmheat&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsmmnve&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsmmnpt&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsqmmmmin&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsqmmmheat&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsqmmmnve&quot;</span><span class="p">,</span> <span class="s2">&quot;stepsqmmmnvt&quot;</span><span class="p">,</span> <span class="s2">&quot;charge&quot;</span><span class="p">,</span> <span class="s2">&quot;spinmultiplicity&quot;</span><span class="p">,</span><span class="s2">&quot;functional&quot;</span><span class="p">,</span> <span class="s2">&quot;srunuse&quot;</span><span class="p">,</span> <span class="s2">&quot;pmemduse&quot;</span><span class="p">,</span><span class="s2">&quot;dryrun&quot;</span><span class="p">,</span><span class="s2">&quot;freezesolute&quot;</span><span class="p">]</span>
+    <span class="n">arguments</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">argumentList</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">long_options</span><span class="p">)</span>
+    <span class="n">srun_use</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mi">300</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mi">1</span>
+    <span class="n">stepsmmmin</span><span class="o">=</span><span class="mi">2000</span>
+    <span class="n">stepsmmheat</span><span class="o">=</span><span class="mi">10000</span>
+    <span class="n">stepsmmnve</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">stepsmmnpt</span><span class="o">=</span><span class="mi">300000</span>
+    <span class="n">stepsqmmmmin</span><span class="o">=</span><span class="mi">250</span>
+    <span class="n">stepsqmmmheat</span><span class="o">=</span><span class="mi">1000</span>
+    <span class="n">stepsqmmmnve</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">stepsqmmmnvt</span><span class="o">=</span><span class="mi">10000</span>
+    <span class="n">charge</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">spinmult</span><span class="o">=</span><span class="mi">1</span>
+    <span class="n">functional</span><span class="o">=</span><span class="s2">&quot;b3lyp&quot;</span>
+    <span class="n">srun_use</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">pmemduse</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">freeze_solute</span><span class="o">=</span><span class="kc">False</span>
+    <span class="k">for</span> <span class="n">currentArgument</span><span class="p">,</span> <span class="n">currentValue</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-h&quot;</span><span class="p">,</span> <span class="s2">&quot;-help&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Usage: autosolvate mdrun [OPTIONS]&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -f, --filename             prefix of .prmtop and .inpcrd files&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -t, --temp                 temperature in Kelvin to equilibrate&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -p, --pressure             pressure in bar to equilibrate during MM NPT step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -i, --stepsmmmin           Number of MM minimization steps&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -m, --stepsmmheat          Number of MM heating steps, setting to 0 skips the MM heating step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -b, --stepsmmnve           Number of MM NVE steps, setting to 0 skips the MM NVE step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -n, --stepsmmnpt           Number of MM NPT steps, setting to 0 skips the MM NPT step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -l, --stepsqmmmmin         Number of QMMM minimization steps, setting to 0 skips the QMMM minimization step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -o, --stepsqmmmheat        Number of QMMM heating steps, setting to 0 skips the QMMM heating step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -v, --stepsqmmmnve         Number of QMMM NVE steps, setting to 0 skips the QMMM NVE step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -s, --stepsqmmmnvt         Number of QMMM NVT steps, setting to 0 skips the QMMM NVT step&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -q, --charge               Total charge of system&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -u, --spinmultiplicity     Spin multiplicity of whole system&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -k, --functional           DFT functional to use for the QM part in QM/MM&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -r, --srunuse              option to run inside a slurm job&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -x, --pmemduse             Speed up MM with pmemd.CUDA instead of sander&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -d, --dryrun               Dry run mode&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -z, --freezesolute         Freeze the solute&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -h, --help                 short usage description&#39;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;-filename&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Filename:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;-temp&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Temperature in K:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;-pressure&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Pressure in bar:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">pressure</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span><span class="s2">&quot;-stepsmmmin&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps MM min:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsmmmin</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="s2">&quot;-stepsmmheat&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps MM heat:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsmmheat</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-b&quot;</span><span class="p">,</span><span class="s2">&quot;-stepsmmnve&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps MM NVE:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsmmnve</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;-stepsmmnpt&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps MM NPT:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsmmnpt</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-l&quot;</span><span class="p">,</span><span class="s2">&quot;-stepsqmmmmin&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps QMMM min:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsqmmmmin</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span><span class="s2">&quot;-stepsqmmmheat&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps QMMM heat:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsqmmmheat</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-v&quot;</span><span class="p">,</span><span class="s2">&quot;-stepsqmmmnve&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps QMMM NVE:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsqmmmnve</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="s2">&quot;-stepsqmmmnvt&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Steps QMMM NPT:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">stepsqmmmnvt</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="s2">&quot;-charge&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Charge:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">charge</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-u&quot;</span><span class="p">,</span> <span class="s2">&quot;-spinmultiplicity&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Spinmultiplicity:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">spinmult</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-k&quot;</span><span class="p">,</span> <span class="s2">&quot;-functional&quot;</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;DFT functional:&quot;</span><span class="p">,</span> <span class="n">currentValue</span><span class="p">)</span>
+            <span class="n">functional</span><span class="o">=</span><span class="n">currentValue</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-r&quot;</span><span class="p">,</span> <span class="s2">&quot;-srunuse&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;using srun&quot;</span><span class="p">)</span>
+            <span class="n">srun_use</span><span class="o">=</span><span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-x&quot;</span><span class="p">,</span> <span class="s2">&quot;-pmemduse&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;using pmemd.cuda instead of sander&quot;</span><span class="p">)</span>
+            <span class="n">pmemduse</span><span class="o">=</span><span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-d&quot;</span><span class="p">,</span> <span class="s2">&quot;-dryrun&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dry run mode: only generate the commands to run MD programs and save them into a file without executing the commands&quot;</span><span class="p">)</span>
+            <span class="n">dryrun</span><span class="o">=</span><span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">currentArgument</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-z&quot;</span><span class="p">,</span> <span class="s2">&quot;-freezesolute&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Freeze the solute while running MD&quot;</span><span class="p">)</span>
+            <span class="n">freeze_solute</span><span class="o">=</span><span class="kc">True</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ignoring all QM/MM options. QM/MM will not run&quot;</span><span class="p">)</span>
+            <span class="n">stepsqmmmmin</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">stepsqmmmheat</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">stepsqmmmnve</span> <span class="o">=</span> <span class="mi">0</span> 
+            <span class="n">stepsqmmmnvt</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+    <span class="n">writeMMminInput</span><span class="p">(</span><span class="n">stepsmmmin</span><span class="o">=</span><span class="n">stepsmmmin</span><span class="p">,</span><span class="n">freeze_solute</span><span class="o">=</span><span class="n">freeze_solute</span><span class="p">)</span>
+    <span class="n">writeMMheatInput</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">stepsmmheat</span><span class="o">=</span><span class="n">stepsmmheat</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="n">freeze_solute</span><span class="p">)</span>
+    <span class="n">writeMMNVEInput</span><span class="p">(</span><span class="n">stepsmmnve</span><span class="o">=</span><span class="n">stepsmmnve</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="n">freeze_solute</span><span class="p">)</span>
+    <span class="n">writeMMNPTInput</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="n">pressure</span><span class="p">,</span> <span class="n">stepsmmnpt</span><span class="o">=</span><span class="n">stepsmmnpt</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="n">freeze_solute</span><span class="p">)</span>
+    
+    <span class="n">writeQMMMMinInput</span><span class="p">(</span><span class="n">stepsqmmmmin</span><span class="o">=</span><span class="n">stepsqmmmmin</span><span class="p">)</span>
+    <span class="n">writeQMMMTemplate</span><span class="p">(</span><span class="n">spinmult</span><span class="o">=</span><span class="n">spinmult</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">functional</span><span class="o">=</span><span class="n">functional</span><span class="p">)</span>
+    <span class="n">writeQMMMInput</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">stepsqmmm</span><span class="o">=</span><span class="n">stepsqmmmheat</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">infilename</span><span class="o">=</span><span class="s1">&#39;qmmmheat.in&#39;</span><span class="p">)</span>
+    <span class="n">writeQMMMInput</span><span class="p">(</span><span class="n">stepsqmmm</span><span class="o">=</span><span class="n">stepsqmmmnve</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">infilename</span><span class="o">=</span><span class="s1">&#39;qmmmnve.in&#39;</span><span class="p">,</span> <span class="n">nve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">writeQMMMInput</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">stepsqmmm</span><span class="o">=</span><span class="n">stepsqmmmnvt</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">infilename</span><span class="o">=</span><span class="s1">&#39;qmmmnvt.in&#39;</span><span class="p">)</span>
+    
+    <span class="n">runMM</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">stepsmmheat</span><span class="o">=</span><span class="n">stepsmmheat</span><span class="p">,</span> <span class="n">stepsmmnpt</span><span class="o">=</span><span class="n">stepsmmnpt</span><span class="p">,</span> <span class="n">stepsmmnve</span><span class="o">=</span><span class="n">stepsmmnve</span><span class="p">,</span> <span class="n">srun_use</span><span class="o">=</span><span class="n">srun_use</span><span class="p">,</span> <span class="n">pmemduse</span><span class="o">=</span><span class="n">pmemduse</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">,</span> <span class="n">freeze_solute</span><span class="o">=</span><span class="n">freeze_solute</span><span class="p">)</span>
+    
+    <span class="n">runQMMM</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">spinmult</span><span class="o">=</span><span class="n">spinmult</span><span class="p">,</span> <span class="n">srun_use</span><span class="o">=</span><span class="n">srun_use</span><span class="p">,</span> <span class="n">stepsqmmmmin</span><span class="o">=</span><span class="n">stepsqmmmmin</span><span class="p">,</span> <span class="n">stepsqmmmheat</span><span class="o">=</span><span class="n">stepsqmmmheat</span><span class="p">,</span> <span class="n">stepsqmmmnve</span><span class="o">=</span><span class="n">stepsqmmmnve</span><span class="p">,</span> <span class="n">stepsqmmmnvt</span><span class="o">=</span><span class="n">stepsqmmmnvt</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">argumentList</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">startmd</span><span class="p">(</span><span class="n">argumentList</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Liu Group. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

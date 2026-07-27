@@ -1,0 +1,56 @@
+{
+    "cube_size": 50,
+    "charge_method": "bcc",
+    "solutes": [
+        {
+            "name": "Febpy3",
+            "xyzfile": "Febpy3.xyz",
+            "total_charge": 1,
+            "spinmultiplicity": 1,
+            "metal_charge": 2,
+            "number": 1,
+            "centered": true
+        },
+        {
+            "name": "TFSI",
+            "xyzfile": "TFSI.pdb",
+            "charge": -1,
+            "spinmultiplicity": 1,
+            "frcmod": "TFSI.frcmod",
+            "mol2": "TFSI.mol2",
+            "number": 2
+        }
+    ],
+    "solvents":[
+        {
+            "name": "EC", 
+            "residue_name": "EC",
+            "weight_ratio": 0.4,
+            "xyzfile": "EC.xyz",
+            "density": 1.32,
+            "molecular_weight": 88.06
+        },
+        {
+            "name": "PC",
+            "residue_name": "PC",
+            "weight_ratio": 0.1,
+            "xyzfile": "PC.xyz",
+            "density": 1.2,
+            "molecular_weight": 102.09
+        },
+        {
+            "name": "EMC",
+            "residue_name": "EMC",
+            "weight_ratio": 0.5,
+            "xyzfile": "EMC.xyz",
+            "density": 1.006,
+            "molecular_weight": 104.15
+        }
+    ],
+    "qmexe": "orca",
+    "qmdir": "/pscratch/sd/f/fren5/orca_6_1_0/orca",
+    "maxcore": 4096,
+    "nprocs": 32,
+    "basisset": "def2-tzvp",
+    "method": "b3lyp"
+}

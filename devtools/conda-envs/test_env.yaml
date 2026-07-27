@@ -3,18 +3,29 @@ channels:
   - conda-forge
 dependencies:
     # Base depends
-  - python=3.8
+  - python=3.12
   - pip
   - setuptools
+  - cython>=3.0,<4
+  - numpy<2
+  - scipy<1.12
 
     # Testing
   - pytest
   - pytest-cov
   - codecov
     
+    # Others
+  - pillow
+  - mendeleev
+  - networkx
+
+    # Chemistry modeling
+  - ase
+  - rdkit
     # Openbabel
   - openbabel=3.1.1
-
+    
     # Molecule visualization
   - nglview
 
@@ -24,17 +35,16 @@ dependencies:
     # MDtraj
   - mdtraj
 
-    # rdkit
-  - rdkit
-
     # Documentation
   - sphinx
   - sphinx_rtd_theme
 
     # Pip-only installs
   - pip:
-    - imolecule
-    - pillow
+  #  - Cython
     - pubchempy
+    - imolecule
+    - git+https://github.com/MolSSI-BSE/basis_set_exchange.git
+    - git+https://github.com/Liu-group/pymsmt_autosolvate.git
   #  - codecov
 

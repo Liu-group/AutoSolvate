@@ -1,0 +1,582 @@
+# This module is here to process the json input of multicomponent.py
+
+import os 
+import re
+import copy
+import json
+import shutil 
+import logging
+
+from typing import Iterable, List, Dict, Any, Tuple
+
+from .tools import *
+from .solvent_calculation import *
+from ..Common import *
+
+
+def convert_cmd_to_dict(argument_dict:Dict[str, Any]) -> Dict[str, Any]:
+    special_arguments = ["solute", "solvent"]
+    newdata = {}
+    for key, value in argument_dict.items():
+        if key not in special_arguments:
+            newdata[key] = value
+    data = argument_dict
+    if "main" in data and data["main"]:
+        newdata["solute"] = dict()
+        newdata['solute']['xyzfile'] = data["main"]
+        if "charge" in data:
+            newdata["solute"]["charge"] = data["charge"]
+        if "spinmult" in data:
+            newdata["solute"]["spinmult"] = data["spinmult"]
+    if "solvent" in data and data["solvent"]:
+        newdata["solvent"] = dict()
+        if "solventoff" in data:
+            newdata["solvent"]["off"] = data["solventoff"]
+        if "solventfrcmod" in data:
+            newdata["solvent"]["frcmod"] = data["solventfrcmod"]
+        if "solvent" in data:
+            newdata["solvent"]["name"] = data["solvent"]
+    return newdata
+
+
+def determine_mw_from_xyz(xyzfile:str) -> float:
+    """
+    Determine the molecular weight of the molecule from the xyz file
+
+    Parameters
+    ----------
+    xyzfile : str
+        xyz file name
+
+    Returns
+    -------
+    mw : float
+        molecular weight in g/mol
+    """
+    with open(xyzfile, "r") as f:
+        lines = f.readlines()
+    mw = 0
+    for line in lines[2:]:
+        parts = line.split()
+        if len(parts) == 4:
+            if parts[0] not in ATOMIC_MW:
+                raise ValueError(f"Cannot determine the molecular weight of the atom {parts[0]}")
+            mw += ATOMIC_MW[parts[0]]
+    return mw
+
+
+def add_missing_xyzfile_keyword(data:dict, support_input_format:Iterable[str] = ("xyz", "pdb", "mol2", "prep", "off", "lib")) -> dict:
+    if "xyzfile" in data:
+        return data
+    for key, value in data.items():
+        if key in support_input_format and not "xyzfile" in data and isinstance(value, str) and os.path.isfile(value):
+            data["xyzfile"] = value
+            break
+    return data
+
+def overwrite_keyword(data:dict, arguments:List[Tuple[str, Any]]) -> dict:
+    """
+    Overwrite the keyword in the dictionary with the arguments
+    """
+    newdata = copy.deepcopy(data)
+    ignoredargs = []
+    arguments
+    for key, value in arguments:
+        if isinstance(value, str) and value == "":
+            ignoredargs.append(key)
+    for key in ignoredargs:
+        arguments.remove((key, ""))
+    for key, value in arguments:
+        newdata[key] = value
+    if "main" in data and data["main"]:
+        newdata["solute"] = dict()
+        newdata['solute']['xyzfile'] = data["main"]
+        if "charge" in data:
+            newdata["solute"]["charge"] = data["charge"]
+        if "spinmult" in data:
+            newdata["solute"]["spinmult"] = data["spinmult"]
+    if "solvent" in data and data["solvent"]:
+        newdata["solvent"] = dict()
+        if "solventoff" in data:
+            newdata["solvent"]["off"] = data["solventoff"]
+        if "solventfrcmod" in data:
+            newdata["solvent"]["frcmod"] = data["solventfrcmod"]
+        if "solvent" in data:
+            newdata["solvent"]["name"] = data["solvent"]
+
+    return newdata
+
+def check_inputs(data:dict) -> dict:
+    """Check basic consistency of inputs.
+
+    system_type rules:
+    - "solute_solvent": must have solute(s) and solvent(s).
+    - "mixture": solvent(s) required; solute optional and may be empty.
+    """
+    sys_type = data.get("system_type")
+    has_solute_key = ("solute" in data) or ("solutes" in data)
+    has_solvent_key = ("solvent" in data) or ("solvents" in data)
+
+    if not has_solvent_key:
+        raise ValueError("No solvent is provided")
+
+    if "solute" in data and "solutes" in data:
+        raise ValueError("You cannot provide both solute and solutes, only provide the solute argument if you want to use single solute")
+    if "solvent" in data and "solvents" in data:
+        raise ValueError("You cannot provide both solvent and solvents, only provide the solvent argument if you want to use single solvent")
+
+    if sys_type == "solute_solvent" or (sys_type is None and has_solute_key):
+        if ("solute" not in data and "solutes" not in data):
+            raise ValueError("No solute is provided")
+
+    if "solutes" in data and not isinstance(data["solutes"], list):
+        raise ValueError("solutes must be a list")
+    if "solvents" in data and not isinstance(data["solvents"], list):
+        raise ValueError("solvents must be a list")
+    
+
+
+class InputParser(object):
+
+    def __init__(self):
+        
+
+        self.data = {}
+        self.logger = logging.getLogger(name = self.__class__.__name__)
+        self.output_handler             = logging.FileHandler(filename = "autosolvate.log", mode = "a", encoding="utf-8")
+        self.output_formater            = logging.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt="%H:%M:%S")
+        self.output_handler.setFormatter(self.output_formater)
+        if len(self.logger.handlers) == 0:
+            self.logger.addHandler(self.output_handler)
+
+        self.warn_user = False
+
+    def correct_keyword(self, data: dict) -> dict:
+        """
+        Recursively correct the keys in the dictionary and its subdictionaries to the acceptable keys
+        """
+        def correct_dict(d: dict) -> dict:
+            newdata = {}
+            for key, value in d.items():
+                if isinstance(value, dict):
+                    value = correct_dict(value)
+                elif isinstance(value, list):
+                    value = [correct_dict(item) if isinstance(item, dict) else item for item in value]
+                if key in keyword_dict:
+                    newdata[keyword_dict[key]] = value
+                    self.logger.info(f"Correcting keyword {key} to {keyword_dict[key]}")
+                else:
+                    newdata[key] = value
+            if "QMexe" in newdata:
+                newdata["qm_dir"] = newdata["QMexe"]
+                newdata["qm_exe"] = os.path.basename(newdata["QMexe"])
+            if "software" in newdata:
+                newdata["qm_program"] = newdata["software"]
+            return newdata
+
+        keyword_dict = {
+            "chargemethod": "charge_method",
+            "cubesize": "cube_size",
+            "fragmentcharge": "fragment_charge",
+            "fragmentspin": "fragment_spinmult",
+            "fragmentspinmultiplicity": "fragment_spinmult",
+            "fragmentmultiplicity": "fragment_spinmult",
+            "spinmultiplicity": "spinmult",
+            "multiplicity": "spinmult",
+            "spin": "spinmult",
+            "solventoff": "solvent_off",
+            "solventfrcmod": "solvent_frcmod",
+            "rundir": "folder",
+            "output": "prefix",
+            "basis_set": "basisset",
+            "qmdir": "QMexe",
+            "qmexe": "software",
+        }
+
+        return correct_dict(data)
+
+
+    def read_json(self, file:str):
+        with open(file, "r") as f:
+            data = json.load(f)
+        self.data = data
+
+    def read_dict(self, data:dict):
+        self.data = data
+
+    def determine_qm_exe_location(self, qm_software_name:str):
+        """
+        Determine the location of the QM software executable
+
+        Parameters
+        ----------
+        qm_software_name : str
+            name of the QM software, e.g. gau,g09,g16,gms,orca
+        """
+        if qm_software_name.lower() in ["gaussian", "gau" ]:
+            qm_software_name = "gau"
+        elif qm_software_name.lower() in ["gamess-us", "gamess", "rungms"]:
+            qm_software_name = "rungms"
+        else:
+            qm_software_name = qm_software_name.lower()
+        
+        if qm_software_name in ["gamess-us", "rungms", "gamess"]:
+            qm_software_name_ = "GAMESS"
+        else:
+            qm_software_name_ = qm_software_name
+        # use which command to determine the location of the executable
+        if not shutil.which(qm_software_name):
+            # try to load the software with the "module load" command
+            if shutil.which("module"):
+                os.system(f"module load {qm_software_name_}")
+        if shutil.which(qm_software_name):
+            self.logger.info(f"Found the executable of {qm_software_name} at {shutil.which(qm_software_name)}")
+            return shutil.which(qm_software_name)
+        else:
+            self.logger.error(f"Cannot find the executable of {qm_software_name}. Please provide the path of the executable.")
+            self.logger.warning(f"This will report an error once you run the QM calculation.")
+            # raise FileNotFoundError(f"Cannot find the executable of {qm_software_name}")
+        
+    def add_qm_kwargs(self):
+        default_qm_kwargs = {
+            "method": "b3lyp",
+            "basisset": "DEF2-TZVP",
+            "maxcore": 1024,
+            "nprocs": 1,
+            "opt": True,
+        }
+        if 'software' not in self.data:
+            self.warn_user = True
+            self.data['software'] = "orca"
+        if 'QMexe' not in self.data or not os.path.exists(self.data['QMexe']):
+            path = self.determine_qm_exe_location(self.data['software'])
+            self.data['QMexe'] = path
+        not_all_parameters = False
+        for key, value in default_qm_kwargs.items():
+            if key not in self.data:
+                not_all_parameters = True
+                self.data[key] = value
+        if not_all_parameters:
+            self.warn_user = True
+        self.data["qm_kwargs"] = {
+            "basisset": self.data["basisset"],
+            "method": self.data["method"],
+            "software": self.data["software"],
+            "QMexe": self.data["QMexe"],
+            "maxcore": self.data["maxcore"],
+            "nprocs": self.data["nprocs"],
+            "opt": self.data["opt"],
+        }
+
+    def add_mcpb_kwargs(self):
+        default_mcpb_kwargs = {
+            "cutoff": 2.8,
+            "fakecharge": False,
+            "mode": "A",
+        }
+        # check if amberhome exists 
+        if 'amberhome' not in self.data:
+            env_amber = os.getenv("AMBERHOME")
+            if env_amber:
+                self.data['amberhome'] = os.path.join(env_amber, "bin")
+            else:
+                raise FileNotFoundError("AMBERHOME is not set and 'amberhome' is not provided")
+        if not self.data['amberhome'].endswith("/"):
+            self.data['amberhome'] = self.data['amberhome'] 
+        amberhomepath = os.path.expandvars(self.data['amberhome'])
+        if not os.path.exists(amberhomepath):
+            self.logger.error(f"Cannot find the amberhome path {amberhomepath}. Make sure AMBER is installed and the path is correct.")
+            raise FileNotFoundError(f"Cannot find the amberhome path {amberhomepath}")
+        if not amberhomepath.endswith("/"):
+            amberhomepath += "/"
+        not_all_parameters = False
+        for key, value in default_mcpb_kwargs.items():
+            if key not in self.data:
+                not_all_parameters = True
+                self.data[key] = value
+        if not_all_parameters:
+            self.warn_user = True
+        self.data["mcpb_kwargs"] = {
+            "amberhome": amberhomepath,
+            "cutoff": self.data["cutoff"],
+            "fakecharge": self.data["fakecharge"],
+            "mode": self.data["mode"],
+        }
+
+    def add_tmc_kwargs(self, solutedata:dict):
+        if "metal_charge" not in solutedata:
+            raise ValueError("The 'metal_charge' paremeter is required to set the valance of the metal atom.")
+        if "spinmult" not in solutedata:
+            raise ValueError("The 'spinmult' or 'spin' parameter is required to set the spin multiplicity of the transition metal complex.")
+        if "total_charge" not in solutedata:
+            solutedata["total_charge"] = "default"
+            self.logger.info("The 'total_charge' parameter is not provided. Will be determined automatically.")
+        if "chargefile" not in solutedata:
+            solutedata["chargefile"] = ""   
+
+    def resolve_tleap_bond_issue(self):
+        """
+        Resolve the tleap adding bond issue for transition metal complex
+        by adding the "bond" keyword in the tleap input file
+        """
+        if "custom_tleap_path" not in self.data:
+            return 
+        elif not os.path.exists(self.data["custom_tleap_path"]):
+            self.logger.error(f"The custom tleap path {self.data['custom_tleap_path']} does not exist.")
+            raise FileNotFoundError(f"The custom tleap path {self.data['custom_tleap_path']} does not exist.")
+        tleap_path = self.data["custom_tleap_path"]
+        for solute in self.data['solutes']:
+            if solute["__TYPE__"] != "transition_metal_complex":
+                continue
+            solute["custom_tleap_path"] = tleap_path
+            
+
+    def assign_solvent_numbers(self):
+        # in-place operation
+        all_number_exist = True
+        all_number_missing = True
+        all_vratio_exist = True
+        all_wratio_exist = True
+        all_mratio_exist = True
+        for solvent in self.data['solvents']:
+            if "number" not in solvent:
+                all_number_exist = False
+            if "number" in solvent:
+                all_number_missing = False
+            if "volume_ratio" not in solvent:
+                all_vratio_exist = False
+            if "weight_ratio" not in solvent:
+                all_wratio_exist = False
+            if "molar_ratio" not in solvent:
+                all_mratio_exist = False
+            if "name" not in solvent:
+                if "xyzfile" in solvent:
+                    solvent["name"] = os.path.basename(solvent["xyzfile"]).split(".")[0]
+                else:
+                    raise ValueError("Both 'name' and 'xyzfile' is missing for a solvent.")
+
+        # Treat non-positive or missing provided numbers as effectively missing.
+        # This avoids writing out autosolvate_input_full.json with number=0 and then failing later
+        # in SolvatedSystem.check_solvent().
+        any_invalid_number = any(
+            ("number" not in s)
+            or (not isinstance(s.get("number"), (int, float)))
+            or (s.get("number") <= 0)
+            for s in self.data['solvents']
+        )
+
+        if not all_number_exist and not all_number_missing:
+            raise ValueError("Some solvents have the 'number' parameter while others do not. Please provide the 'number' parameter for all solvents.")
+        if all_number_exist and not any_invalid_number:
+            return
+        # all solvent numbers are missing. compute from the weight ratio
+        if "cube_size" not in self.data:
+            raise ValueError("The 'cubesize' parameter is required to compute the number of solvent molecules.")
+        if not isinstance(self.data["cube_size"], Iterable):
+            volume = float(self.data["cube_size"]) ** 3
+        else:
+            a, b, c = self.data["cube_size"]
+            volume = float(a) * float(b) * float(c)
+        volume_in_m3 = volume * 1e-30
+        if len(self.data['solvents']) == 1:
+            solvent = self.data['solvents'][0]
+            solventname = solvent.get('name')
+            
+            # check density
+            if "density" not in solvent:
+                if solventname in SOLVENT_DENSITY:
+                    density = SOLVENT_DENSITY[solventname]
+                else:
+                    density = None
+            else:
+                density = solvent.get("density")
+
+            # check molecular weight
+            if "molecular_weight" not in solvent:
+                if solventname in SOLVENT_MW:
+                    mw = SOLVENT_MW[solventname]
+                elif "xyzfile" in solvent:
+                    mw = determine_mw_from_xyz(solvent["xyzfile"])
+                else:
+                    mw = None
+            else:
+                mw = solvent.get("molecular_weight")
+            if density is not None and mw is not None:
+                density_g_cm3 = density if density < 50 else density / 1000.0
+                number = calculate_solvent_number_from_density(mw, density_g_cm3, volume_in_m3)
+                solvent["number"] = number
+                solvent["density"] = density
+                solvent["molecular_weight"] = mw
+                return
+            if solventname in SOLVENT_DENSITY:
+                number  = calculate_solvent_number(solventname, volume_in_m3)
+                solvent['number'] = number
+                solvent['density'] = solvent.get("density", SOLVENT_DENSITY[solventname])
+                solvent['molecular_weight'] = solvent.get("molecular_weight", SOLVENT_MW[solventname])
+                return 
+            raise ValueError(f"Cannot auto determine the number of the solvent. Please provide the 'number' parameter or density + molecular_weight.")
+        # if there are multiple solvents, the number of each solvent must be provided
+        if not all_vratio_exist and not all_wratio_exist and not all_mratio_exist:
+            raise ValueError("Please provide the 'volume_ratio' or 'weight_ratio' or 'molar_ratio' parameter for all solvents to determine the number of solvent molecules.")
+        for solvent in self.data['solvents']:
+            # determine density
+            if solvent["name"] in SOLVENT_DENSITY and "density" not in solvent:
+                solvent["density"] = SOLVENT_DENSITY[solvent["name"]]
+            elif "density" not in solvent:
+                raise ValueError(f"The density of the solvent {solvent['name']} is not provided.")
+            # determine the molecular weight. 
+            if solvent["name"] in SOLVENT_MW and "molecular_weight" not in solvent:
+                solvent["molecular_weight"] = SOLVENT_MW[solvent["name"]]
+            elif "molecular_weight" in solvent:
+                pass    # sometimes a solvent may contain isotopes, so the user may provide the molecular weight
+            elif "molecular_weight" not in solvent and "xyzfile" in solvent:
+                solvent["molecular_weight"] = determine_mw_from_xyz(solvent["xyzfile"])
+            else:
+                raise ValueError(f"The molecular weight of the solvent {solvent['name']} is not provided.")
+        # determine the number of solvent molecules
+        def check_sum_to_one(ratios:Iterable[float]) -> bool:
+            total = sum(ratios)
+            return abs(total - 1.0) < 1e-6
+
+        if all_vratio_exist:
+            if not check_sum_to_one([s["volume_ratio"] for s in self.data["solvents"]]):
+                raise ValueError("The sum of volume_ratio for all solvents must be 1.0")
+            numbers = calculate_solvent_numbers_from_volume_portions(
+                    [s["molecular_weight"] for s in self.data["solvents"]],
+                    [s["density"] for s in self.data["solvents"]],
+                    [s["volume_ratio"] for s in self.data["solvents"]],
+                    volume_in_m3
+                )
+        elif all_wratio_exist:
+            if not check_sum_to_one([s["weight_ratio"] for s in self.data["solvents"]]):
+                raise ValueError("The sum of weight_ratio for all solvents must be 1.0")
+            numbers = calculate_solvent_numbers_from_weight_portions(
+                    [s["molecular_weight"] for s in self.data["solvents"]],
+                    [s["density"] for s in self.data["solvents"]],
+                    [s["weight_ratio"] for s in self.data["solvents"]],
+                    volume_in_m3
+                )
+        elif all_mratio_exist:
+            if not check_sum_to_one([s["molar_ratio"] for s in self.data["solvents"]]):
+                raise ValueError("The sum of molar_ratio for all solvents must be 1.0")
+            numbers = calculate_solvent_numbers_from_molar_portions(
+                    [s["molecular_weight"] for s in self.data["solvents"]],
+                    [s["density"] for s in self.data["solvents"]],
+                    [s["molar_ratio"] for s in self.data["solvents"]],
+                    volume_in_m3
+                )
+        else:
+            raise ValueError(
+            "Cannot determine solvent numbers: provide 'number' for all solvents, or provide one ratio type "
+            "for all solvents ('volume_ratio' or 'weight_ratio' or 'molar_ratio')."
+            )
+        for i, solvent in enumerate(self.data['solvents']):
+            # Guard against rounding down to zero for small boxes / extreme ratios.
+            # If a solvent has a non-zero ratio, ensure at least 1 molecule.
+            n = int(numbers[i])
+            ratio = solvent.get("volume_ratio") or solvent.get("weight_ratio") or solvent.get("molar_ratio")
+            if ratio is not None and ratio > 0 and n <= 0:
+                n = 1
+            solvent['number'] = n
+
+    def parse(self):
+        # step 1: correct the keyword
+        self.data = self.correct_keyword(self.data)
+
+        # step 1.1: assign system_type if missing
+        if "system_type" not in self.data:
+            has_solute = ("solute" in self.data and self.data["solute"]) or ("solutes" in self.data and self.data["solutes"])
+            self.data["system_type"] = "solute_solvent" if has_solute else "mixture"
+        elif self.data.get("system_type") not in ["solute_solvent", "mixture"]:
+            self.logger.warning(f"Unrecognized system_type {self.data['system_type']}, defaulting to solute_solvent")
+            self.data["system_type"] = "solute_solvent"
+
+        # step 2: change 'solute': {...} to 'solutes': [{...},]; change 'solvent': {...} to 'solvents': [{...},]
+        check_inputs(self.data)
+        if ('solute' not in self.data or len(self.data.get('solute', {})) == 0) and ('solutes' not in self.data or len(self.data.get('solutes', [])) == 0):
+            if self.data.get("system_type") == "solute_solvent":
+                raise ValueError("No solute is provided for solute_solvent system type")
+            self.logger.info("This box only contains solvent molecules.")
+            self.data['solutes'] = []
+        if ('solute' in self.data and len(self.data['solute']) > 0) and ('solutes' in self.data and len(self.data['solutes']) > 0):
+            raise ValueError("Both 'solute' and 'solutes' are provided. Please provide only one.")
+        if ('solute' in self.data and len(self.data['solute']) > 0) and ('solutes' not in self.data or len(self.data['solutes']) == 0):
+            self.data['solutes'] = [self.data['solute']]
+            self.data.pop('solute')
+
+        if ('solvent' not in self.data or len(self.data['solvent']) == 0) and ('solvents' not in self.data or len(self.data['solvents']) == 0):
+            raise ValueError("No solvent is provided.")
+        if ('solvent' in self.data and len(self.data['solvent']) > 0) and ('solvents' in self.data and len(self.data['solvents']) > 0):
+            raise ValueError("Both 'solvent' and 'solvents' are provided. Please provide only one.")
+        if ('solvent' in self.data and len(self.data['solvent']) > 0) and ('solvents' not in self.data or len(self.data['solvents']) == 0):
+            self.data['solvents'] = [self.data['solvent']]
+            self.data.pop('solvent')
+
+        # step 3: add xyzfile keyword if not provided
+        self.data['solvents'] = [add_missing_xyzfile_keyword(solvent) for solvent in self.data['solvents']]
+        self.data['solutes'] = [add_missing_xyzfile_keyword(solute) for solute in self.data['solutes']]
+
+        # step 4: check solute type. add "__TYPE__" keyword to indicate the type of the solute
+        has_tmc = False
+        for solute in self.data['solutes']:
+            declared = solute.get("solute_type") or solute.get("__TYPE__")
+            if declared in ["transition_metal_complex", "tmc"]:
+                solute["__TYPE__"] = "transition_metal_complex"
+            elif declared in ["complex", "multi_fragment", "multifragment"]:
+                solute["__TYPE__"] = "complex"
+            elif declared in ["molecule", "regular"]:
+                solute["__TYPE__"] = "molecule"
+            else:
+                if check_transition_metal_complex(solute['xyzfile']):
+                    solute["__TYPE__"] = "transition_metal_complex"
+                elif check_multicomponent(solute['xyzfile']):
+                    solute["__TYPE__"] = "complex"
+                else:
+                    solute["__TYPE__"] = "molecule"
+            solute["solute_type"] = solute["__TYPE__"]
+            if solute["__TYPE__"] == "transition_metal_complex":
+                has_tmc = True
+        # for solvent in self.data['solvents']:
+        #     if check_transition_metal_complex(solvent['xyzfile']) or check_multicomponent(solvent['xyzfile']):
+        #         raise ValueError("Transition metal complex or molecule complex as solvent is not supported.")
+        
+        # step 4.5: for all solutes, find which one the user want to centered at the box center
+        # this is by finding the keyword "centered": true
+        # if a solute's number is greater than 1, we cannot center it.
+        center_found = False
+        for solute in self.data['solutes']:
+            if "centered" not in solute:
+                solute["centered"] = False
+            if solute["centered"] in [True, "true", "True", "Y", "y", "YES", "yes"]:
+                if center_found:
+                    raise ValueError("Only one solute can be centered at the box center. Multiple solutes are marked to be centered.")
+                if "number" in solute and solute["number"] > 1:
+                    raise ValueError("Cannot center a solute with number greater than 1.")
+                center_found = True
+
+        # step 5: add the missing keywords for transiton metal complex
+        if has_tmc:
+            self.logger.info("Transition metal complex is detected. Will use AutoMCPB to generate the force field parameters.")
+        for solute in self.data['solutes']:
+            if "number" not in solute:
+                solute["number"] = 1
+            if solute["__TYPE__"] != "transition_metal_complex":
+                continue    # the other type of solvents can be handled by the default parameters
+            self.add_tmc_kwargs(solute) # this is an in-place operation on the dictionary, no need to return the value
+
+        # step 6: if there is a transition metal complex, check the parameters required for automcpb.
+        if has_tmc:
+            self.add_qm_kwargs()
+            self.add_mcpb_kwargs()
+
+        # step 6.5: resolve the tleap adding bond issue
+        if has_tmc:
+            self.resolve_tleap_bond_issue()
+            
+        # step 7: assign the number of solvent molecules
+        self.assign_solvent_numbers()
+
+        # step 8: notify the user if some parameters are missing
+        if self.warn_user:
+            self.logger.warning("Some parameters are set to default ones that may not work for your system.")
+            self.logger.warning("Please check the 'autosolvate_input_full.json' file to see the full list of parameters.")

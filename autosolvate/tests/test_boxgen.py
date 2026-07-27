@@ -1,7 +1,6 @@
 import autosolvate
 import pytest
 import os
-from pkg_resources import resource_filename, Requirement
 from . import helper_functions as hp
 
 def compare_boxgen(out, ref):
