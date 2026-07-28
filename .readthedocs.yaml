@@ -3,6 +3,9 @@ build:
   os: "ubuntu-22.04"
   tools:
     python: "mambaforge-22.9"
+  jobs:
+    post_install:
+      - bash devtools/scripts/post_autosolvate_env.sh
 conda:
   environment: devtools/conda-envs/test_env.yaml
 sphinx:
