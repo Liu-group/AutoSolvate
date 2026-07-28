@@ -172,3 +172,55 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+# AutoSolvate package version
+import os
+import subprocess
+
+
+# Read the Docs version name:
+# examples: latest, stable, 2.0.0, release/1.x
+rtd_version = os.environ.get("READTHEDOCS_VERSION", "local")
+
+
+# Exact Git commit used to build the documentation
+try:
+    git_commit = subprocess.check_output(
+        ["git", "rev-parse", "--short", "HEAD"],
+        text=True,
+        stderr=subprocess.DEVNULL,
+    ).strip()
+except (subprocess.CalledProcessError, FileNotFoundError):
+    git_commit = "unknown"
+
+
+# Generate a message appropriate for the RTD version
+if rtd_version == "latest":
+    documentation_version_message = (
+        "You are reading documentation for the current development version "
+        f"of AutoSolvate, built from Git revision ``{git_commit}``. "
+        "Some documented features may not be available in the latest release."
+    )
+elif rtd_version == "stable":
+    documentation_version_message = (
+        "You are reading documentation for the current stable release of "
+        f"AutoSolvate, built from Git revision ``{git_commit}``."
+    )
+elif rtd_version == "local":
+    documentation_version_message = (
+        "This documentation was built locally from AutoSolvate Git revision "
+        f"``{git_commit}``."
+    )
+else:
+    documentation_version_message = (
+        f"This documentation corresponds to AutoSolvate version "
+        f"``{rtd_version}`` and was built from Git revision "
+        f"``{git_commit}``."
+    )
+
+
+# Make these values available in all .rst files
+rst_epilog = f"""
+.. |rtd_version| replace:: {rtd_version}
+.. |git_commit| replace:: {git_commit}
+.. |documentation_version_message| replace:: {documentation_version_message}
+"""

@@ -473,7 +473,7 @@ class boxgenGUI(baseGUI):
                          + "solvent box structure and force field parameters?"
                 answer = messagebox.askyesno(title="Confirmation", message=question)
                 if answer == True:
-                    subprocess.call(cmd, shell=True)
+                    subprocess.call(cmd, shell=True, cwd=self.output_path.get())
                     res = "Solvent box structure and parameter generation finished!"
                     messagebox.showinfo(title="Success", message=res, icon='info')
         
