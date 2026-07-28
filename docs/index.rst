@@ -54,7 +54,6 @@ Quickstart
    tutorial
    tutorialWeb
    tutorialGUI
-   advancedTutorial
    tutorialMulticomponent
    tutorial_for_metalcomplexes
    mcp_setup
