@@ -1,5 +1,22 @@
-GUI Tutorial
+GUI Tutorial (Legacy)
 =============================
+
+.. warning::
+
+   **The AutoSolvate GUI is a legacy feature from AutoSolvate 1.0.**
+
+   The GUI only supports the functionality available in **AutoSolvate 1.0**.
+   For the AutoSolvate 1.0 documentation, please see:
+   https://autosolvate.readthedocs.io/en/release-1.x/
+
+   The GUI **does not support the new features introduced in AutoSolvate 2.0**, including (but not limited to):
+
+   * Organometallic complexes as solutes
+   * Multicomponent systems (multiple solute species and/or multiple solvent species)
+   * Electrolyte systems
+   * Multiple water models (the GUI only supports the TIP3 water model available in AutoSolvate 1.0)
+
+   As an alternative to the legacy GUI, we recommend using **AutoSolvateWeb**, which provides a modern web interface for AutoSolvate. Please refer to the **AutoSolvateWeb tutorial** for details.
 
 The following code illustrates the usage of Autosolvate in the graphical user interface (GUI).
 
