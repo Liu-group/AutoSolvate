@@ -426,6 +426,17 @@ Example 3: Naphthalene in Acetonitrile (custom solvent)
 
 Example 4: Ion in Water 
 ----------------------------------------------------------
+.. image:: _images/tutorial4_6.png
+   :width: 400
+
+First, prepare the xyz file for a potassium ion (K+):
+::
+
+    1
+
+     K     0.0000000000    0.0000000000    0.0000000000
+
+Then, set up the simulation for K+ in water.
 
 ``autosolvate boxgen -m K.xyz -s water -c 1 -u 1 -o K_in_water``
   * The first step is putting the ion K+ in the solvent box, which uses the boxgen command. 
