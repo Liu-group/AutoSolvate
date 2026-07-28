@@ -110,3 +110,8 @@ ENV/
 .env
 test_*/
 .vscode/
+
+# Spinx documentation generation files
+docs/_build/
+docs/autosummary/
+docs/autosolvate.log
