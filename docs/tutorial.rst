@@ -424,6 +424,8 @@ Example 3: Naphthalene in Acetonitrile (custom solvent)
 .. image:: _images/tutorial4_5.jpg
    :width: 400
 
+.. _prepare-solvated-ion:
+
 Example 4: Ion in Water 
 ----------------------------------------------------------
 .. image:: _images/tutorial4_6.png
