@@ -5,7 +5,11 @@ build:
     python: "mambaforge-22.9"
   jobs:
     post_install:
-      - bash devtools/scripts/post_autosolvate_env.sh
+      - which python
+      - python --version
+      - python -m pip --version
+      - python -m pip install --no-deps "molsimplify==1.8.0"
+      - python -c "import molSimplify; print(molSimplify.__file__)"
 conda:
   environment: devtools/conda-envs/test_env.yaml
 sphinx:
