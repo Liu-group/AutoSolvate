@@ -10,8 +10,14 @@ Welcome to AutoSolvate's documentation!
 .. image:: ../autosolvate/GUI/images/logo.png
    :align: center
 
+
 Description
 ---------------------
+
+.. note::
+   
+   |documentation_version_message|
+
 
 This `open-source package <https://github.com/Liu-group/AutoSolvate/>`_ enables automated initial structure generation for explicitly solvated systems. This includes input file preparation. Additionally automated QM/MM trajectory generation and microsolvated cluster extraction is supported for the explicitly solvated systems. These features empower the user to rapidly generate large computational data sets.
 
