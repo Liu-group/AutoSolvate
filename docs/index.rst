@@ -37,11 +37,13 @@ Quickstart
 
    installation
    tutorial
+   tutorialWeb
    tutorialGUI
    advancedTutorial
    tutorialMulticomponent
    tutorial_for_metalcomplexes
    mcp_setup
+   webJobParameters
    api
    citation
 

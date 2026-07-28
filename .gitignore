@@ -115,3 +115,6 @@ test_*/
 docs/_build/
 docs/autosummary/
 docs/autosolvate.log
+
+# Mac cache files
+*~
