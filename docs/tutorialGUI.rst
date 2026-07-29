@@ -7,7 +7,7 @@ GUI Tutorial (Legacy)
 
    The GUI only supports the functionality available in **AutoSolvate 1.0**.
    For the AutoSolvate 1.0 documentation, please see:
-   https://autosolvate.readthedocs.io/en/release-1.x/
+   https://autosolvate.readthedocs.io/en/v1.0.0/
 
    The GUI **does not support the new features introduced in AutoSolvate 2.0**, including (but not limited to):
 
