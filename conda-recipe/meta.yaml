@@ -37,7 +37,6 @@ requirements:
     - parmed
     - pillow
     - pubchempy
-    - pytraj
     - python >=3.10,<3.13
     - rdkit
     - scipy <1.12
@@ -48,6 +47,7 @@ test:
   commands:
     - autosolvate --help
     - autosolvate-doctor
+    - python -c "import pytraj"
     - python -c "from autosolvate.ion_forcefield import IonForceFieldBuilder"
   requires:
     - pip
