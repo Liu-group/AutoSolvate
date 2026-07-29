@@ -42,6 +42,7 @@ setup(
     entry_points={
         'console_scripts': [
             'autosolvate = autosolvate.__main__:main',
+            'autosolvate-doctor = autosolvate.doctor:main',
             'autosolvate-mcp = autosolvate.fastmcp_server:main',
         ]
     },

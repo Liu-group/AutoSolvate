@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+if [ "${AUTOSOLVATE_HAD_BABEL_LIBDIR:-0}" = 1 ]; then
+    export BABEL_LIBDIR="${AUTOSOLVATE_OLD_BABEL_LIBDIR}"
+else
+    unset BABEL_LIBDIR
+fi
+
+unset AUTOSOLVATE_OLD_BABEL_LIBDIR
+unset AUTOSOLVATE_HAD_BABEL_LIBDIR

@@ -1,0 +1,51 @@
+{% set version = "1.8.0" %}
+
+package:
+  name: autosolvate-molsimplify
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/m/molsimplify/molsimplify-{{ version }}.tar.gz
+  sha256: b3b1fe16ae5fb760a1f656c49b9d48020f3e8fa1d2aed353fec7f6159f96868b
+
+build:
+  noarch: python
+  number: 0
+  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
+
+requirements:
+  host:
+    - pip
+    - python >=3.10,<3.13
+    - setuptools
+  run:
+    - importlib-resources
+    - networkx >=2.7
+    - numpy <2
+    - openbabel
+    - pandas
+    - python >=3.10,<3.13
+    - pyyaml
+    - scikit-learn
+    - scipy <1.12
+
+test:
+  imports:
+    - molSimplify
+    - molSimplify.Classes.mol3D
+  commands:
+    - python -c "from importlib.metadata import version; assert version('molSimplify') == '1.8.0'"
+
+about:
+  home: https://github.com/hjkgrp/molSimplify
+  license: GPL-3.0-only
+  license_file: LICENSE
+  summary: molSimplify 1.8.0 compatibility build for AutoSolvate
+  description: |
+    A pinned, conda-tracked build of molSimplify 1.8.0 used by AutoSolvate.
+    It replaces the untracked pip installation formerly performed after
+    creating an AutoSolvate environment.
+
+extra:
+  recipe-maintainers:
+    - Liu-group

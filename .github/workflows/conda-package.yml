@@ -36,14 +36,17 @@ jobs:
 
       - name: Build and test package
         shell: bash -el {0}
-        run: conda build conda-recipe -c conda-forge --no-anaconda-upload
+        run: |
+          conda build conda-recipe/molsimplify -c conda-forge --no-anaconda-upload
+          conda build conda-recipe -c local -c conda-forge --no-anaconda-upload
 
       - name: Collect package
         shell: bash -el {0}
         run: |
           mkdir -p conda-artifacts
-          package_path="$(conda build conda-recipe --output)"
-          cp "${package_path}" conda-artifacts/
+          molsimplify_path="$(conda build conda-recipe/molsimplify -c conda-forge --output)"
+          autosolvate_path="$(conda build conda-recipe -c local -c conda-forge --output)"
+          cp "${molsimplify_path}" "${autosolvate_path}" conda-artifacts/
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4

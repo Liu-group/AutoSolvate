@@ -10,9 +10,9 @@ source:
 build:
   noarch: python
   number: 0
-  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
   entry_points:
     - autosolvate = autosolvate.__main__:main
+    - autosolvate-doctor = autosolvate.doctor:main
     - autosolvate-mcp = autosolvate.fastmcp_server:main
 
 requirements:
@@ -26,7 +26,7 @@ requirements:
     - basis_set_exchange
     - mendeleev
     - mdtraj
-    - molsimplify >=1.8
+    - autosolvate-molsimplify ==1.8.0
     - networkx
     - nglview
     - numpy <2
@@ -47,6 +47,7 @@ test:
     - autosolvate
   commands:
     - autosolvate --help
+    - autosolvate-doctor
     - python -c "from autosolvate.ion_forcefield import IonForceFieldBuilder"
   requires:
     - pip

@@ -38,6 +38,9 @@ jobs:
       shell: bash -l {0}
       run: conda activate autosolvate
 
+    - name: Complete source environment setup
+      run: conda run -n autosolvate bash devtools/scripts/post_autosolvate_env.sh
+
     - name: Install additional dependencies if needed
       run: conda install --yes flake8 pytest
 
