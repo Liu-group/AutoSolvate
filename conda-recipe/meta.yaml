@@ -1,0 +1,68 @@
+{% set version = "2.0.0rc1" %}
+
+package:
+  name: autosolvate
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  number: 0
+  entry_points:
+    - autosolvate = autosolvate.__main__:main
+    - autosolvate-doctor = autosolvate.doctor:main
+    - autosolvate-mcp = autosolvate.fastmcp_server:main
+
+requirements:
+  host:
+    - pip
+    - python >=3.10,<3.13
+    - setuptools
+  run:
+    - ambertools
+    - ase
+    - basis_set_exchange
+    - mendeleev
+    - mdtraj
+    - autosolvate-molsimplify ==1.8.0
+    - networkx
+    - nglview
+    - numpy <2
+    - openbabel
+    - openmm
+    - packmol
+    - pandas
+    - parmed
+    - pillow
+    - pubchempy
+    - python >=3.10,<3.13
+    - rdkit
+    - scipy <1.12
+
+test:
+  imports:
+    - autosolvate
+  commands:
+    - autosolvate --help
+    - autosolvate-doctor
+    - python -c "import pytraj"
+    - python -c "from autosolvate.ion_forcefield import IonForceFieldBuilder"
+  requires:
+    - pip
+
+about:
+  home: https://github.com/Liu-group/AutoSolvate
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: Automated workflow for adding explicit solvent to molecules
+  description: |
+    AutoSolvate automates the construction of explicitly solvated molecular
+    systems for classical and quantum chemistry workflows.
+  doc_url: https://autosolvate.readthedocs.io/
+  dev_url: https://github.com/Liu-group/AutoSolvate
+
+extra:
+  recipe-maintainers:
+    - Liu-group

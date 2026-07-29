@@ -42,6 +42,7 @@ setup(
     entry_points={
         'console_scripts': [
             'autosolvate = autosolvate.__main__:main',
+            'autosolvate-doctor = autosolvate.doctor:main',
             'autosolvate-mcp = autosolvate.fastmcp_server:main',
         ]
     },
@@ -56,8 +57,9 @@ setup(
 
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     # url='http://www.my_package.com',  # Website
-    install_requires=['imolecule'],              # Required packages, pulls from pip if needed; do not use for Conda deployment
+    install_requires=[],
     extras_require={
+        'gui': ['imolecule'],
         'mcp': ['fastmcp>=3.0,<4'],
     },
     # platforms=['Linux',
