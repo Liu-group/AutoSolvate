@@ -40,11 +40,18 @@ about:
   home: https://github.com/hjkgrp/molSimplify
   license: GPL-3.0-only
   license_file: LICENSE
-  summary: molSimplify 1.8.0 compatibility build for AutoSolvate
+  summary: Unofficial molSimplify 1.8.0 compatibility package for AutoSolvate 
   description: |
-    A pinned, conda-tracked build of molSimplify 1.8.0 used by AutoSolvate.
-    It replaces the untracked pip installation formerly performed after
-    creating an AutoSolvate environment.
+    This is an unofficial redistribution of molSimplify 1.8.0 packaged
+    for compatibility with AutoSolvate. molSimplify is developed and
+    copyrighted by its original authors. The AutoSolvate developers are
+    not affiliated with or endorsed by the molSimplify developers.
+
+    The original source code is available from:
+    https://github.com/hjkgrp/molSimplify/tree/v1.8.0
+
+    This package is distributed under the GNU General Public License v3.
+  dev_url: https://github.com/hjkgrp/molSimplify
 
 extra:
   recipe-maintainers:
