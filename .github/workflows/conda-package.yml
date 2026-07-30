@@ -59,9 +59,14 @@ jobs:
         shell: bash -el {0}
         env:
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+          ANACONDA_OWNER: LiuGroupEmory
         run: |
           if [[ -z "${ANACONDA_API_TOKEN}" ]]; then
             echo "::warning::ANACONDA_API_TOKEN is not configured; skipping release upload."
             exit 0
           fi
-          anaconda --token "${ANACONDA_API_TOKEN}" upload --force conda-artifacts/*
+   
+          anaconda --token "${ANACONDA_API_TOKEN}" upload \
+            --user "${ANACONDA_OWNER}" \
+            --force \
+            conda-artifacts/*
